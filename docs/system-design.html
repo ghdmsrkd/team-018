@@ -39,10 +39,10 @@ svg text{font-family:"IBM Plex Sans KR",sans-serif}
 
 <div class="eyebrow">키로톤 · 팀 018 · 시스템 설계 v0.1 · 2026-11-14</div>
 <h1>하루 · 사용자 앱부터 인프라까지</h1>
-<p class="lead">서버(Lambda, API Gateway)도 서버 DB도 두지 않는다. 데이터는 전부 폰의 SQLite에 있고, 앱이 Cognito에서 받은 임시 자격 증명으로 Bedrock을 직접 호출한다. 코드에는 API 키가 없다.</p>
+<p class="lead">서버 DB는 두지 않는다. 데이터는 전부 폰의 SQLite에 있고, 앱은 Lambda 함수 하나(Function URL)를 거쳐 Bedrock을 호출한다. API 키와 AWS 자격 증명은 앱에도 GitHub에도 없고, Lambda의 실행 역할만 Bedrock 권한을 가진다.</p>
 
 <div class="grid">
-  <div class="card"><b>구성 요소 4개</b><p>Expo 앱 · 폰 SQLite 2개 · Cognito Identity Pool · Bedrock</p></div>
+  <div class="card"><b>구성 요소 4개</b><p>Expo 앱 · 폰 SQLite 2개 · Lambda 1개 · Bedrock</p></div>
   <div class="card"><b>LLM</b><p><code>global.openai.gpt-6-luna</code> 추론 프로파일. 서울 리전(<code>ap-northeast-2</code>)에서 호출 가능한 것을 직접 확인했다.</p></div>
   <div class="card"><b>서버에 보내는 것</b><p>스키마(뷰 정의)와 SQL 결과 행. 원시 좌표와 집·회사 좌표는 보내지 않는다.</p></div>
 </div>
@@ -102,9 +102,10 @@ svg text{font-family:"IBM Plex Sans KR",sans-serif}
   <text x="42" y="390" font-size="11.5" fill="#5A6168">지도 · 재생은 로컬 데이터로</text>
 
   <rect x="30" y="460" width="600" height="70" rx="10" fill="#fff" stroke="#16191D" stroke-dasharray="4 3"/>
-  <text x="42" y="484" font-size="13" font-weight="600">⑥ 자격 증명 매니저</text>
-  <text x="42" y="504" font-size="11.5" fill="#5A6168">첫 실행: 게스트 ID 발급 → 임시 자격 증명(1시간) 캐시 → 만료 5분 전 갱신 → SigV4 서명은 AWS SDK가 처리</text>
-  <text x="42" y="520" font-size="11.5" fill="#5A6168">키체인(expo-secure-store)에는 Cognito identityId만 저장. 장기 키는 없다.</text>
+  <text x="42" y="484" font-size="13" font-weight="600">⑥ API 클라이언트</text>
+  <text x="42" y="504" font-size="11.5" fill="#5A6168">POST {LAMBDA_URL}/chat · /geocode. URL은 .env(gitignore)에서 읽는다.</text>
+  <text x="42" y="520" font-size="11.5" fill="#5A6168">서명도 자격 증명도 없다. 요청 본문(JSON)만 보낸다.</text>
+  <rect x="30" y="460" width="0" height="0"/>
 
   <!-- arrows inside -->
   <path d="M120 128 V170" stroke="#16191D" stroke-width="2" marker-end="url(#a)"/>
@@ -120,16 +121,16 @@ svg text{font-family:"IBM Plex Sans KR",sans-serif}
   <text x="710" y="40" font-size="14" font-weight="700">AWS · ap-northeast-2</text>
 
   <rect x="710" y="62" width="260" height="104" rx="10" fill="#F6F7F4" stroke="#16191D"/>
-  <text x="722" y="86" font-size="13" font-weight="700">Cognito Identity Pool</text>
-  <text x="722" y="106" font-size="11.5" fill="#5A6168">게스트(비인증) 접근 허용</text>
-  <text x="722" y="124" font-size="11.5" fill="#5A6168">→ STS 임시 자격 증명 발급</text>
-  <text x="722" y="142" font-size="11.5" fill="#5A6168">역할: HaruGuestRole (최소 권한)</text>
+  <text x="722" y="86" font-size="13" font-weight="700">Lambda (Function URL)</text>
+  <text x="722" y="106" font-size="11.5" fill="#5A6168">/chat → Bedrock Converse 중계</text>
+  <text x="722" y="124" font-size="11.5" fill="#5A6168">/geocode → Kakao Local (키는 환경변수)</text>
+  <text x="722" y="142" font-size="11.5" fill="#5A6168">모델·max_tokens 서버에서 고정, 동시성 5</text>
 
   <rect x="710" y="206" width="260" height="130" rx="10" fill="#EEF3FF" stroke="#1F4FD1" stroke-width="2"/>
   <text x="722" y="230" font-size="13" font-weight="700" fill="#1F4FD1">Amazon Bedrock Runtime</text>
   <text x="722" y="250" font-size="11.5">Converse API (tool use)</text>
   <text x="722" y="268" font-size="11.5" font-family="IBM Plex Mono">global.openai.gpt-6-luna</text>
-  <text x="722" y="288" font-size="11.5" fill="#5A6168">IAM: 이 모델 InvokeModel만 허용</text>
+  <text x="722" y="288" font-size="11.5" fill="#5A6168">Lambda 실행 역할: 이 모델만 허용</text>
   <text x="722" y="306" font-size="11.5" fill="#5A6168">Guardrails(선택) · CloudWatch 로그</text>
 
   <rect x="710" y="376" width="260" height="76" rx="10" fill="#F6F7F4" stroke="#16191D"/>
@@ -138,32 +139,31 @@ svg text{font-family:"IBM Plex Sans KR",sans-serif}
   <text x="722" y="438" font-size="11.5" fill="#5A6168">Bedrock 서비스 쿼터, CloudWatch 경보</text>
 
   <rect x="710" y="470" width="260" height="62" rx="10" fill="#fff" stroke="#16191D" stroke-dasharray="4 3"/>
-  <text x="722" y="494" font-size="13" font-weight="600">지오코딩 (결정 필요)</text>
-  <text x="722" y="512" font-size="11.5" fill="#5A6168">Amazon Location(키 없음) vs Kakao(키 필요)</text>
+  <text x="722" y="494" font-size="13" font-weight="600">Kakao Local API</text>
+  <text x="722" y="512" font-size="11.5" fill="#5A6168">키는 Lambda 환경변수에만 있다</text>
 
   <!-- arrows to AWS -->
-  <path d="M630 495 H710 " stroke="#16191D" stroke-width="2" marker-end="url(#a)"/>
-  <text x="640" y="486" font-size="10.5" fill="#5A6168">① 자격 증명</text>
-  <path d="M630 375 H710 V300" stroke="#1F4FD1" stroke-width="2" fill="none" marker-end="url(#b)" stroke-dasharray="0"/>
-  <text x="636" y="366" font-size="10.5" fill="#1F4FD1">② Converse (SigV4)</text>
+  <path d="M630 495 H650 V120 H710" stroke="#16191D" stroke-width="1.5" fill="none" stroke-dasharray="3 3"/>
+  <text x="640" y="486" font-size="10.5" fill="#5A6168">/geocode</text>
+  <path d="M630 375 H670 V110 H710" stroke="#1F4FD1" stroke-width="2" fill="none" marker-end="url(#b)"/>
+  <text x="636" y="366" font-size="10.5" fill="#1F4FD1">/chat (HTTPS)</text>
   <path d="M840 166 V206" stroke="#16191D" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#a)"/>
-  <text x="848" y="190" font-size="10.5" fill="#5A6168">역할 권한</text>
+  <text x="848" y="190" font-size="10.5" fill="#5A6168">InvokeModel</text>
 </svg>
 </div>
 
-<h2>2. API 키 없이 Bedrock을 부르는 방법</h2>
+<h2>2. 키 없이 Bedrock을 부르는 방법: Lambda 중계</h2>
 <div class="card">
-<p><b>방식:</b> Cognito Identity Pool의 게스트 ID로 임시 자격 증명(AccessKey, SecretKey, SessionToken, 유효 1시간)을 받고, 그 자격 증명으로 SigV4 서명한 요청을 Bedrock에 직접 보낸다. 앱 번들에는 Identity Pool ID(비밀이 아닌 식별자)만 들어간다.</p>
+<p><b>방식:</b> 앱은 Lambda Function URL로 JSON만 보낸다. Lambda는 자신의 실행 역할(IAM Role)로 Bedrock을 호출한다. 자격 증명이 Lambda 안에만 있어서 앱 코드와 GitHub 어디에도 키가 없다.</p>
 <ol class="steps">
-  <li>앱 첫 실행: <code>GetId</code>로 게스트 <code>identityId</code> 발급, 기기 키체인에 저장한다.</li>
-  <li>챗을 쓸 때: <code>GetCredentialsForIdentity</code>로 임시 자격 증명을 받아 메모리에 둔다. 디스크에는 쓰지 않는다.</li>
-  <li><code>@aws-sdk/client-bedrock-runtime</code>의 <code>ConverseCommand</code>를 호출한다. 서명은 SDK가 한다.</li>
-  <li>만료 5분 전에 자동 갱신한다. 실패하면 챗만 "지금은 물어볼 수 없어요"로 막고 나머지 기능은 그대로 쓴다.</li>
+  <li>앱이 <code>POST {LAMBDA_URL}/chat</code>에 <code>{system, messages, tools}</code>를 보낸다.</li>
+  <li>Lambda가 모델 ID(<code>global.openai.gpt-6-luna</code>)와 <code>maxTokens</code>를 서버 값으로 덮어쓰고 <code>ConverseCommand</code>를 호출한다.</li>
+  <li>Lambda가 Bedrock 응답(텍스트 또는 <code>toolUse</code>)을 그대로 앱에 돌려준다. 에이전트 루프는 앱이 돌린다.</li>
 </ol>
-<p><span class="tag">대안</span> Bedrock API 키는 키 자체를 앱에 넣는 방식이라 요구사항에 맞지 않는다. 임시 자격 증명이 유일한 선택지다.</p>
+<p><b>공개 저장소에 두지 않을 것:</b> Lambda URL은 <code>.env</code>에 넣고 <code>.gitignore</code>에 올린다(<code>EXPO_PUBLIC_API_URL</code>). 팀원에게는 따로 공유한다. URL은 비밀번호가 아니라서 앱을 풀면 나오지만, 저장소에서 검색되지는 않는다. 커밋 전 검사로 <code>gitleaks</code>를 pre-commit 훅에 건다.</p>
 </div>
 
-<h3>게스트 역할(HaruGuestRole) 권한 정책</h3>
+<h3>Lambda 실행 역할 권한</h3>
 <pre><code>{
   "Version": "2012-10-17",
   "Statement": [{
@@ -175,7 +175,36 @@ svg text{font-family:"IBM Plex Sans KR",sans-serif}
     ]
   }]
 }</code></pre>
-<p>신뢰 정책은 <code>cognito-identity.amazonaws.com</code>, <code>aud</code> = 우리 Identity Pool ID, <code>amr</code> = <code>unauthenticated</code> 조건으로 건다. Converse도 <code>bedrock:InvokeModel</code> 권한으로 동작한다. 그 외 권한은 하나도 주지 않는다.</p>
+
+<h3>Lambda 코드 (Node.js, 약 25줄)</h3>
+<pre><code>import { BedrockRuntimeClient, ConverseCommand } from "@aws-sdk/client-bedrock-runtime";
+const client = new BedrockRuntimeClient({ region: "ap-northeast-2" });
+const MODEL = "global.openai.gpt-6-luna";
+
+export const handler = async (event) =&gt; {
+  const path = event.rawPath;
+  const body = JSON.parse(event.body ?? "{}");
+  if ((event.body ?? "").length &gt; 200_000) return json(413, { error: "too large" });
+
+  if (path === "/chat") {
+    const out = await client.send(new ConverseCommand({
+      modelId: MODEL,                              // 앱이 보낸 값은 무시
+      system: body.system,
+      messages: body.messages,
+      toolConfig: body.toolConfig,
+      inferenceConfig: { maxTokens: 1024, temperature: 0 },
+    }));
+    return json(200, { output: out.output, stopReason: out.stopReason, usage: out.usage });
+  }
+  if (path === "/geocode") {
+    const r = await fetch(`https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x=${+body.lng}&amp;y=${+body.lat}`,
+      { headers: { Authorization: `KakaoAK ${process.env.KAKAO_REST_KEY}` } });
+    return json(r.status, await r.json());
+  }
+  return json(404, { error: "not found" });
+};
+const json = (statusCode, o) =&gt; ({ statusCode, headers: { "content-type": "application/json" }, body: JSON.stringify(o) });</code></pre>
+<p>설정: 런타임 <code>nodejs24.x</code>, 메모리 256MB, 타임아웃 60초, Function URL 인증 <code>NONE</code>, <b>예약 동시성 5</b>. 예약 동시성이 동시 호출 수를 막아 주므로 누가 URL을 알아내도 비용이 급격히 늘지 않는다. Kakao 키는 Lambda 환경변수 <code>KAKAO_REST_KEY</code>에만 둔다.</p>
 
 <h2>3. 챗 한 번의 흐름 (에이전트 루프)</h2>
 <div class="card">
@@ -246,18 +275,20 @@ CREATE VIEW v_days AS SELECT day, stay_count, distance_m FROM days;</code></pre>
 <h2>6. 인프라 목록 (AWS 리소스 전부)</h2>
 <table>
 <tr><th>리소스</th><th>용도</th><th>비고</th></tr>
-<tr><td>Cognito Identity Pool 1개</td><td>게스트 임시 자격 증명</td><td>비인증 ID 허용, 역할 1개 연결</td></tr>
-<tr><td>IAM Role <code>HaruGuestRole</code></td><td>Bedrock 호출 권한</td><td>2장의 정책 그대로</td></tr>
+<tr><td>Lambda 1개 + Function URL</td><td><code>/chat</code> Bedrock 중계, <code>/geocode</code> Kakao 중계</td><td>인증 NONE, 예약 동시성 5</td></tr>
+<tr><td>IAM Role (Lambda 실행 역할)</td><td>Bedrock 호출 권한</td><td>2장의 정책 + 기본 로그 권한</td></tr>
 <tr><td>Bedrock 모델 접근</td><td><code>openai.gpt-6-luna</code></td><td>콘솔에서 모델 접근 활성화 필요</td></tr>
-<tr><td>AWS Budgets + 경보</td><td>비용 상한</td><td>임계치 도달 시 역할에 거부 정책을 붙이는 액션</td></tr>
-<tr><td>CloudWatch 모델 호출 로깅</td><td>사용량 확인</td><td>프롬프트 본문 로깅은 끄는 편이 프라이버시에 맞다</td></tr>
+<tr><td>AWS Budgets + 경보</td><td>비용 상한</td><td>임계치 도달 시 Lambda 예약 동시성을 0으로 내리는 액션</td></tr>
+<tr><td>CloudWatch Logs</td><td>사용량 확인</td><td>요청 본문(위치 데이터 포함 가능)은 로그에 남기지 않는다</td></tr>
 </table>
-<p>Lambda, API Gateway, DynamoDB, RDS, S3는 쓰지 않는다. IaC는 CDK나 CLI 스크립트 한 파일이면 된다. 개인 프로필 <code>me-private-m1-mac-pro</code>로 배포한다.</p>
+<p>API Gateway, DynamoDB, RDS, S3, Cognito는 쓰지 않는다. 개인 프로필 <code>me-private-m1-mac-pro</code>로 배포한다.</p>
 
-<h2>7. 서버가 없어서 생기는 한계</h2>
+<h2>7. 한계와 알아 둘 점</h2>
 <div class="note">
-<b>남용 위험:</b> Identity Pool ID는 앱을 풀면 나온다. 게스트 ID는 누구나 받을 수 있으므로, 이 ID로 임시 자격 증명을 받아 <code>gpt-6-luna</code>를 직접 호출하는 것을 막을 수 없다. IAM은 호출 횟수와 <code>max_tokens</code>를 제한하지 못한다. 서버가 없으면 사용자별 한도도 둘 수 없다.
-<br>해커톤 데모에서는 허용 모델 1개, Budgets 자동 차단, 서비스 쿼터로 피해를 한정하는 것으로 충분하다. 출시한다면 로그인(Sign in with Apple을 Cognito에 연결)을 붙이고, 그래도 사용자별 한도가 필요하면 그때 Lambda 한 개를 추가한다.
+<b>남용 위험:</b> Function URL은 인증이 없어서 앱을 푼 사람이나 URL을 아는 사람은 누구나 <code>/chat</code>을 호출할 수 있다. 막는 장치는 모델·토큰 수 고정, 예약 동시성 5, Budgets 자동 차단이다. 사용자별 한도는 없다. 해커톤 데모에는 충분하다. URL이 새면 Lambda를 새로 만들어 URL을 바꾸고 앱 <code>.env</code>만 갱신한다.
+</div>
+<div class="note">
+<b>위치 정보가 Lambda를 지난다:</b> 질문과 SQL 결과 행(장소 이름, 시각)이 Lambda를 통과한다. 로그에 본문을 남기지 않는 것으로 막는다. <code>/geocode</code>는 좌표를 Kakao에 보낸다. 원시 점은 보내지 않고, 앱이 Stay로 만든 장소 중심점만 보낸다.
 </div>
 <div class="note">
 <b>RN 스트리밍:</b> React Native의 <code>fetch</code>는 응답 스트리밍을 기본 지원하지 않는다. 1차는 스트리밍 없이 <code>Converse</code>를 쓰고, 대기 중에는 "찾는 중…" 상태와 진행 단계(조회 중, 정리 중)를 보여준다.
@@ -268,18 +299,17 @@ CREATE VIEW v_days AS SELECT day, stay_count, distance_m FROM days;</code></pre>
 
 <h2>8. 팀이 정해야 할 것</h2>
 <div class="decide">
-<b>① 지오코딩/POI:</b> 같은 구조(키 없음)를 유지하려면 Amazon Location Service를 같은 Cognito 역할에 권한 추가로 쓴다. 다만 한국 POI 정확도는 Kakao Local API가 더 낫다. Kakao를 쓰면 REST 키를 앱에 넣어야 해서 "키를 박지 않는다"는 원칙과 충돌한다.
-<br>선택지: (a) Amazon Location, (b) 더미 데이터는 생성기가 장소명을 이미 갖고 있으므로 데모에서는 지오코딩을 건너뛰고 실사용 기록만 Amazon Location을 쓴다. <b>(b)를 권한다.</b> 데모에 필요한 정확도를 확보하면서 키가 없다.
+<b>① 지오코딩:</b> Lambda가 Kakao 키를 갖고 있으므로 한국 POI 정확도가 높은 Kakao Local API를 그대로 쓴다. 더미 데이터는 생성기가 장소명을 이미 갖고 있어서 호출하지 않는다.
 <br><br>
 <b>② 데이터 저장 위치:</b> 이 설계는 "기기에만 저장"으로 확정한다. 이 결정으로 PLAN.md의 미결 항목 하나가 닫히고, US-26 화면의 문구도 "내 데이터는 내 폰에만 있고, 질문할 때 필요한 결과만 AI에 전달돼요"로 정해진다. 단점은 폰을 바꾸거나 앱을 지우면 기록이 사라지는 것이다. 백업은 이번 범위에서 뺀다.
 <br><br>
-<b>③ 가입 없는 게스트로 갈지:</b> 해커톤은 게스트로 간다.
+<b>③ 가입 없는 게스트로 갈지:</b> 해커톤은 로그인 없이 간다.
 </div>
 
 <h2>9. 구현 순서</h2>
 <table>
 <tr><th>순서</th><th>할 일</th><th>담당</th><th>끝났다고 보는 기준</th></tr>
-<tr><td>0</td><td>Cognito + 역할 + Bedrock 접근 설정, <code>gpt-6-luna</code> Converse 도구 호출 확인</td><td>C</td><td>앱 없이 스크립트로 임시 자격 증명 → 호출 성공</td></tr>
+<tr><td>0</td><td>Lambda + Function URL 배포, <code>gpt-6-luna</code> Converse 도구 호출 확인</td><td>C</td><td>앱 없이 <code>curl</code>로 <code>/chat</code> 호출 성공</td></tr>
 <tr><td>1</td><td>SQLite DDL 확정, 더미 생성기가 raw.db를 채움</td><td>B</td><td>생성된 Point가 엔진을 거쳐 정답지의 Stay/Trip으로 복원</td></tr>
 <tr><td>2</td><td>Expo 앱 골격, 오늘 타임라인(US-09), 목업 memory.db 연결</td><td>A</td><td>더미 데이터로 하루 타임라인 표시</td></tr>
 <tr><td>3</td><td>에이전트 런타임: SQL 가드, 도구 루프, 카드 조립 (US-15, 18, 19)</td><td>C</td><td>데모 질문 5개에 정확히 답하고 카드 표시</td></tr>
