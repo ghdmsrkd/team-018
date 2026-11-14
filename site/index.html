@@ -64,6 +64,14 @@ h2 em { font-style: normal; color: var(--blue); }
 body.static *, body.static *::before, body.static *::after { animation-duration: 0s !important; animation-delay: 0s !important; transition: none !important; }
 body.static .bar, body.static .keys { display: none; }
 
+/* 화면이 낮으면 슬라이드 안에서 스크롤 */
+.slide { overflow-y: auto; overscroll-behavior: contain; }
+.compare, .diffs { flex-shrink: 0; }
+.bar { background: var(--bg); }
+.life { min-height: 420px; flex-shrink: 0; }
+.compare { overflow-x: auto; }
+.compare table { min-width: 860px; }
+
 /* 2막 비교 */
 .compare { margin-top: 30px; border-radius: 22px; overflow: hidden; border: 1px solid var(--line); background: var(--card); }
 .compare table { width: 100%; border-collapse: collapse; font-size: clamp(13px, 1.1vw, 16px); }
@@ -170,11 +178,11 @@ body.static .bar, body.static .keys { display: none; }
   </section>
 
   <!-- 1-c. 삶도 분류하면 선명해진다 -->
-  <section class="slide" data-act="1" id="life" data-note="작년 이맘때 뭐 하셨는지 바로 찾을 수 있나요? 카페에 간 것, 야근한 것, 속초 바다를 본 것. 기억은 다 폰 어딘가에 남아 있지만, 이렇게 흩어져 있으면 찾을 수가 없습니다. (→ 키) 그런데 칸을 나누면 어떨까요. 집, 회사, 밥집, 커피, 운동, 여행. 같은 기억인데 나뉘는 순간 바로 찾을 수 있고, 내가 어디에 시간을 쓰는지도 선명하게 보입니다. HARU는 이 칸을 대신 나눠 두었다가, 물어보면 찾아 줍니다. 내 삶의 검색엔진입니다.">
+  <section class="slide" data-act="1" id="life" data-note="작년 이맘때 뭐 하셨는지 바로 찾을 수 있나요? 카페에 간 것, 야근한 것, 속초 바다를 본 것. 기억은 다 폰 어딘가에 남아 있지만, 이렇게 흩어져 있으면 찾을 수가 없습니다. (→ 키) 그런데 칸을 나누면 어떨까요. 집, 회사, 밥집, 커피, 운동, 여행. 같은 기억인데 나누면 찾기 편하고, 내가 어디에 시간을 쓰는지도 선명하게 보입니다. HARU는 하루를 나누는 것을 도와줍니다.">
     <div class="act"><b>01</b> 동기부여</div>
     <h2 id="life-title">우리의 하루는 <em>흩어져</em> 있습니다</h2>
     <div class="life" id="life-board"></div>
-    <div class="reveal life-msg">나뉘어 있으면 <span>바로 찾을 수 있습니다.</span> HARU는 칸을 대신 나누고, 물어보면 찾아 줍니다.</div>
+    <div class="reveal life-msg"><span>나누면 찾기 편합니다.</span> HARU는 하루를 나누는 것을 도와줍니다.</div>
   </section>
 
   <!-- 2. 한계와 차별점 -->
