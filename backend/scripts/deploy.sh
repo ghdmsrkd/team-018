@@ -21,10 +21,13 @@ echo "account=$ACCOUNT region=$AWS_REGION function=$FN model=$MODEL_ID"
 # 1) 실행 역할: Bedrock 호출 권한만 (+ 로그)
 FOUNDATION_ID="${MODEL_ID#global.}"
 FOUNDATION_ID="${FOUNDATION_ID#apac.}"
+# Marketplace 방식 모델(OpenAI 등)은 처음 호출할 때 호출 주체가 구독 권한을 요구한다.
 POLICY=$(cat <<EOF
-{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Action":["bedrock:InvokeModel"],"Resource":[
+{"Version":"2012-10-17","Statement":[
+ {"Effect":"Allow","Action":["bedrock:InvokeModel"],"Resource":[
   "arn:aws:bedrock:*::foundation-model/${FOUNDATION_ID}",
-  "arn:aws:bedrock:*:${ACCOUNT}:inference-profile/${MODEL_ID}"]}]}
+  "arn:aws:bedrock:*:${ACCOUNT}:inference-profile/${MODEL_ID}"]},
+ {"Effect":"Allow","Action":["aws-marketplace:ViewSubscriptions","aws-marketplace:Subscribe"],"Resource":"*"}]}
 EOF
 )
 if ! aws iam get-role --role-name "$ROLE" >/dev/null 2>&1; then
