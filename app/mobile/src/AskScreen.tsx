@@ -138,7 +138,7 @@ export function AskScreen({ source }: { source: DataSource }) {
           <Text style={styles.cardText}>
             {CHAT_SEND_ENABLED
               ? ''
-              : '답을 만드는 모델 호출이 아직 승인되지 않았고, 이 기기의 기록을 읽기 전용으로 조회하는 도구도 준비 중이에요. 그전에는 기록 없는 답을 보여 주지 않으려고 전송을 막아 두었어요.'}
+              : '답을 만들 때 쓸 이 기기의 기록(memory.db)과 그 기록을 읽기 전용으로 조회하는 도구가 아직 준비 중이에요. 기록 없이 만든 답을 보여 주지 않으려고 전송을 막아 두었어요.'}
           </Text>
         </View>
       )}

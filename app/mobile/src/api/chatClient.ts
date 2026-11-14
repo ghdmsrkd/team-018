@@ -34,9 +34,10 @@ export function getApiUrl(): Promise<string | null> {
 }
 
 /**
- * Sending questions stays off until both blockers in docs/app-handoff.md are cleared:
- * Bedrock AccessDenied on /chat, and the local read-only query tool / agent package.
- * Without the tool the model would answer without the user's records.
+ * Sending questions stays off. The relay itself works (Haiku 4.5 with tool_use, per
+ * docs/app-handoff.md), but the app has no on-device memory.db and no read-only query_sql
+ * tool loop yet, and this build has no deployed URL configured. Without the tool the model
+ * would answer without the user's records.
  */
 export const CHAT_SEND_ENABLED = false;
 

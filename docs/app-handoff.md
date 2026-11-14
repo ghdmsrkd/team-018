@@ -58,7 +58,7 @@ curl -s $EXPO_PUBLIC_API_URL/health
 - 앱은 Expo가 아니라 bare React Native + Swift다. 위치는 Swift `CLLocationManager.startMonitoringVisits`(CLVisit)로 받아 앱 자체 SQLite(`Application Support/VisitStore/visits.sqlite`)에 저장한다. 기존 기록과 태그를 지키려고 Expo 전환과 `expo-sqlite`는 하지 않았다.
 - 공유 계약 타입은 `@haru/schema`를 tsconfig `paths`로 직접 `import type` 한다(`app/mobile/src/api/chatClient.ts`, `demoAnswer.ts`). 앱은 pnpm workspace 밖이라 런타임 값(`TAGS`, DDL 문자열)은 import하지 않는다. 런타임 import가 필요해지면 Metro `watchFolders` 설정이 먼저 필요하다.
 - Lambda URL은 `EXPO_PUBLIC_API_URL`(루트 `.env`) 또는 `HARU_API_URL`(`app/mobile/.env`)에서 iOS 빌드 단계 `ios/scripts/inject-api-url.sh`가 빌드 산출물 Info.plist(`HaruApiUrl`)에 넣는다. 코드와 저장소에는 URL이 없다. https만 받는다.
-- `/health`는 물어보기 탭에서 호출해 연결 상태를 보여 준다. `/chat` 전송 함수는 계약대로 있지만 아래 블로커 때문에 꺼져 있다(`CHAT_SEND_ENABLED = false`). `/geocode`는 호출하지 않는다.
+- `/health`는 물어보기 탭에서 호출해 연결 상태와 모델 이름을 보여 준다. `/chat` 전송 함수는 계약대로 있다. 중계는 Haiku 4.5로 `tool_use`까지 동작하지만(위 "`/chat` 모델"), 앱 쪽 준비가 안 돼서 라이브 질문 전송은 꺼져 있다(`CHAT_SEND_ENABLED = false`, 아래 남은 의존성). `/geocode`는 호출하지 않는다.
 - 샘플 모드의 물어보기는 고정 `AgentAnswer`를 쓰고, 카드 `{type, id}`는 앱의 샘플 방문에서 다시 조회한다(`day`, `stay`만). 모델 호출은 없다.
 - `RAW_DDL`/`MEMORY_DDL`은 아직 적용하지 않았다. 지금 앱 화면은 CLVisit 저장소를 직접 읽고, `memory.db`를 채우는 엔진(방문→장소→stay)이 앱에 없어서 빈 DB를 만들어도 소비하는 경로가 없다. 기존 `visits.sqlite`는 그대로 둔다.
 
@@ -72,6 +72,7 @@ curl -s $EXPO_PUBLIC_API_URL/health
 - 연결 시 매핑 규칙(예: 카페→커피, 식당→밥집, 7개 밖 태그는 null 또는 별도 처리)과 `manual`→`human` 대응을 정해야 한다. 제품 결정 전이라 앱 태그 목록은 바꾸지 않았다.
 
 **남은 의존성 (앱이 기다리는 것)**
-- Bedrock `AccessDeniedException` 해결 후 `/chat` 실제 응답 확인 (`backend/scripts/smoke.sh`).
-- 에이전트 패키지(SQL 가드, 도구 루프, 카드 조립)와 앱에서 실행할 로컬 읽기 전용 `query_sql` 도구. 이 도구는 `v_*` 뷰가 있는 `memory.db`가 기기에 있어야 한다.
-- 위 둘이 오면 `CHAT_SEND_ENABLED`를 켜고, 실제 배포 URL로 `/health`·`/chat`을 실기기에서 검증한다.
+- (해결됨) `/chat` 중계는 Haiku 4.5 배포로 `tool_use`까지 확인됐다. `AccessDeniedException`은 `gpt-6-luna` 모델에만 남아 있는 권한 이슈이고, 모델은 Lambda `MODEL_ID`로만 바뀌므로 앱에는 영향이 없다.
+- 기기의 `memory.db`(`v_*` 뷰 포함)와, 그 위에서 도는 에이전트 패키지(SQL 가드, 도구 루프, 카드 조립) + 로컬 읽기 전용 `query_sql` 도구. 앱의 라이브 질문 전송을 막는 실제 이유는 이것이다.
+- 실제 배포 URL이 앱 담당 로컬에 아직 없다. 받으면 `app/mobile/.env`(gitignore)에 넣고 빌드해 `/health`를 실기기에서 확인한다.
+- 위가 갖춰지면 `CHAT_SEND_ENABLED`를 켜고 `/chat`을 실기기에서 검증한다.
