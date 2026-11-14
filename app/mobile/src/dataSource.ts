@@ -1,5 +1,6 @@
 import { clock } from './clock';
-import { SAMPLE_VISITS } from './sampleVisits';
+import { demoVisits } from './demoStore';
+import { SAMPLE_INITIAL_DAY, SAMPLE_NOW } from './sampleVisits';
 import { OPEN_STALE_MS } from './summary';
 import { Visit, visitMonitor } from './visitMonitor';
 
@@ -23,20 +24,20 @@ export const liveSource: DataSource = {
   initialDay: () => clock.now(),
 };
 
-// Demo "now" is the last sample callback, so the sample day reads like a finished day with
-// one stay still open. Nothing here touches native code or the database.
-const DEMO_NOW = Math.max(...SAMPLE_VISITS.map(v => v.receivedAt));
+// Demo "now" is fixed on the last sample day, with one stay still in progress. Nothing here
+// touches native code, the database or the network.
+const DEMO_NOW = SAMPLE_NOW;
 
 export const demoSource: DataSource = {
   kind: 'demo',
   now: () => DEMO_NOW,
   visitsInRange: async (from, to) =>
-    SAMPLE_VISITS.filter(v => {
+    demoVisits().filter(v => {
       const start = v.arrivalAt ?? v.departureAt ?? v.receivedAt;
       return (
         start < to &&
         (v.departureAt == null ? start >= from : v.departureAt > from)
       );
     }),
-  initialDay: () => SAMPLE_VISITS[0].arrivalAt ?? DEMO_NOW,
+  initialDay: () => SAMPLE_INITIAL_DAY,
 };

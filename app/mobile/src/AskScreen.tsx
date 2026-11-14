@@ -12,7 +12,7 @@ import { DEMO_QA, DemoQA, ResolvedCard, resolveCards } from './api/demoAnswer';
 import type { DataSource } from './dataSource';
 import { formatClock, formatDuration, formatShortDateTime } from './format';
 import { ReplayView } from './ReplayView';
-import { SAMPLE_VISITS } from './sampleVisits';
+import { demoVisits } from './demoStore';
 import { normalizeVisits, Stay } from './summary';
 import { colors } from './theme';
 
@@ -34,7 +34,9 @@ function Card({ card, onPress }: { card: ResolvedCard; onPress: () => void }) {
       <Pressable style={styles.ev} onPress={onPress} accessibilityRole="button">
         <View style={styles.flex}>
           <Text style={styles.evTitle}>{card.day}</Text>
-          <Text style={styles.evBody}>방문 {card.visits.length}번 · 눌러서 재생</Text>
+          <Text style={styles.evBody}>
+            방문 {card.visits.length}번 · 눌러서 재생
+          </Text>
         </View>
         <Text style={styles.evAction}>▶ 재생</Text>
       </Pressable>
@@ -45,12 +47,18 @@ function Card({ card, onPress }: { card: ResolvedCard; onPress: () => void }) {
   return (
     <Pressable style={styles.ev} onPress={onPress} accessibilityRole="button">
       <View style={styles.flex}>
+        {v.placeName ? <Text style={styles.evTitle}>{v.placeName}</Text> : null}
         <Text style={styles.evTitle}>
-          {v.arrivalAt != null ? formatShortDateTime(v.arrivalAt) : '도착 미확인'}
-          {v.departureAt != null ? ` – ${formatClock(v.departureAt)}` : ' · 출발 미기록'}
+          {v.arrivalAt != null
+            ? formatShortDateTime(v.arrivalAt)
+            : '도착 미확인'}
+          {v.departureAt != null
+            ? ` – ${formatClock(v.departureAt)}`
+            : ' · 출발 미기록'}
         </Text>
         <Text style={styles.evBody}>
-          {dur ? `머문 시간 ${dur} · ` : ''}정확도 ±{v.horizontalAccuracy.toFixed(0)} m
+          {dur ? `머문 시간 ${dur} · ` : ''}정확도 ±
+          {v.horizontalAccuracy.toFixed(0)} m
         </Text>
       </View>
       <Text style={styles.evAction}>▶ 재생</Text>
@@ -66,7 +74,9 @@ export function AskScreen({ source }: { source: DataSource }) {
   const demo = source.kind === 'demo';
   const [health, setHealth] = useState<Health | null>(null);
   const [qa, setQa] = useState<DemoQA | null>(null);
-  const [replay, setReplay] = useState<{ title: string; stays: Stay[] } | null>(null);
+  const [replay, setReplay] = useState<{ title: string; stays: Stay[] } | null>(
+    null,
+  );
 
   useEffect(() => {
     if (demo) {
@@ -79,7 +89,7 @@ export function AskScreen({ source }: { source: DataSource }) {
     };
   }, [demo]);
 
-  const cards = qa ? resolveCards(qa.answer.cards, SAMPLE_VISITS) : [];
+  const cards = qa ? resolveCards(qa.answer.cards, demoVisits()) : [];
   const openReplay = (c: ResolvedCard) => {
     const rows = c.kind === 'day' ? c.visits : [c.visit];
     setReplay({
@@ -103,7 +113,8 @@ export function AskScreen({ source }: { source: DataSource }) {
       {demo ? (
         <>
           <Text style={styles.note}>
-            샘플 답변이에요. 모델을 호출하지 않고, 근거 카드는 샘플 기록에서 다시 읽어요.
+            샘플 답변이에요. 모델을 호출하지 않고, 근거 카드는 샘플 기록에서
+            다시 읽어요.
           </Text>
           <View style={styles.suggest}>
             {DEMO_QA.map(q => (
@@ -114,7 +125,9 @@ export function AskScreen({ source }: { source: DataSource }) {
                 accessibilityRole="button"
                 style={[styles.chip, qa === q && styles.chipOn]}
               >
-                <Text style={[styles.chipText, qa === q && styles.chipTextOn]}>{q.question}</Text>
+                <Text style={[styles.chipText, qa === q && styles.chipTextOn]}>
+                  {q.question}
+                </Text>
               </Pressable>
             ))}
           </View>
@@ -126,7 +139,11 @@ export function AskScreen({ source }: { source: DataSource }) {
                 <Text style={styles.aiMeta}>샘플 답변 · 모델 호출 없음</Text>
               </View>
               {cards.map(c => (
-                <Card key={`${c.ref.type}-${c.ref.id}`} card={c} onPress={() => openReplay(c)} />
+                <Card
+                  key={`${c.ref.type}-${c.ref.id}`}
+                  card={c}
+                  onPress={() => openReplay(c)}
+                />
               ))}
             </View>
           ) : null}
@@ -146,7 +163,11 @@ export function AskScreen({ source }: { source: DataSource }) {
       <View style={[styles.askbox, styles.off]}>
         <TextInput
           editable={false}
-          placeholder={demo ? '샘플에서는 위 질문만 고를 수 있어요' : '예: 지난달 카페 몇 번 갔지?'}
+          placeholder={
+            demo
+              ? '샘플에서는 위 질문만 고를 수 있어요'
+              : '예: 지난달 카페 몇 번 갔지?'
+          }
           placeholderTextColor={colors.muted}
           style={styles.input}
           accessibilityLabel="질문 입력, 아직 사용할 수 없음"
@@ -168,7 +189,12 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 11, letterSpacing: 1, color: colors.muted },
   title: { fontSize: 22, fontWeight: '700', color: colors.ink, marginTop: 2 },
   note: { marginTop: 10, fontSize: 13, lineHeight: 19, color: colors.muted },
-  card: { marginTop: 16, padding: 16, borderRadius: 18, backgroundColor: colors.card },
+  card: {
+    marginTop: 16,
+    padding: 16,
+    borderRadius: 18,
+    backgroundColor: colors.card,
+  },
   cardTitle: { fontSize: 16, fontWeight: '700', color: colors.ink },
   cardText: { marginTop: 8, fontSize: 14, lineHeight: 21, color: colors.text },
   item: { marginTop: 8, fontSize: 14, color: colors.text },
@@ -216,7 +242,12 @@ const styles = StyleSheet.create({
   },
   evTitle: { fontSize: 14, fontWeight: '600', color: colors.ink },
   evBody: { marginTop: 2, fontSize: 12, color: colors.muted },
-  evAction: { marginLeft: 8, fontSize: 12, fontWeight: '600', color: colors.blue },
+  evAction: {
+    marginLeft: 8,
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.blue,
+  },
   askbox: {
     marginTop: 16,
     minHeight: 50,

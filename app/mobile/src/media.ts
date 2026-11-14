@@ -19,6 +19,10 @@ export type MediaAsset = {
   height: number;
   latitude?: number;
   longitude?: number;
+  /** Bundled image (sample mode only); used instead of a Photos thumbnail. */
+  source?: number;
+  /** JS-only sample asset, never from the user's library. */
+  sample?: boolean;
 };
 
 type Native = {

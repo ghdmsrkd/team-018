@@ -10,7 +10,9 @@ import {
 } from './media';
 import { MediaViewer } from './MediaViewer';
 import { ReplayView } from './ReplayView';
-import { SAMPLE_VISITS } from './sampleVisits';
+import { SAMPLE_MEDIA } from './sampleMedia';
+import { SAMPLE_TRIP, SAMPLE_VISITS } from './sampleVisits';
+import { formatShortDateTime } from './format';
 import { normalizeVisits, Stay } from './summary';
 import { colors } from './theme';
 import { VisitTimeline } from './VisitTimeline';
@@ -113,14 +115,25 @@ export function TimelineScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [live, auth, stays]);
 
-  const media = useMemo(() => attachMedia(stays, assets), [stays, assets]);
+  // Sample mode: bundled sample images only; no Photos access.
+  const media = useMemo(
+    () =>
+      live ? attachMedia(stays, assets) : attachMedia(stays, SAMPLE_MEDIA),
+    [live, stays, assets],
+  );
 
+  const tripStays =
+    !live && filter === 'trips'
+      ? shownStays.filter(s => SAMPLE_TRIP.visitIds.includes(s.visit.id))
+      : [];
   const shownVisits =
     filter === 'media'
       ? shownStays.filter(s => media.has(s.visit.id)).map(s => s.visit)
       : filter === 'trips'
-      ? []
+      ? tripStays.map(s => s.visit)
       : shownStays.map(s => s.visit);
+  const tripStart = tripStays[0]?.start ?? null;
+  const tripEnd = tripStays[tripStays.length - 1]?.end ?? null;
 
   const askPhotos = async () => {
     if (auth === 'notDetermined') {
@@ -135,7 +148,7 @@ export function TimelineScreen({
       ? '여행 묶음은 아직 계산하지 않아요. 집 생활권을 벗어난 구간을 찾는 여행 감지가 연결되면 여기에 나와요.'
       : filter === 'media'
       ? !live
-        ? '샘플 하루에는 사진이나 영상이 없어요.'
+        ? '샘플 사진·영상이 붙은 방문이 없어요.'
         : !canReadPhotos(auth)
         ? '사진 접근을 허용하면 머문 시간에 찍은 사진과 영상이 방문에 붙어요.'
         : '머문 시간에 찍은 사진이나 영상이 아직 없어요.'
@@ -194,6 +207,30 @@ export function TimelineScreen({
           ) : null}
         </View>
       ) : null}
+      {tripStays.length > 0 ? (
+        <View style={styles.card}>
+          <Text style={styles.tripTitle}>{SAMPLE_TRIP.name}</Text>
+          <Text style={styles.cardText}>
+            {tripStart != null ? formatShortDateTime(tripStart) : ''}
+            {tripEnd != null ? ` – ${formatShortDateTime(tripEnd)}` : ''} · 장소{' '}
+            {new Set(tripStays.map(s => s.visit.placeName ?? s.visit.id)).size}
+            곳
+          </Text>
+          <Text style={styles.cardText}>
+            예시로 묶은 샘플 여행이에요. 실제 기록의 여행 감지는 아직 없어요.
+          </Text>
+          <Pressable
+            testID="trip-replay"
+            onPress={() =>
+              setReplay({ title: SAMPLE_TRIP.name, stays: tripStays })
+            }
+            accessibilityRole="button"
+            style={styles.cta}
+          >
+            <Text style={styles.ctaText}>▶ 여행 재생</Text>
+          </Pressable>
+        </View>
+      ) : null}
       {error ? <Text style={styles.error}>오류: {error}</Text> : null}
     </View>
   );
@@ -204,7 +241,7 @@ export function TimelineScreen({
         visits={shownVisits}
         onTag={usingSamples || !onTagVisit ? undefined : onTagVisit}
         header={header}
-        media={live ? media : undefined}
+        media={usingSamples ? undefined : media}
         onOpenMedia={(asset, list) => setViewer({ asset, list })}
         onReplayDay={(dayVisits, title) => {
           const ids = new Set(dayVisits.map(v => v.id));
@@ -254,6 +291,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: colors.card,
   },
+  tripTitle: { fontSize: 16, fontWeight: '700', color: colors.ink },
   cardText: { fontSize: 14, lineHeight: 20, color: colors.text },
   cta: { marginTop: 8, alignSelf: 'flex-start', paddingVertical: 4 },
   ctaText: { fontSize: 15, fontWeight: '600', color: colors.blue },

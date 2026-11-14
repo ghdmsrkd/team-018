@@ -517,7 +517,10 @@ export function TodayScreen({
                 : s.status === 'invalid'
                 ? '시간 오류'
                 : '종료 미상';
-              const canTag = onTagVisit != null && s.visit.id > 0;
+              // Live: stored rows only. Demo: the in-memory sample rows.
+              const canTag =
+                onTagVisit != null &&
+                (source.kind === 'demo' || s.visit.id > 0);
               return (
                 <View key={s.visit.id} style={styles.stay}>
                   <Text style={styles.stayTime}>
@@ -538,6 +541,7 @@ export function TodayScreen({
                       accessibilityHint="태그를 바꿔요"
                     >
                       <Text style={styles.stayName}>
+                        {s.visit.placeName ? `${s.visit.placeName} · ` : ''}
                         {s.tag}
                         {s.tag === UNTAGGED ? (
                           <Text style={styles.tagCta}> 태그 달기</Text>
@@ -545,7 +549,10 @@ export function TodayScreen({
                       </Text>
                     </Pressable>
                   ) : (
-                    <Text style={[styles.stayName, styles.flex]}>{s.tag}</Text>
+                    <Text style={[styles.stayName, styles.flex]}>
+                      {s.visit.placeName ? `${s.visit.placeName} · ` : ''}
+                      {s.tag}
+                    </Text>
                   )}
                   <Text style={[styles.stayRight, open && styles.now]}>
                     {right}

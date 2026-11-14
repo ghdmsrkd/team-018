@@ -29,13 +29,16 @@ export const PROVIDER_ATTRIBUTION: Record<PlacesProvider, string> = {
  * ID stored in SQLite. Google IDs stay as-is so previously saved IDs keep working; Kakao
  * ids get a "kakao:" prefix so the provider is known when the ID is looked up later.
  */
-export function storedPlaceId(c: Pick<PlaceCandidate, 'id' | 'provider'>): string {
+export function storedPlaceId(
+  c: Pick<PlaceCandidate, 'id' | 'provider'>,
+): string {
   return c.provider === 'kakao' ? `kakao:${c.id}` : c.id;
 }
 
-export function parseStoredPlaceId(
-  stored: string,
-): { provider: PlacesProvider; id: string } {
+export function parseStoredPlaceId(stored: string): {
+  provider: PlacesProvider;
+  id: string;
+} {
   return stored.startsWith('kakao:')
     ? { provider: 'kakao', id: stored.slice('kakao:'.length) }
     : { provider: 'google', id: stored };
@@ -93,7 +96,10 @@ export async function searchNearby(
     }
     if (!res.ok) {
       const err = body as ApiError;
-      return { state: 'error', detail: err.detail ?? err.error ?? `HTTP ${res.status}` };
+      return {
+        state: 'error',
+        detail: err.detail ?? err.error ?? `HTTP ${res.status}`,
+      };
     }
     const response = body as PlacesNearbyResponse;
     return {
@@ -101,15 +107,17 @@ export async function searchNearby(
       response: {
         ...response,
         provider: response.provider === 'kakao' ? 'kakao' : 'google',
-        places: (Array.isArray(response.places) ? response.places : []).map(p => ({
-          ...p,
-          provider:
-            p.provider === 'kakao' || p.provider === 'google'
-              ? p.provider
-              : response.provider === 'kakao'
-              ? 'kakao'
-              : 'google',
-        })),
+        places: (Array.isArray(response.places) ? response.places : []).map(
+          p => ({
+            ...p,
+            provider:
+              p.provider === 'kakao' || p.provider === 'google'
+                ? p.provider
+                : response.provider === 'kakao'
+                ? 'kakao'
+                : 'google',
+          }),
+        ),
       },
     };
   } catch (e: any) {

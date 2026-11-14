@@ -48,9 +48,13 @@ export type Health =
   | { state: 'ok'; model: string | null; placesProvider: PlacesProvider | null }
   | { state: 'error'; detail: string };
 
-const join = (base: string, path: string) => `${base.replace(/\/+$/, '')}${path}`;
+const join = (base: string, path: string) =>
+  `${base.replace(/\/+$/, '')}${path}`;
 
-async function withTimeout<T>(p: (signal: AbortSignal) => Promise<T>, ms: number): Promise<T> {
+async function withTimeout<T>(
+  p: (signal: AbortSignal) => Promise<T>,
+  ms: number,
+): Promise<T> {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), ms);
   try {
@@ -74,17 +78,23 @@ export async function checkHealth(
       signal => fetchImpl(join(base, '/health'), { method: 'GET', signal }),
       8000,
     );
-    const body = (await res.json().catch(() => ({}))) as Partial<HealthResponse>;
+    const body = (await res
+      .json()
+      .catch(() => ({}))) as Partial<HealthResponse>;
     const provider = body.placesProvider;
     return res.ok && body.ok
       ? {
           state: 'ok',
           model: body.model ?? null,
-          placesProvider: provider === 'google' || provider === 'kakao' ? provider : null,
+          placesProvider:
+            provider === 'google' || provider === 'kakao' ? provider : null,
         }
       : { state: 'error', detail: `HTTP ${res.status}` };
   } catch (e: any) {
-    return { state: 'error', detail: String(e?.name === 'AbortError' ? '시간 초과' : e?.message ?? e) };
+    return {
+      state: 'error',
+      detail: String(e?.name === 'AbortError' ? '시간 초과' : e?.message ?? e),
+    };
   }
 }
 
@@ -125,7 +135,9 @@ export async function postChat(
   if (!res.ok) {
     const err = body as ApiError;
     throw new Error(
-      err.detail ? `${err.error}: ${err.detail}` : err.error ?? `HTTP ${res.status}`,
+      err.detail
+        ? `${err.error}: ${err.detail}`
+        : err.error ?? `HTTP ${res.status}`,
     );
   }
   return body as ChatResponse;

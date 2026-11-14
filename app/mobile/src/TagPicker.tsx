@@ -12,10 +12,20 @@ import {
 import { NearbyPlaceSearch } from './NearbyPlaceSearch';
 import { PlaceTag, Visit, visitMonitor } from './visitMonitor';
 
+/** The tag operations the sheet needs; the sample mode passes an in-memory version. */
+export type TagApi = Pick<
+  typeof visitMonitor,
+  'getTags' | 'createTag' | 'renameTag' | 'setVisitTag' | 'clearVisitTag'
+>;
+
 type Props = {
   /** A stored visit (positive id). Never a JS-only sample row. */
   visit: Visit | null;
   onClose: () => void;
+  /** Defaults to the native store. */
+  api?: TagApi;
+  /** Sample mode: nearby search uses fixed local candidates. */
+  sample?: boolean;
 };
 
 export function describeTag(visit: Visit): string {
@@ -32,7 +42,12 @@ export function describeTag(visit: Visit): string {
 }
 
 /** Select, create or rename place tags for one stored visit, or clear its tag. */
-export function TagPicker({ visit, onClose }: Props) {
+export function TagPicker({
+  visit,
+  onClose,
+  api = visitMonitor,
+  sample = false,
+}: Props) {
   const [tags, setTags] = useState<PlaceTag[]>([]);
   const [newName, setNewName] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -49,11 +64,11 @@ export function TagPicker({ visit, onClose }: Props) {
     setNewName('');
     setEditingId(null);
     setError(null);
-    visitMonitor
+    api
       .getTags()
       .then(setTags)
       .catch(e => setError(String(e?.message ?? e)));
-  }, [visible]);
+  }, [visible, api]);
 
   const run = async (work: () => Promise<unknown>, close: boolean) => {
     setBusy(true);
@@ -63,7 +78,7 @@ export function TagPicker({ visit, onClose }: Props) {
       if (close) {
         onClose();
       } else {
-        setTags(await visitMonitor.getTags());
+        setTags(await api.getTags());
       }
     } catch (e: any) {
       setError(String(e?.message ?? e));
@@ -77,17 +92,17 @@ export function TagPicker({ visit, onClose }: Props) {
   }
 
   const select = (tag: PlaceTag) =>
-    run(() => visitMonitor.setVisitTag(visit.id, tag.id), true);
+    run(() => api.setVisitTag(visit.id, tag.id), true);
 
   const create = () =>
     run(async () => {
-      const tag = await visitMonitor.createTag(newName);
-      await visitMonitor.setVisitTag(visit.id, tag.id);
+      const tag = await api.createTag(newName);
+      await api.setVisitTag(visit.id, tag.id);
     }, true);
 
   const saveRename = (tag: PlaceTag) =>
     run(async () => {
-      await visitMonitor.renameTag(tag.id, editName);
+      await api.renameTag(tag.id, editName);
       setEditingId(null);
     }, false);
 
@@ -172,7 +187,7 @@ export function TagPicker({ visit, onClose }: Props) {
                   () =>
                     Promise.all(
                       [visit.id, ...(visit.mergedVisitIds ?? [])].map(id =>
-                        visitMonitor.clearVisitTag(id),
+                        api.clearVisitTag(id),
                       ),
                     ),
                   true,
@@ -208,6 +223,7 @@ export function TagPicker({ visit, onClose }: Props) {
               key={visit.id}
               visit={visit}
               reason={visit.tag ? 'manual' : 'untagged'}
+              sample={sample}
             />
           }
         />

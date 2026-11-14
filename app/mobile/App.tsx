@@ -2,6 +2,7 @@ import { ReactElement, useCallback, useEffect, useState } from 'react';
 import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import { AskScreen } from './src/AskScreen';
 import { DataSource, demoSource, liveSource } from './src/dataSource';
+import { demoStore, demoTagApi } from './src/demoStore';
 import { Onboarding } from './src/Onboarding';
 import { useWindowSafeAreaInsets } from './src/safeArea';
 import { TagPicker } from './src/TagPicker';
@@ -124,6 +125,8 @@ function MainShell({
 
   const refresh = useCallback(async () => {
     if (!live) {
+      // Sample mode: re-read the in-memory sample store only.
+      setToken(t => t + 1);
       return;
     }
     try {
@@ -139,7 +142,9 @@ function MainShell({
 
   useEffect(() => {
     if (!live) {
-      return;
+      // Fresh sample state each time the sample mode is entered.
+      demoStore.reset();
+      return demoStore.subscribe(refresh);
     }
     refresh();
     const unsubscribe = visitMonitor.subscribe(refresh);
@@ -180,7 +185,7 @@ function MainShell({
       </View>
     ) : null);
 
-  const onTagVisit = live ? (v: Visit) => setTagging(v) : undefined;
+  const onTagVisit = (v: Visit) => setTagging(v);
 
   return (
     <View style={styles.container}>
@@ -213,7 +218,17 @@ function MainShell({
             refresh();
           }}
         />
-      ) : null}
+      ) : (
+        <TagPicker
+          visit={tagging}
+          api={demoTagApi}
+          sample
+          onClose={() => {
+            setTagging(null);
+            refresh();
+          }}
+        />
+      )}
     </View>
   );
 }
@@ -252,8 +267,9 @@ function App() {
               샘플 하루
             </Text>
             <Text style={styles.noticeText}>
-              실제 기록이 아닌 예시예요. 이 화면은 위치 권한을 요청하지 않고
-              아무것도 저장하지 않아요.
+              서울의 공개 장소 10곳으로 만든 예시예요. 방문 시각만 가상이에요.
+              위치 권한을 요청하지 않고, 태그와 장소 수정은 이 화면 안에서만
+              바뀌며 저장되지 않아요.
             </Text>
             <TextButton
               testID="demo-back"

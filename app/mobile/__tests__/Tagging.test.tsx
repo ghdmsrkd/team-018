@@ -126,7 +126,7 @@ test('primary button requests Always once and opens the real visit screen', asyn
   expect(out).toContain('1시간 22분');
   expect(out).toContain('장소: 카페 (자동 · 12 m)');
   expect(out).toContain('변경');
-  expect(out).not.toContain('12.34567');
+  expect(out).not.toContain('서울역');
 });
 
 test('real screen falls back to sample rows without a tag control', async () => {
@@ -136,9 +136,9 @@ test('real screen falls back to sample rows without a tag control', async () => 
   await press(r, 'tab-timeline');
   const out = json(r);
   expect(out).toContain('타임라인');
-  expect(out).toContain('12.34567');
+  expect(out).toContain('블루보틀 성수');
   expect(out).not.toContain('변경');
-  expect(out).not.toContain('장소');
+  expect(out).not.toContain('장소:');
 });
 
 test('demo shows samples with no native calls and can return to onboarding', async () => {
@@ -147,15 +147,40 @@ test('demo shows samples with no native calls and can return to onboarding', asy
   const today = json(r);
   expect(today).toContain('샘플 하루');
   expect(today).toContain('미분류');
+  expect(today).toContain('남산서울타워');
+  expect(today).toContain('머무는 중');
   await press(r, 'tab-timeline');
   const out = json(r);
   expect(out).toContain('타임라인');
-  expect(out).toContain('12.34567');
-  expect(out).not.toContain('변경');
+  expect(out).toContain('블루보틀 성수');
+  expect(out).toContain('명동교자 본점');
+  // Sample rows can be tagged in memory in the sample mode.
+  expect(out).toContain('변경');
   for (const fn of Object.values(mockNative)) {
     expect(fn).not.toHaveBeenCalled();
   }
   await press(r, 'demo-back');
   expect(json(r)).toContain('위치 권한 허용하고 시작하기');
   expect(mockNative.requestAlways).not.toHaveBeenCalled();
+});
+
+test('demo media filter shows bundled sample photos and opens the viewer without native calls', async () => {
+  const r = await mount();
+  await press(r, 'onboarding-demo');
+  await press(r, 'tab-timeline');
+  await press(r, 'filter-media');
+  const out = json(r);
+  expect(out).toContain('블루보틀 성수');
+  expect(out).toContain('서울숲');
+  expect(out).toContain('샘플');
+  const thumb = r.root.findAll(
+    n =>
+      n.props.accessibilityRole === 'imagebutton' &&
+      typeof n.props.onPress === 'function',
+  )[0];
+  await ReactTestRenderer.act(async () => thumb.props.onPress());
+  expect(json(r)).toContain('확인용 이미지');
+  for (const fn of Object.values(mockNative)) {
+    expect(fn).not.toHaveBeenCalled();
+  }
 });

@@ -40,6 +40,9 @@ export type Visit = {
    * normalizeVisits. Clearing a tag or place must clear these too, or the value comes back.
    */
   mergedVisitIds?: number[];
+  /** JS-only sample data: public place name and category. Stored visits never have these. */
+  placeName?: string;
+  placeCategory?: string;
 };
 
 export type VisitTag = {

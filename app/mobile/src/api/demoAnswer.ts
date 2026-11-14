@@ -5,36 +5,48 @@ import type { Visit } from '../visitMonitor';
 /** 'YYYY-MM-DD' in KST (+9h), the `day` convention of packages/schema/src/ddl.ts. */
 export function kstDay(ms: number): string {
   const d = new Date(ms + 9 * 3600 * 1000);
-  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(
-    d.getUTCDate(),
-  ).padStart(2, '0')}`;
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(
+    2,
+    '0',
+  )}-${String(d.getUTCDate()).padStart(2, '0')}`;
 }
 
-const SAMPLE_DAY = kstDay(SAMPLE_VISITS[0].arrivalAt ?? SAMPLE_VISITS[0].receivedAt);
+const LAST_DAY = kstDay(SAMPLE_VISITS.find(v => v.id === -9)!.arrivalAt!);
+const stay = (id: number): CardRef => ({ type: 'stay', id: String(id) });
 
 export type DemoQA = { question: string; answer: AgentAnswer };
 
 /**
- * Fixed AgentAnswer fixtures for the sample mode only. No model is called. Text states only
- * what the sample rows show, and cards reference real local sample items by id.
+ * Fixed AgentAnswer fixtures for the sample mode only. No model is called. Each text states
+ * only what the sample rows show (place names and times are fixed), and every card refers
+ * to a local sample item by id, so cards are re-read from the sample data.
  */
 export const DEMO_QA: DemoQA[] = [
   {
-    question: '샘플 하루에 몇 곳에 머물렀어?',
+    question: '샘플 마지막 날에 어디 갔어?',
     answer: {
-      text: '샘플 하루에는 두 곳에 머물렀어요. 한 곳은 도착과 출발이 모두 기록됐고, 다른 한 곳은 출발이 아직 기록되지 않았어요.',
+      text: '마지막 날에는 블루보틀 성수, 서울숲, 명동교자 본점에 들렀고, 지금은 남산서울타워에 머무는 중이에요.',
       cards: [
-        { type: 'day', id: SAMPLE_DAY },
-        { type: 'stay', id: String(SAMPLE_VISITS[0].id) },
-        { type: 'stay', id: String(SAMPLE_VISITS[1].id) },
+        { type: 'day', id: LAST_DAY },
+        stay(-9),
+        stay(-10),
+        stay(-11),
+        stay(-12),
       ],
     },
   },
   {
-    question: '출발 기록이 없는 방문은 어디야?',
+    question: '명동교자 몇 번 갔어?',
     answer: {
-      text: '출발 시각이 없는 방문은 한 번이에요. 아직 머무는 중이거나 출발이 기록되지 않은 경우예요.',
-      cards: [{ type: 'stay', id: String(SAMPLE_VISITS[1].id) }],
+      text: '명동교자 본점에는 샘플 기간 동안 두 번 갔어요.',
+      cards: [stay(-2), stay(-11)],
+    },
+  },
+  {
+    question: '블루보틀 성수에는 얼마나 있었어?',
+    answer: {
+      text: '블루보틀 성수에는 두 번 들러 모두 1시간 50분 머물렀어요.',
+      cards: [stay(-7), stay(-9)],
     },
   },
 ];

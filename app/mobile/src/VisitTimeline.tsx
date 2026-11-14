@@ -31,6 +31,9 @@ export function MediaThumb({
 }) {
   const [uri, setUri] = useState<string | null>(null);
   useEffect(() => {
+    if (asset.source != null) {
+      return;
+    }
     let alive = true;
     photos
       .getThumbnail(asset.id, size)
@@ -39,10 +42,15 @@ export function MediaThumb({
     return () => {
       alive = false;
     };
-  }, [asset.id, size]);
+  }, [asset.id, asset.source, size]);
   return (
     <View style={[styles.thumb, style]}>
-      {uri ? <Image source={{ uri }} style={StyleSheet.absoluteFill} /> : null}
+      {asset.source != null ? (
+        <Image source={asset.source} style={StyleSheet.absoluteFill} />
+      ) : uri ? (
+        <Image source={{ uri }} style={StyleSheet.absoluteFill} />
+      ) : null}
+      {asset.sample ? <Text style={styles.sampleBadge}>샘플</Text> : null}
       {asset.mediaType === 'video' ? (
         <Text style={styles.videoBadge}>
           ▶ {formatVideoDuration(asset.duration)}
@@ -123,6 +131,14 @@ function VisitRow({ visit, last, onTag, media, onOpenMedia }: RowProps) {
         {last ? null : <View style={styles.railLine} />}
       </View>
       <View style={styles.card}>
+        {visit.placeName ? (
+          <Text style={styles.placeName}>
+            {visit.placeName}
+            {visit.placeCategory ? (
+              <Text style={styles.placeCategory}> · {visit.placeCategory}</Text>
+            ) : null}
+          </Text>
+        ) : null}
         <Text style={styles.range}>
           {arrival} – {departure}
         </Text>
@@ -256,6 +272,18 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     backgroundColor: 'rgba(22,25,29,0.7)',
   },
+  sampleBadge: {
+    position: 'absolute',
+    left: 4,
+    top: 4,
+    paddingHorizontal: 4,
+    borderRadius: 4,
+    overflow: 'hidden',
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    backgroundColor: 'rgba(232,106,16,0.9)',
+  },
   more: {
     ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(22,25,29,0.45)',
@@ -288,6 +316,13 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: colors.card,
   },
+  placeName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.ink,
+    marginBottom: 2,
+  },
+  placeCategory: { fontSize: 13, fontWeight: '500', color: colors.muted },
   range: {
     fontSize: 17,
     fontWeight: '700',

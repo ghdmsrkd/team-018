@@ -198,7 +198,9 @@ export function ReplayView({ title, stays, onClose }: Props) {
             {cur ? (
               <View style={styles.label}>
                 <Text style={styles.labelTitle}>
-                  {index + 1}/{points.length} · {cur.tag}
+                  {index + 1}/{points.length} ·{' '}
+                  {cur.visit.placeName ? `${cur.visit.placeName} · ` : ''}
+                  {cur.tag}
                 </Text>
                 <Text style={styles.labelBody}>
                   {cur.start != null ? formatClock(cur.start) : '도착 미확인'}

@@ -74,7 +74,11 @@ export function normalizeVisits(visits: Visit[], now: number): Stay[] {
   const placeOverride = new Map<number, string>();
   const merged = new Map<number, number[]>();
   const mergeInto = (target: number, from: Visit) => {
-    merged.set(target, [...(merged.get(target) ?? []), from.id, ...(merged.get(from.id) ?? [])]);
+    merged.set(target, [
+      ...(merged.get(target) ?? []),
+      from.id,
+      ...(merged.get(from.id) ?? []),
+    ]);
   };
 
   const keptOpen: Visit[] = [];
@@ -85,7 +89,11 @@ export function normalizeVisits(visits: Visit[], now: number): Stay[] {
       if (!match.tag && o.tag && !tagOverride.has(match.id)) {
         tagOverride.set(match.id, o.tag);
       }
-      if (!match.googlePlaceId && o.googlePlaceId && !placeOverride.has(match.id)) {
+      if (
+        !match.googlePlaceId &&
+        o.googlePlaceId &&
+        !placeOverride.has(match.id)
+      ) {
         placeOverride.set(match.id, o.googlePlaceId);
       }
       mergeInto(match.id, o);
@@ -99,11 +107,17 @@ export function normalizeVisits(visits: Visit[], now: number): Stay[] {
     );
     if (twin >= 0) {
       const [keep, drop] =
-        o.receivedAt > keptOpen[twin].receivedAt ? [o, keptOpen[twin]] : [keptOpen[twin], o];
+        o.receivedAt > keptOpen[twin].receivedAt
+          ? [o, keptOpen[twin]]
+          : [keptOpen[twin], o];
       if (!keep.tag && drop.tag && !tagOverride.has(keep.id)) {
         tagOverride.set(keep.id, drop.tag);
       }
-      if (!keep.googlePlaceId && drop.googlePlaceId && !placeOverride.has(keep.id)) {
+      if (
+        !keep.googlePlaceId &&
+        drop.googlePlaceId &&
+        !placeOverride.has(keep.id)
+      ) {
         placeOverride.set(keep.id, drop.googlePlaceId);
       }
       mergeInto(keep.id, drop);

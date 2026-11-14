@@ -17,7 +17,7 @@ export function MediaViewer({ asset, list, onClose }: Props) {
   useEffect(() => setCurrent(asset), [asset]);
 
   useEffect(() => {
-    if (!current) {
+    if (!current || current.source != null) {
       return;
     }
     let alive = true;
@@ -45,7 +45,13 @@ export function MediaViewer({ asset, list, onClose }: Props) {
   return (
     <Modal visible animationType="fade" onRequestClose={onClose}>
       <View style={styles.screen}>
-        {uri ? (
+        {current.source != null ? (
+          <Image
+            source={current.source}
+            style={styles.image}
+            resizeMode="contain"
+          />
+        ) : uri ? (
           <Image source={{ uri }} style={styles.image} resizeMode="contain" />
         ) : null}
         <View style={styles.bar}>
@@ -56,10 +62,17 @@ export function MediaViewer({ asset, list, onClose }: Props) {
               : ''}
             {list.length > 1 ? ` · ${i + 1}/${list.length}` : ''}
           </Text>
+          {current.sample ? (
+            <Text style={styles.note}>
+              샘플 {current.mediaType === 'video' ? '영상' : '사진'}이에요. 앱에
+              들어 있는 확인용 이미지로, 실제 사진이 아니에요.
+            </Text>
+          ) : null}
           {current.mediaType === 'video' ? (
             <Text style={styles.note}>
-              이 버전은 영상의 첫 장면만 보여 줘요. 재생은 사진 앱에서 할 수
-              있어요.
+              {current.sample
+                ? '영상은 첫 장면과 길이만 보여 줘요.'
+                : '이 버전은 영상의 첫 장면만 보여 줘요. 재생은 사진 앱에서 할 수 있어요.'}
             </Text>
           ) : null}
           <View style={styles.buttons}>
