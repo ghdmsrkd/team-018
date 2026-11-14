@@ -609,6 +609,29 @@ renderTL('all');
 
 const shot = new URLSearchParams(location.search).get('screen');
 if (shot) { document.body.classList.add('shot'); document.getElementById(shot)?.classList.add('on'); }
+
+// 캡처/발표 모드: 탭바로 화면 전환, 발표 페이지에서 postMessage로 조작
+function showScreen(id) { document.querySelectorAll('.screen').forEach(sc => sc.classList.toggle('on', sc.id === id)); }
+document.addEventListener('click', e => {
+  const a = e.target.closest('nav.bottom a');
+  if (!a || !document.body.classList.contains('shot')) return;
+  const h = a.getAttribute('href');
+  if (h.startsWith('#')) { e.preventDefault(); showScreen(h.slice(1)); }
+});
+window.addEventListener('message', e => {
+  const m = e.data || {};
+  if (typeof m !== 'object') return;
+  if (m.screen) showScreen(m.screen);
+  const dev = document.querySelector('.screen.on .device');
+  if (!dev) return;
+  if (m.period) dev.querySelector(`.tab[data-p="${m.period}"]`)?.click();
+  if (m.select) dev.querySelector(`.row[data-tag="${m.select}"]`)?.click();
+  if (m.chip) document.querySelector(`#tl-chips [data-f="${m.chip}"]`)?.click();
+  if (m.closeViewer) document.getElementById('viewer').classList.remove('on');
+  if (m.viewer) [...document.querySelectorAll('#tl-body .ph')].find(b => b.dataset.v)?.click();
+  if (m.more) document.getElementById('more')?.click();
+  if (m.scroll != null) dev.querySelector('.body')?.scrollTo({ top: m.scroll, behavior: 'smooth' });
+});
 </script>
 </body>
 </html>

@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>하루 · 키로톤 팀 018</title>
+<meta name="description" content="기록하지 않아도 기억되는 하루. 위치·사진·시간으로 하루를 자동 기록하고, 물어보면 찾아 주는 개인 라이프로그 앱.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --bg: #EEF0EC; --paper: #F6F7F4; --card: #FFFFFF; --ink: #16191D; --ink2: #3D444B; --muted: #5A6168;
+  --line: #D5D9D3; --blue: #1F4FD1; --blue-soft: #E4EAFB; --orange: #E86A10; --orange-ink: #A8480A;
+  --num: 'Barlow Condensed', sans-serif; --mono: 'IBM Plex Mono', monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', sans-serif; }
+body { overflow: hidden; }
+button { font: inherit; }
+
+/* 슬라이드 */
+.deck { height: 100%; position: relative; }
+.slide { position: absolute; inset: 0; padding: 7vh 7vw 12vh; display: flex; flex-direction: column; opacity: 0; visibility: hidden; transform: translateY(16px); transition: opacity .45s, transform .45s, visibility .45s; }
+.slide.on { opacity: 1; visibility: visible; transform: none; }
+.act { font-family: var(--mono); font-size: 13px; letter-spacing: .12em; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+.act b { color: var(--blue); }
+h1, h2 { margin: 0; letter-spacing: -.02em; }
+h2 { font-size: clamp(30px, 4.2vw, 56px); line-height: 1.18; margin-top: 18px; }
+h2 em { font-style: normal; color: var(--blue); }
+.lead { font-size: clamp(16px, 1.5vw, 21px); color: var(--ink2); line-height: 1.65; margin: 18px 0 0; max-width: 46em; }
+
+/* 표지 / 1막 */
+.cover { justify-content: center; }
+.cover .brand { font-family: var(--mono); font-size: 14px; letter-spacing: .14em; color: var(--muted); }
+.cover h1 { font-size: clamp(56px, 9vw, 140px); line-height: .95; margin-top: 18px; font-weight: 700; }
+.cover h1 span { color: var(--blue); }
+.cover .sub { font-size: clamp(18px, 2vw, 28px); margin-top: 22px; color: var(--ink2); }
+.cover .meta { margin-top: 40px; display: flex; gap: 22px; font-size: 14px; color: var(--muted); }
+.cover .orbit { position: absolute; right: 6vw; top: 50%; transform: translateY(-50%); width: min(38vw, 520px); aspect-ratio: 1; }
+.qs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 42px; }
+.q { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 26px; display: flex; flex-direction: column; gap: 14px; }
+.q .bubble { font-size: clamp(18px, 1.7vw, 24px); font-weight: 600; line-height: 1.4; }
+.q .then { font-size: 15px; color: var(--muted); line-height: 1.55; }
+.q .then b { color: var(--orange-ink); font-weight: 600; }
+.punch { margin-top: auto; padding-top: 28px; font-size: clamp(20px, 2.2vw, 30px); font-weight: 700; }
+.punch span { color: var(--blue); }
+
+/* 2막 비교 */
+.compare { margin-top: 30px; border-radius: 22px; overflow: hidden; border: 1px solid var(--line); background: var(--card); }
+.compare table { width: 100%; border-collapse: collapse; font-size: clamp(13px, 1.1vw, 16px); }
+.compare th, .compare td { padding: 14px 16px; text-align: left; border-top: 1px solid #ECEEEA; vertical-align: top; }
+.compare thead th { border-top: 0; background: #F2F4F0; font-size: 13px; color: var(--muted); font-weight: 600; }
+.compare tbody th { font-weight: 600; width: 22%; }
+.compare td.lim { color: var(--ink2); }
+.compare tr.us { background: var(--blue-soft); }
+.compare tr.us th { color: var(--blue); font-size: 1.08em; }
+.mark { display: inline-block; width: 20px; text-align: center; font-weight: 700; }
+.yes { color: #2F8A5B; } .no { color: #B5452E; } .half { color: #B07A10; }
+.diffs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 22px; }
+.diff { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px; }
+.diff b { display: block; font-size: 17px; margin-bottom: 6px; }
+.diff span { font-size: 14px; color: var(--muted); line-height: 1.55; }
+.diff i { font-style: normal; font-family: var(--mono); font-size: 11px; color: var(--blue); letter-spacing: .08em; }
+
+/* 3막 시현 */
+.demo { padding: 4vh 5vw 11vh; flex-direction: row; gap: 4vw; align-items: stretch; }
+.phone { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; }
+.frame { position: relative; border-radius: 46px; background: #0F1114; padding: 12px; box-shadow: 0 30px 60px rgba(22,25,29,.22); }
+.frame .screen { width: 390px; height: 844px; border-radius: 34px; overflow: hidden; background: #EEF0EC; transform-origin: top left; }
+.frame iframe { width: 390px; height: 844px; border: 0; display: block; }
+.frame .notch { position: absolute; left: 50%; top: 22px; transform: translateX(-50%); width: 110px; height: 30px; border-radius: 16px; background: #0F1114; z-index: 2; }
+.explain { flex: 1; display: flex; flex-direction: column; min-width: 0; padding-top: 2vh; }
+.steps { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
+.steps button { height: 30px; padding: 0 12px; border-radius: 15px; border: 1px solid var(--line); background: var(--card); color: var(--muted); font-size: 12px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+.steps button b { font-family: var(--num); font-size: 15px; }
+.steps button[aria-current="step"] { background: var(--ink); border-color: var(--ink); color: #FFFFFF; }
+.steps button.done { color: var(--ink); }
+.page { font-family: var(--mono); font-size: 12px; letter-spacing: .1em; color: var(--blue); margin-top: 4vh; }
+.explain h3 { font-size: clamp(28px, 3.2vw, 46px); margin: 10px 0 0; line-height: 1.2; letter-spacing: -.02em; }
+.points { list-style: none; padding: 0; margin: 26px 0 0; display: flex; flex-direction: column; gap: 14px; }
+.points li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; font-size: clamp(16px, 1.45vw, 21px); line-height: 1.55; color: var(--ink2); }
+.points li::before { content: counter(p); counter-increment: p; font-family: var(--num); font-weight: 700; font-size: 20px; color: var(--blue); }
+.points { counter-reset: p; }
+.points b { color: var(--ink); }
+.tech { margin-top: auto; display: flex; gap: 8px; flex-wrap: wrap; padding-top: 20px; }
+.tech span { font-family: var(--mono); font-size: 11px; color: var(--ink2); border: 1px dashed #A9B0A7; border-radius: 6px; padding: 4px 8px; }
+.tap { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; font-size: 13px; color: var(--orange-ink); font-weight: 600; }
+.tap i { width: 10px; height: 10px; border-radius: 5px; background: var(--orange); box-shadow: 0 0 0 5px rgba(232,106,16,.18); }
+
+/* 4막 마무리 */
+.close-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 4vw; margin-top: 26px; flex: 1; min-height: 0; }
+.recap { display: flex; flex-direction: column; gap: 14px; }
+.recap div { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px; display: grid; grid-template-columns: 54px 1fr; gap: 14px; align-items: center; }
+.recap b { font-family: var(--num); font-size: 34px; color: var(--blue); line-height: 1; }
+.recap p { margin: 0; font-size: 16px; line-height: 1.55; color: var(--ink2); }
+.recap p strong { color: var(--ink); display: block; font-size: 18px; }
+.video { border-radius: 22px; overflow: hidden; background: #0F1114; position: relative; aspect-ratio: 16 / 9; align-self: start; width: 100%; }
+.video video { width: 100%; height: 100%; display: block; background: #0F1114; }
+.video .ph { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #C9CEC6; text-align: center; padding: 20px; }
+.video.missing .ph { display: flex; }
+.video.missing video { visibility: hidden; }
+.video .ph b { color: #FFFFFF; font-size: 18px; }
+.video .ph code { font-family: var(--mono); font-size: 12px; background: rgba(255,255,255,.1); padding: 3px 8px; border-radius: 6px; }
+.stack { margin-top: 14px; font-size: 13px; color: var(--muted); line-height: 1.7; }
+.stack b { color: var(--ink); }
+.final { margin-top: 22px; font-size: clamp(24px, 2.8vw, 40px); font-weight: 700; letter-spacing: -.02em; }
+.final span { color: var(--blue); }
+
+/* 하단 바 */
+.bar { position: fixed; left: 0; right: 0; bottom: 0; height: 64px; padding: 0 7vw; display: flex; align-items: center; gap: 18px; z-index: 10; }
+.acts { display: flex; gap: 6px; }
+.acts button { height: 32px; padding: 0 14px; border-radius: 16px; border: 0; background: transparent; color: var(--muted); font-size: 13px; font-weight: 500; cursor: pointer; }
+.acts button[aria-current="true"] { background: var(--ink); color: #FFFFFF; font-weight: 600; }
+.prog { flex: 1; height: 3px; border-radius: 2px; background: #DDE1DA; overflow: hidden; }
+.prog i { display: block; height: 100%; background: var(--blue); transition: width .35s; }
+.nav { display: flex; gap: 6px; }
+.nav button { width: 38px; height: 38px; border-radius: 19px; border: 1px solid var(--line); background: var(--card); cursor: pointer; display: grid; place-items: center; color: var(--ink); }
+.keys { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+/* 대본 */
+.notes { position: fixed; right: 20px; bottom: 76px; width: min(460px, 90vw); max-height: 46vh; overflow: auto; background: #16191D; color: #E9ECE6; border-radius: 16px; padding: 18px 20px; font-size: 15px; line-height: 1.7; z-index: 20; display: none; box-shadow: 0 20px 40px rgba(0,0,0,.25); }
+.notes.on { display: block; }
+.notes small { display: block; font-family: var(--mono); font-size: 11px; letter-spacing: .1em; color: #8A939B; margin-bottom: 8px; }
+
+@media (max-width: 900px) {
+  body { overflow: auto; }
+  .slide { position: relative; opacity: 1; visibility: visible; transform: none; padding: 48px 16px; display: none; }
+  .slide.on { display: flex; }
+  .qs, .diffs, .close-grid { grid-template-columns: 1fr; }
+  .demo { flex-direction: column; }
+  .cover .orbit { position: static; transform: none; width: 100%; margin-top: 30px; }
+  .compare { overflow-x: auto; }
+  .compare table { min-width: 640px; }
+  .bar { padding: 0 16px; background: var(--bg); border-top: 1px solid var(--line); }
+  .acts button { padding: 0 8px; }
+  .keys { display: none; }
+}
+</style>
+</head>
+<body>
+<main class="deck" id="deck">
+
+  <!-- 0. 표지 -->
+  <section class="slide cover" data-act="0" data-note="안녕하세요, 키로톤 팀 018입니다. 저희가 만든 앱은 '하루'입니다. 한 줄로 말하면, 기록하지 않아도 기억되는 하루. 지금부터 왜 이 앱이 필요한지, 무엇이 다른지, 그리고 실제로 어떻게 동작하는지 보여드리겠습니다.">
+    <span class="brand">KIROTHON · TEAM 018</span>
+    <h1>하루<span>.</span></h1>
+    <div class="sub">기록하지 않아도 <b>기억되는</b> 하루</div>
+    <div class="meta"><span>위치 · 사진 · 시간 자동 기록</span><span>AI가 "무엇을 했나" 정리</span><span>물어보면 찾아 주는 내 삶의 검색엔진</span></div>
+    <svg class="orbit" viewBox="0 0 400 400" aria-hidden="true" id="cover-ring"></svg>
+  </section>
+
+  <!-- 1. 동기부여 -->
+  <section class="slide" data-act="1" data-note="여러분, 작년 크리스마스에 뭐 하셨는지 바로 기억나세요? 저번에 강원도 갔던 게 며칠이었는지는요? 성수동에서 맛있게 먹었던 그 파스타집 이름은요? 답은 분명히 어딘가에 있습니다. 내 폰은 그날 어디 있었는지 알고, 사진도 찍었죠. 그런데 그걸 꺼내려면 사진첩을 한참 스크롤하고, 지도 앱을 뒤지고, 그래도 못 찾습니다. 일기를 쓰면 되지만, 우리는 쓰지 않습니다. 그래서 생각했습니다. 쓰지 않아도 쓰이는 일기, 내 삶을 검색할 수 있는 앱을 만들자.">
+    <div class="act"><b>01</b> 동기부여</div>
+    <h2>그때 나는 <em>어디서 뭘 했지?</em></h2>
+    <p class="lead">답은 이미 폰 안에 있습니다. 폰은 내가 어디에 있었는지 알고, 그날 사진도 찍었습니다. 그런데 꺼낼 방법이 없습니다.</p>
+    <div class="qs">
+      <div class="q"><span class="bubble">"작년 크리스마스에 뭐 했더라?"</span><span class="then">사진첩을 12월까지 스크롤 → 사진이 없는 시간은 <b>공백</b></span></div>
+      <div class="q"><span class="bubble">"저번에 강원도 간 게 며칠이었지?"</span><span class="then">카톡 대화, 카드 내역, 지도 앱을 뒤진다 → <b>10분째 검색 중</b></span></div>
+      <div class="q"><span class="bubble">"성수동 그 파스타집 어디였지?"</span><span class="then">이름도 기억 안 나고 검색어도 없다 → <b>못 찾음</b></span></div>
+    </div>
+    <div class="punch">일기를 쓰면 되지만, 우리는 쓰지 않습니다. → <span>쓰지 않아도 쓰이는 일기</span>가 필요합니다.</div>
+  </section>
+
+  <!-- 2. 한계와 차별점 -->
+  <section class="slide" data-act="2" data-note="이미 비슷한 서비스는 있습니다. 위치 기록 서비스는 내가 간 곳을 남기지만 거기서 뭘 했는지는 모릅니다. 사진 앱은 사진이 있는 순간만 기억합니다. 일기나 라이프로그 앱은 결국 내가 직접 써야 해서 오래가지 않습니다. 시간 기록 앱은 시간 비중은 잘 보여주지만, 나중에 질문해서 찾을 수는 없습니다. 하루는 이 네 가지를 한 번에 해결합니다. 입력은 0, 장소에 의미를 붙이고, 사진과 영상을 그 장소에 자동으로 묶고, 무엇보다 자연어로 물어보면 근거와 함께 답합니다.">
+    <div class="act"><b>02</b> 관련 서비스의 한계 · 우리의 차별점</div>
+    <h2>기록은 흩어져 있고, <em>아무도 답해 주지 않는다</em></h2>
+    <div class="compare">
+      <table>
+        <thead><tr><th>서비스 유형</th><th>자동 기록</th><th>"무엇을 했나"</th><th>사진 · 영상 연결</th><th>물어보면 답</th><th>한계</th></tr></thead>
+        <tbody>
+          <tr><th>위치 기록 (지도 앱 타임라인)</th><td><span class="mark yes">●</span></td><td><span class="mark no">✕</span></td><td><span class="mark half">△</span></td><td><span class="mark no">✕</span></td><td class="lim">간 곳은 남지만 의미가 없다. 날짜를 알아야 찾을 수 있다</td></tr>
+          <tr><th>사진 앱</th><td><span class="mark half">△</span></td><td><span class="mark no">✕</span></td><td><span class="mark yes">●</span></td><td><span class="mark half">△</span></td><td class="lim">사진을 찍은 순간만 기억한다. 사진 없는 하루는 비어 있다</td></tr>
+          <tr><th>일기 · 라이프로그 앱</th><td><span class="mark no">✕</span></td><td><span class="mark yes">●</span></td><td><span class="mark half">△</span></td><td><span class="mark no">✕</span></td><td class="lim">직접 써야 한다. 대부분 며칠 만에 멈춘다</td></tr>
+          <tr><th>시간 기록 앱</th><td><span class="mark yes">●</span></td><td><span class="mark half">△</span></td><td><span class="mark no">✕</span></td><td><span class="mark no">✕</span></td><td class="lim">시간 비중은 보이지만, 지난 기억을 꺼내 쓸 수는 없다</td></tr>
+          <tr class="us"><th>하루</th><td><span class="mark yes">●</span></td><td><span class="mark yes">●</span></td><td><span class="mark yes">●</span></td><td><span class="mark yes">●</span></td><td>입력 0 · 장소에 의미 · 사진 자동 연결 · 근거 있는 답</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="diffs">
+      <div class="diff"><i>INPUT 0</i><b>노력 0의 기록</b><span>앱을 켜 두기만 하면 머문 곳이 하루 단위로 쌓인다</span></div>
+      <div class="diff"><i>MEANING</i><b>좌표 → 기억 단위</b><span>머문 곳에 태그를 붙여 "카페 45분", "강원도 2박 3일"로 바꾼다</span></div>
+      <div class="diff"><i>MEDIA</i><b>장소마다 사진 · 영상</b><span>촬영 시각과 위치로 방문에 자동으로 묶는다</span></div>
+      <div class="diff"><i>RECALL</i><b>근거 있는 답</b><span>AI는 DB를 조회만 한다. 답에는 항상 실제 기록 카드가 붙는다</span></div>
+    </div>
+  </section>
+
+  <!-- 3. 시현 -->
+  <section class="slide demo" data-act="3" id="demo">
+    <div class="phone"><div class="frame" id="frame"><div class="notch"></div><div class="screen" id="screen"><iframe id="app" title="하루 앱 시현" src="app/haru-mockup.html?screen=day"></iframe></div></div></div>
+    <div class="explain">
+      <div class="act"><b>03</b> 시현</div>
+      <div class="steps" id="steps"></div>
+      <div class="page" id="s-page"></div>
+      <h3 id="s-title"></h3>
+      <div class="tap" id="s-tap"></div>
+      <ul class="points" id="s-points"></ul>
+      <div class="tech" id="s-tech"></div>
+    </div>
+  </section>
+
+  <!-- 4. 마무리 -->
+  <section class="slide" data-act="4" data-note="정리하겠습니다. 하루는 입력 없이 하루를 기록하고, 머문 곳에 의미를 붙이고, 사진과 영상을 그 장소에 묶고, 물어보면 근거와 함께 답합니다. 위치는 가장 민감한 데이터이기 때문에, 데이터는 전부 폰에만 저장하고 AI에는 질문에 필요한 조회 결과만 보냅니다. 오른쪽은 실제 시연 영상입니다. 기록하지 않아도 기억되는 하루. 하루였습니다. 감사합니다.">
+    <div class="act"><b>04</b> 마무리</div>
+    <h2>적지 않아도 쓰이는 일기, <em>내 삶의 검색엔진</em></h2>
+    <div class="close-grid">
+      <div>
+        <div class="recap">
+          <div><b>0</b><p><strong>입력 없이 기록</strong>켜 두기만 하면 하루가 24시간 도넛으로 쌓인다</p></div>
+          <div><b>7</b><p><strong>닫힌 태그 7개로 의미화</strong>AI가 고르고, 모르면 비워 두고, 사람 태그는 절대 덮어쓰지 않는다</p></div>
+          <div><b>1:1</b><p><strong>장소마다 사진 · 영상</strong>타임라인에서 그날 그곳의 장면을 바로 다시 본다</p></div>
+          <div><b>≡</b><p><strong>근거 카드가 붙는 답</strong>AI는 조회만 하고, 카드는 실제 DB에서 만든다. 지어낸 날짜가 나올 수 없다</p></div>
+        </div>
+        <div class="stack"><b>프라이버시</b> 데이터는 폰의 SQLite에만 저장 · AI에는 SQL 조회 결과만 전달 · 원시 좌표와 집 · 회사 위치는 보내지 않음<br><b>기술</b> Expo(React Native) · SQLite · AWS Lambda 중계 · Amazon Bedrock · Kakao Local</div>
+      </div>
+      <div>
+        <div class="video" id="video"><video controls preload="metadata" playsinline src="media/demo.mp4"></video><div class="ph"><b>시연 영상</b><span>녹화한 영상을 아래 경로에 넣으면 여기서 재생됩니다</span><code>site/media/demo.mp4</code></div></div>
+        <div class="final">기록하지 않아도 기억되는 <span>하루</span>.</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="bar">
+  <div class="acts" id="acts">
+    <button type="button" data-go="0">표지</button><button type="button" data-go="1">1 동기</button><button type="button" data-go="2">2 차별점</button><button type="button" data-go="3">3 시현</button><button type="button" data-go="4">4 마무리</button>
+  </div>
+  <div class="prog"><i id="prog"></i></div>
+  <span class="keys">← → 넘기기 · N 대본</span>
+  <div class="nav">
+    <button type="button" id="prev" aria-label="이전"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 3L5 8l5 5"/></svg></button>
+    <button type="button" id="next" aria-label="다음"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3l5 5-5 5"/></svg></button>
+  </div>
+</div>
+<div class="notes" id="notes"><small>발표 대본</small><div id="notes-text"></div></div>
+
+<script>
+// 시현 단계: msg는 왼쪽 앱(iframe)에 보내는 조작
+const STEPS = [
+  { page: '오늘 · 하루', title: '하루가 24시간 도넛으로', tap: '앱을 켜 두기만 했습니다',
+    msg: { screen: 'day', period: 'day', scroll: 0, closeViewer: true },
+    points: ['<b>0시가 맨 위</b>, 시계 방향으로 돕니다. 머문 곳이 <b>실제 시간 위치</b>에 칠해집니다', '주황 점이 지금. 가운데는 "키로톤 행사장에 4시간 40분째"', '사용자는 <b>아무것도 입력하지 않았습니다</b>'],
+    tech: ['expo-location', 'iOS Visit', 'SQLite raw.db'],
+    note: '첫 화면입니다. 오늘 하루가 24시간 시계 모양의 도넛으로 나옵니다. 0시가 맨 위고, 집에 있던 아침, 카페에 들른 시간, 지하철, 그리고 지금 이 행사장까지 실제 시간 위치에 그대로 칠해져 있습니다. 저는 아무것도 입력하지 않았습니다.' },
+  { page: '오늘 · 조각 누르기', title: '조각을 누르면 그 시간', tap: '"커피" 조각을 누릅니다',
+    msg: { screen: 'day', period: 'day', scroll: 0, select: '커피' },
+    points: ['카페에서 <b>10:20–11:05, 45분</b>', 'AI가 시간대 · 체류 시간 · 주변 장소를 보고 <b>"커피"로 추론 (92%)</b>', '태그는 <b>닫힌 7개</b> 중 하나. 모르면 비워 두고 사람에게 넘깁니다'],
+    tech: ['Bedrock', 'enum + null 출력'],
+    note: '도넛 조각을 누르면 그 시간이 나옵니다. 카페에서 45분. 이 장소가 카페라는 건 AI가 시간대와 체류 시간, 주변 장소를 보고 추론했습니다. 태그는 정해진 일곱 개 안에서만 고르고, 확신이 없으면 비워 둡니다.' },
+  { page: '오늘 · 태그별 시간', title: '모르는 곳은 비워 둔다', tap: '아래로 내려 봅니다',
+    msg: { screen: 'day', period: 'day', scroll: 380 },
+    points: ['행사장은 처음 온 곳이라 <b>"태그 없음"</b>. AI가 억지로 채우지 않습니다', '사람이 한 번 태그하면 그 장소의 <b>과거 · 미래 방문 전체</b>에 적용', '<b>AI 요약</b>과 확신도, 머문 곳 · 이동 거리 · 사진 수'],
+    tech: ['places.tag_source', 'human > ai'],
+    note: '처음 온 이 행사장은 태그가 비어 있습니다. AI가 모르는 걸 지어내지 않는 거죠. 제가 한 번 태그를 달면 이 장소의 모든 방문에 적용되고, AI는 사람이 단 태그를 절대 덮어쓰지 않습니다. 아래에는 오늘의 AI 요약과 통계가 있습니다.' },
+  { page: '오늘 · 1년', title: '한 해가 한눈에', tap: '"1년" 탭을 누릅니다',
+    msg: { screen: 'day', period: 'year', scroll: 0 },
+    points: ['기간을 바꾸면 <b>태그별 비중 도넛</b>으로', '올해 <b>11번 여행</b>, 작년보다 관광 ▲40%', '아래로 내리면 많이 간 지역 · 월별 여행 일수'],
+    tech: ['days · trips 집계'],
+    note: '기간을 1년으로 바꾸면 한 해를 어디서 보냈는지가 비중으로 보입니다. 올해는 여행을 11번 다녀왔고, 작년보다 관광이 40% 늘었네요.' },
+  { page: '타임라인', title: '장소마다 그날의 사진 · 영상', tap: '"타임라인" 탭으로 이동합니다',
+    msg: { screen: 'timeline', chip: 'all', scroll: 0, closeViewer: true },
+    points: ['머문 곳이 시간순으로. 레일 색 = 태그, 점선 = 이동', '<b>촬영 시각과 위치</b>로 사진 · 영상을 방문에 자동 연결', '사진이 없는 시간도 <b>비어 있지 않습니다</b>'],
+    tech: ['expo-media-library', 'EXIF 매칭'],
+    note: '두 번째 탭은 타임라인입니다. 머문 곳이 시간순으로 쌓이고, 그 장소에서 찍은 사진과 영상이 자동으로 붙어 있습니다. 사진 앱과 달리 사진이 없는 시간도 비어 있지 않습니다.' },
+  { page: '타임라인 · 영상', title: '눌러서 그 장면으로', tap: '행사장 영상을 누릅니다',
+    msg: { screen: 'timeline', chip: 'all', scroll: 0, viewer: true },
+    points: ['영상 길이가 표시되고, 누르면 <b>크게 재생</b>', '어느 장소, 몇 시의 장면인지 함께 나옵니다'],
+    tech: [],
+    note: '영상을 누르면 크게 볼 수 있습니다. 언제, 어디서 찍은 장면인지도 함께 나옵니다.' },
+  { page: '타임라인 · 여행', title: '여행은 묶음으로', tap: '"여행" 필터를 누릅니다',
+    msg: { screen: 'timeline', closeViewer: true, chip: 'trip', scroll: 0 },
+    points: ['집 생활권을 벗어난 구간을 <b>여행으로 자동 감지</b>', '강릉 → 속초 2박 3일 · 사진 23 · 영상 4', '<b>[재생]</b>을 누르면 지도 위에서 그 여행이 다시 흐릅니다'],
+    tech: ['trips 감지', '행정구역 계층'],
+    note: '여행 필터를 누르면 여행만 모아 볼 수 있습니다. 집 근처를 벗어난 구간을 자동으로 여행으로 묶어 줍니다. 강릉에서 속초까지 2박 3일, 사진 스물세 장과 영상 네 개. 재생을 누르면 지도 위에서 그 여행이 다시 흐릅니다.' },
+  { page: '물어보기', title: '물어보면, 근거와 함께', tap: '"올해 강원도 몇 번 갔지?"',
+    msg: { screen: 'ask' },
+    points: ['AI는 데이터를 읽지 않고 <b>조회</b>합니다 (query_sql)', '"8번, 마지막은 10월 3일 속초 해변"', '아래 카드는 AI가 쓴 글이 아니라 <b>실제 DB에서 만든 근거</b>. 날짜를 지어낼 수 없습니다'],
+    tech: ['Bedrock Converse', 'tool use', 'SQL 가드 · 읽기 전용 뷰'],
+    note: '마지막은 물어보기입니다. 올해 강원도 몇 번 갔지? 하루는 AI가 데이터를 직접 읽지 않고, 데이터베이스를 조회해서 답합니다. 8번, 마지막은 10월 3일 속초 해변. 그리고 아래 카드들은 AI가 쓴 문장이 아니라 실제 기록에서 만든 근거입니다. 그래서 틀린 날짜를 지어낼 수 없습니다.' },
+  { page: '물어보기 · 근거 카드', title: '카드를 누르면 그 여행으로', tap: '"5번 더 보기"를 누릅니다',
+    msg: { screen: 'ask', more: true },
+    points: ['8번의 방문이 모두 카드로', '카드 [재생] → 그 날 · 그 여행을 지도에서 재생', '데이터는 <b>폰에만</b>. AI에는 조회 결과 행만 전달됩니다'],
+    tech: ['SQLite memory.db', 'Lambda 중계', '원시 좌표 미전송'],
+    note: '8번의 방문이 모두 근거 카드로 나오고, 카드를 누르면 그 여행으로 바로 들어갑니다. 이 모든 데이터는 폰에만 있고, AI에는 질문에 필요한 조회 결과만 전달됩니다.' }
+];
+
+const slides = [...document.querySelectorAll('.slide')];
+const app = document.getElementById('app');
+let cur = 0, step = 0;
+
+function sendStep() {
+  const s = STEPS[step];
+  app.contentWindow && app.contentWindow.postMessage(s.msg, '*');
+  document.getElementById('s-page').textContent = `PAGE ${step + 1} / ${STEPS.length} · ${s.page}`;
+  document.getElementById('s-title').textContent = s.title;
+  document.getElementById('s-tap').innerHTML = `<i></i>${s.tap}`;
+  document.getElementById('s-points').innerHTML = s.points.map(p => `<li><span>${p}</span></li>`).join('');
+  document.getElementById('s-tech').innerHTML = s.tech.map(t => `<span>${t}</span>`).join('');
+  document.querySelectorAll('#steps button').forEach((b, i) => { b.toggleAttribute('aria-current', false); if (i === step) b.setAttribute('aria-current', 'step'); b.classList.toggle('done', i < step); });
+  setNote(s.note);
+}
+
+function setNote(t) { document.getElementById('notes-text').textContent = t || ''; }
+
+function go(i) {
+  cur = Math.max(0, Math.min(slides.length - 1, i));
+  slides.forEach((s, k) => s.classList.toggle('on', k === cur));
+  document.querySelectorAll('#acts button').forEach(b => b.setAttribute('aria-current', +b.dataset.go === cur));
+  if (slides[cur].id === 'demo') sendStep(); else setNote(slides[cur].dataset.note);
+  const total = slides.length - 1 + STEPS.length - 1;
+  const pos = cur < 3 ? cur : cur === 3 ? 3 + step : total;
+  document.getElementById('prog').style.width = (pos / total * 100) + '%';
+  try { history.replaceState(null, '', '#' + cur); } catch (e) {}
+}
+function next() {
+  if (slides[cur].id === 'demo' && step < STEPS.length - 1) { step++; return go(cur); }
+  go(cur + 1);
+}
+function prev() {
+  if (slides[cur].id === 'demo' && step > 0) { step--; return go(cur); }
+  if (cur === 4) step = STEPS.length - 1;
+  go(cur - 1);
+}
+
+document.getElementById('steps').innerHTML = STEPS.map((s, i) => `<button type="button" data-i="${i}"><b>${i + 1}</b>${s.page.split(' · ').pop()}</button>`).join('');
+document.querySelectorAll('#steps button').forEach(b => b.addEventListener('click', () => { step = +b.dataset.i; go(3); }));
+document.querySelectorAll('#acts button').forEach(b => b.addEventListener('click', () => { if (+b.dataset.go === 3) step = 0; go(+b.dataset.go); }));
+document.getElementById('next').addEventListener('click', next);
+document.getElementById('prev').addEventListener('click', prev);
+document.addEventListener('keydown', e => {
+  if (['ArrowRight', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); next(); }
+  if (['ArrowLeft', 'PageUp'].includes(e.key)) { e.preventDefault(); prev(); }
+  if (e.key === 'n' || e.key === 'N') document.getElementById('notes').classList.toggle('on');
+});
+app.addEventListener('load', () => { if (slides[cur].id === 'demo') sendStep(); });
+
+// 폰 크기 맞추기
+function fit() {
+  const screen = document.getElementById('screen'), frame = document.getElementById('frame');
+  const avail = Math.min(window.innerHeight * 0.82, 844 + 24);
+  const k = Math.min(1, (avail - 24) / 844);
+  screen.style.transform = `scale(${k})`;
+  screen.style.width = '390px'; screen.style.height = '844px';
+  frame.style.width = (390 * k + 24) + 'px'; frame.style.height = (844 * k + 24) + 'px';
+  screen.style.marginBottom = (-844 * (1 - k)) + 'px'; screen.style.marginRight = (-390 * (1 - k)) + 'px';
+}
+window.addEventListener('resize', fit); fit();
+
+// 표지 도넛
+(function cover() {
+  const svg = document.getElementById('cover-ring'), C = 200, R = 150, W = 52, T = Math.PI * 2;
+  const seg = [['#2B3138', 0, 590], ['#AEB6BD', 590, 620], ['#9A6B47', 620, 665], ['#AEB6BD', 665, 700], ['#1F4FD1', 700, 980]];
+  const arc = (a0, a1) => { const p = a => [C + R * Math.sin(a), C - R * Math.cos(a)]; const [x0, y0] = p(a0), [x1, y1] = p(a1); return `M${x0} ${y0} A${R} ${R} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1} ${y1}`; };
+  let s = `<circle cx="${C}" cy="${C}" r="${R}" fill="none" stroke="#E2E6DF" stroke-width="${W}"/>`;
+  seg.forEach(([c, a, b]) => s += `<path d="${arc(a / 1440 * T + .012, b / 1440 * T - .012)}" fill="none" stroke="${c}" stroke-width="${W}"/>`);
+  const an = 980 / 1440 * T;
+  s += `<circle cx="${C + R * Math.sin(an)}" cy="${C - R * Math.cos(an)}" r="16" fill="#E86A10" opacity=".22"/><circle cx="${C + R * Math.sin(an)}" cy="${C - R * Math.cos(an)}" r="9" fill="#E86A10" stroke="#FFFFFF" stroke-width="3"/>`;
+  [0, 6, 12, 18].forEach(h => { const a = h / 24 * T, r = R - W / 2 - 18; s += `<text x="${C + r * Math.sin(a)}" y="${C - r * Math.cos(a) + 5}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="#5A6168">${h}</text>`; });
+  s += `<text x="${C}" y="${C - 6}" text-anchor="middle" font-family="Barlow Condensed, sans-serif" font-weight="700" font-size="56" fill="#16191D">16:20</text><text x="${C}" y="${C + 24}" text-anchor="middle" font-family="IBM Plex Sans KR, sans-serif" font-size="15" fill="#5A6168">지금 · 성수동</text>`;
+  svg.innerHTML = s;
+})();
+
+// 영상 없으면 자리표시
+const vbox = document.getElementById('video'), vid = vbox.querySelector('video');
+vid.addEventListener('error', () => vbox.classList.add('missing'));
+fetch(vid.getAttribute('src'), { method: 'HEAD' }).then(r => { if (!r.ok) vbox.classList.add('missing'); }).catch(() => vbox.classList.add('missing'));
+
+const start = parseInt((location.hash || '#0').slice(1), 10);
+go(Number.isFinite(start) ? start : 0);
+</script>
+</body>
+</html>

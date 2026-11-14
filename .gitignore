@@ -5,3 +5,5 @@ node_modules/
 *.zip
 .DS_Store
 backend/.deploy-state.json
+# 빌드 때 design/에서 복사된다 (amplify.yml)
+site/app/

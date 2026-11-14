@@ -1,0 +1,11 @@
+version: 1
+frontend:
+  phases:
+    build:
+      commands:
+        # 발표 사이트(site/)에 최신 목업을 복사한다. 목업 원본은 design/haru-mockup.html 하나뿐이다
+        - mkdir -p site/app && cp design/haru-mockup.html site/app/haru-mockup.html
+  artifacts:
+    baseDirectory: site
+    files:
+      - '**/*'

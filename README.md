@@ -8,6 +8,7 @@
 | 문서 | 내용 |
 |---|---|
 | **이 README** | 통합 기획서 (아래) |
+| [site/index.html](site/index.html) | **발표 사이트** (동기부여 → 차별점 → 시현 → 마무리, 시연 영상 포함) |
 | [design/haru-mockup.html](design/haru-mockup.html) | 화면 목업 v0.4 (오늘 24시간 도넛 · 타임라인 사진/영상 · 물어보기) |
 | [design/haru-app-design.html](design/haru-app-design.html) | 앱 전체 디자인 v0.1 (온보딩 · 오늘 · 물어보기 · 재생 · 여행 · 태그) |
 | [docs/PLAN.md](docs/PLAN.md) | 기능 기획 상세 (데이터 모델, 기억 챗, 더미 데이터 설계) |
@@ -237,6 +238,40 @@ B가 SQLite DDL을 먼저 고정하면 A와 C는 목업 데이터로 병렬 개�
 - [ ] **`gpt-6-luna` 도구 호출 지원 여부**: 구현 첫날 확인. 안 되면 JSON 출력 모드로 같은 루프를 만든다
 - [ ] **방문 기준**: 15분 vs 10분 이상 머무름 (iOS Visit 원본을 쓰면 OS 기준을 따른다)
 - [ ] **1차 타깃**: 여행 기록 vs 일상 회고
+
+---
+
+---
+
+## 10. 발표 사이트 · 배포
+
+`site/` 폴더가 발표 사이트다. 빌드 도구 없이 HTML 하나로 돌아간다.
+
+| 막 | 내용 |
+|---|---|
+| 표지 | 하루 · 24시간 도넛 |
+| 1 동기부여 | "그때 나는 어디서 뭘 했지?" 질문 세 개 |
+| 2 한계 · 차별점 | 위치 기록 / 사진 앱 / 일기 앱 / 시간 기록 앱 비교표 + 차별점 4개 |
+| 3 시현 | 왼쪽에 실제 목업 앱, 오른쪽에 페이지별 설명. 9단계 (하루 도넛 → 조각 → 태그 → 1년 → 타임라인 → 영상 → 여행 → 물어보기 → 근거 카드) |
+| 4 마무리 | 요약 4개, 프라이버시 · 기술, 시연 영상 |
+
+**조작**: `←` `→` (또는 스페이스)로 넘긴다. 시현 슬라이드에서는 단계가 먼저 넘어가고, 단계에 맞춰 왼쪽 앱이 자동으로 눌린다. `N` 키로 발표 대본을 띄운다 (영상 녹화용).
+
+**시연 영상**: `site/media/demo.mp4`에 넣으면 마무리 슬라이드에서 재생된다. H.264 · 1080p · 50MB 이하 권장 (GitHub 파일 한도 100MB).
+
+**로컬에서 열기** (발표장 오프라인 대비):
+
+```bash
+mkdir -p site/app && cp design/haru-mockup.html site/app/ && python3 -m http.server 8765
+```
+
+→ `http://localhost:8765/site/`. 목업 원본은 `design/haru-mockup.html` 하나이고, `site/app/`은 복사본이라 커밋하지 않는다.
+
+**배포 (AWS Amplify Hosting)**: 저장소 루트의 [`amplify.yml`](amplify.yml)이 목업을 `site/app/`에 복사한 뒤 `site/`만 배포한다.
+
+1. AWS 콘솔(개인 프로필 계정, 리전 `ap-northeast-2`) → Amplify → **Deploy an app** → GitHub → `ghdmsrkd/team-018`, 브랜치 `main`
+2. 빌드 설정은 `amplify.yml`을 자동으로 읽는다. 그대로 저장하고 배포
+3. 이후 `main`에 push할 때마다 자동 재배포. 주소는 `https://main.<앱 ID>.amplifyapp.com`
 
 ---
 
