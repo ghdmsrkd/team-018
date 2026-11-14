@@ -87,6 +87,8 @@ body.static .bar, body.static .keys { display: none; }
 .frame { position: relative; border-radius: 46px; background: #0F1114; padding: 12px; box-shadow: 0 30px 60px rgba(22,25,29,.22); }
 .frame .screen { width: 390px; height: 844px; border-radius: 34px; overflow: hidden; background: #EEF0EC; transform-origin: top left; }
 .frame iframe { width: 390px; height: 844px; border: 0; display: block; }
+.frame #shot { width: 390px; height: 844px; object-fit: cover; object-position: top; display: block; background: #EEF0EC; }
+.frame #shot[hidden] { display: none; }
 .frame .notch { position: absolute; left: 50%; top: 22px; transform: translateX(-50%); width: 110px; height: 30px; border-radius: 16px; background: #0F1114; z-index: 2; }
 .explain { flex: 1; display: flex; flex-direction: column; min-width: 0; padding-top: 2vh; }
 .steps { display: flex; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
@@ -202,7 +204,7 @@ body.static .bar, body.static .keys { display: none; }
 
   <!-- 3. 시현 -->
   <section class="slide demo" data-act="3" id="demo">
-    <div class="phone"><div class="frame" id="frame"><div class="notch"></div><div class="screen" id="screen"><iframe id="app" title="HARU 앱 시현" src="app/haru-mockup.html?screen=day"></iframe></div></div></div>
+    <div class="phone"><div class="frame" id="frame"><div class="notch"></div><div class="screen" id="screen"><iframe id="app" title="HARU 앱 시현" src="app/haru-mockup.html?screen=day"></iframe><img id="shot" alt="HARU 앱 실제 화면" hidden></div></div></div>
     <div class="explain">
       <div class="act"><b>03</b> 시현</div>
       <div class="steps" id="steps"></div>
@@ -253,47 +255,47 @@ body.static .bar, body.static .keys { display: none; }
 <script>
 // 시현 단계: msg는 왼쪽 앱(iframe)에 보내는 조작
 const STEPS = [
-  { page: '오늘 · 하루', title: '하루가 24시간 도넛으로', tap: '앱을 켜 두기만 했습니다',
+  { shot: 'media/app/01-today.png', page: '오늘 · 하루', title: '하루가 24시간 도넛으로', tap: '앱을 켜 두기만 했습니다',
     msg: { screen: 'day', period: 'day', scroll: 0, closeViewer: true },
     points: ['<b>0시가 맨 위</b>, 시계 방향으로 돕니다. 머문 곳이 <b>실제 시간 위치</b>에 칠해집니다', '주황 점이 지금. 가운데는 "키로톤 행사장에 4시간 40분째"', '사용자는 <b>아무것도 입력하지 않았습니다</b>'],
     tech: ['expo-location', 'iOS Visit', 'SQLite raw.db'],
     note: '첫 화면입니다. 오늘 하루가 24시간 시계 모양의 도넛으로 나옵니다. 0시가 맨 위고, 집에 있던 아침, 카페에 들른 시간, 지하철, 그리고 지금 이 행사장까지 실제 시간 위치에 그대로 칠해져 있습니다. 저는 아무것도 입력하지 않았습니다.' },
-  { page: '오늘 · 조각 누르기', title: '조각을 누르면 그 시간', tap: '"커피" 조각을 누릅니다',
+  { shot: 'media/app/02-today-slice.png', page: '오늘 · 조각 누르기', title: '조각을 누르면 그 시간', tap: '"커피" 조각을 누릅니다',
     msg: { screen: 'day', period: 'day', scroll: 0, select: '커피' },
     points: ['카페에서 <b>10:20–11:05, 45분</b>', 'AI가 시간대 · 체류 시간 · 주변 장소를 보고 <b>"커피"로 추론 (92%)</b>', '태그는 <b>닫힌 7개</b> 중 하나. 모르면 비워 두고 사람에게 넘깁니다'],
     tech: ['Bedrock', 'enum + null 출력'],
     note: '도넛 조각을 누르면 그 시간이 나옵니다. 카페에서 45분. 이 장소가 카페라는 건 AI가 시간대와 체류 시간, 주변 장소를 보고 추론했습니다. 태그는 정해진 일곱 개 안에서만 고르고, 확신이 없으면 비워 둡니다.' },
-  { page: '오늘 · 태그별 시간', title: '모르는 곳은 비워 둔다', tap: '아래로 내려 봅니다',
+  { shot: 'media/app/03-today-tags.png', page: '오늘 · 태그별 시간', title: '모르는 곳은 비워 둔다', tap: '아래로 내려 봅니다',
     msg: { screen: 'day', period: 'day', scroll: 380 },
     points: ['행사장은 처음 온 곳이라 <b>"태그 없음"</b>. AI가 억지로 채우지 않습니다', '사람이 한 번 태그하면 그 장소의 <b>과거 · 미래 방문 전체</b>에 적용', '<b>AI 요약</b>과 확신도, 머문 곳 · 이동 거리 · 사진 수'],
     tech: ['places.tag_source', 'human > ai'],
     note: '처음 온 이 행사장은 태그가 비어 있습니다. AI가 모르는 걸 지어내지 않는 거죠. 제가 한 번 태그를 달면 이 장소의 모든 방문에 적용되고, AI는 사람이 단 태그를 절대 덮어쓰지 않습니다. 아래에는 오늘의 AI 요약과 통계가 있습니다.' },
-  { page: '오늘 · 1년', title: '한 해가 한눈에', tap: '"1년" 탭을 누릅니다',
+  { shot: 'media/app/04-today-year.png', page: '오늘 · 1년', title: '한 해가 한눈에', tap: '"1년" 탭을 누릅니다',
     msg: { screen: 'day', period: 'year', scroll: 0 },
     points: ['기간을 바꾸면 <b>태그별 비중 도넛</b>으로', '올해 <b>11번 여행</b>, 작년보다 관광 ▲40%', '아래로 내리면 많이 간 지역 · 월별 여행 일수'],
     tech: ['days · trips 집계'],
     note: '기간을 1년으로 바꾸면 한 해를 어디서 보냈는지가 비중으로 보입니다. 올해는 여행을 11번 다녀왔고, 작년보다 관광이 40% 늘었네요.' },
-  { page: '타임라인', title: '장소마다 그날의 사진 · 영상', tap: '"타임라인" 탭으로 이동합니다',
+  { shot: 'media/app/05-timeline.png', page: '타임라인', title: '장소마다 그날의 사진 · 영상', tap: '"타임라인" 탭으로 이동합니다',
     msg: { screen: 'timeline', chip: 'all', scroll: 0, closeViewer: true },
     points: ['머문 곳이 시간순으로. 레일 색 = 태그, 점선 = 이동', '<b>촬영 시각과 위치</b>로 사진 · 영상을 방문에 자동 연결', '사진이 없는 시간도 <b>비어 있지 않습니다</b>'],
     tech: ['expo-media-library', 'EXIF 매칭'],
     note: '두 번째 탭은 타임라인입니다. 머문 곳이 시간순으로 쌓이고, 그 장소에서 찍은 사진과 영상이 자동으로 붙어 있습니다. 사진 앱과 달리 사진이 없는 시간도 비어 있지 않습니다.' },
-  { page: '타임라인 · 영상', title: '눌러서 그 장면으로', tap: '행사장 영상을 누릅니다',
+  { shot: 'media/app/06-timeline-media.png', page: '타임라인 · 영상', title: '눌러서 그 장면으로', tap: '행사장 영상을 누릅니다',
     msg: { screen: 'timeline', chip: 'all', scroll: 0, viewer: true },
     points: ['영상 길이가 표시되고, 누르면 <b>크게 재생</b>', '어느 장소, 몇 시의 장면인지 함께 나옵니다'],
     tech: [],
     note: '영상을 누르면 크게 볼 수 있습니다. 언제, 어디서 찍은 장면인지도 함께 나옵니다.' },
-  { page: '타임라인 · 여행', title: '여행은 묶음으로', tap: '"여행" 필터를 누릅니다',
+  { shot: 'media/app/07-timeline-trip.png', page: '타임라인 · 여행', title: '여행은 묶음으로', tap: '"여행" 필터를 누릅니다',
     msg: { screen: 'timeline', closeViewer: true, chip: 'trip', scroll: 0 },
     points: ['집 생활권을 벗어난 구간을 <b>여행으로 자동 감지</b>', '강릉 → 속초 2박 3일 · 사진 23 · 영상 4', '<b>[재생]</b>을 누르면 지도 위에서 그 여행이 다시 흐릅니다'],
     tech: ['trips 감지', '행정구역 계층'],
     note: '여행 필터를 누르면 여행만 모아 볼 수 있습니다. 집 근처를 벗어난 구간을 자동으로 여행으로 묶어 줍니다. 강릉에서 속초까지 2박 3일, 사진 스물세 장과 영상 네 개. 재생을 누르면 지도 위에서 그 여행이 다시 흐릅니다.' },
-  { page: '물어보기', title: '물어보면, 근거와 함께', tap: '"올해 강원도 몇 번 갔지?"',
+  { shot: 'media/app/08-ask.png', page: '물어보기', title: '물어보면, 근거와 함께', tap: '"올해 강원도 몇 번 갔지?"',
     msg: { screen: 'ask' },
     points: ['AI는 데이터를 읽지 않고 <b>조회</b>합니다 (query_sql)', '"8번, 마지막은 10월 3일 속초 해변"', '아래 카드는 AI가 쓴 글이 아니라 <b>실제 DB에서 만든 근거</b>. 날짜를 지어낼 수 없습니다'],
     tech: ['Bedrock Converse', 'tool use', 'SQL 가드 · 읽기 전용 뷰'],
     note: '마지막은 물어보기입니다. 올해 강원도 몇 번 갔지? HARU는 AI가 데이터를 직접 읽지 않고, 데이터베이스를 조회해서 답합니다. 8번, 마지막은 10월 3일 속초 해변. 그리고 아래 카드들은 AI가 쓴 문장이 아니라 실제 기록에서 만든 근거입니다. 그래서 틀린 날짜를 지어낼 수 없습니다.' },
-  { page: '물어보기 · 근거 카드', title: '카드를 누르면 그 여행으로', tap: '"5번 더 보기"를 누릅니다',
+  { shot: 'media/app/09-ask-cards.png', page: '물어보기 · 근거 카드', title: '카드를 누르면 그 여행으로', tap: '"5번 더 보기"를 누릅니다',
     msg: { screen: 'ask', more: true },
     points: ['8번의 방문이 모두 카드로', '카드 [재생] → 그 날 · 그 여행을 지도에서 재생', '데이터는 <b>폰에만</b>. AI에는 조회 결과 행만 전달됩니다'],
     tech: ['SQLite memory.db', 'Lambda 중계', '원시 좌표 미전송'],
@@ -305,9 +307,18 @@ const app = document.getElementById('app');
 let cur = 0, step = 0;
 const DEMO = slides.findIndex(s => s.id === 'demo');
 
+// 실제 앱 캡처(media/app/*.png)가 있으면 그 화면을, 없으면 목업을 보여 준다
+const SHOT_OK = {};
+STEPS.forEach(s => { if (!s.shot) return; const im = new Image(); im.onload = () => { SHOT_OK[s.shot] = true; if (slides[cur] && slides[cur].id === 'demo' && STEPS[step] === s) showShot(s); }; im.src = s.shot; });
+function showShot(s) {
+  const img = document.getElementById('shot'), real = s.shot && SHOT_OK[s.shot];
+  img.hidden = !real; app.style.display = real ? 'none' : 'block';
+  if (real) img.src = s.shot;
+}
 function sendStep() {
   const s = STEPS[step];
   app.contentWindow && app.contentWindow.postMessage(s.msg, '*');
+  showShot(s);
   document.getElementById('s-page').textContent = `PAGE ${step + 1} / ${STEPS.length} · ${s.page}`;
   document.getElementById('s-title').textContent = s.title;
   document.getElementById('s-tap').innerHTML = `<i></i>${s.tap}`;
