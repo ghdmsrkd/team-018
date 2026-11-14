@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { NearbyPlaceSearch } from './NearbyPlaceSearch';
+import { RegionCheck } from './RegionCheck';
 import { PlaceTag, Visit, visitMonitor } from './visitMonitor';
 
 /** The tag operations the sheet needs; the sample mode passes an in-memory version. */
@@ -219,12 +220,18 @@ export function TagPicker({
           renderItem={renderTag}
           keyboardShouldPersistTaps="handled"
           ListHeaderComponent={
-            <NearbyPlaceSearch
-              key={visit.id}
-              visit={visit}
-              reason={visit.tag ? 'manual' : 'untagged'}
-              sample={sample}
-            />
+            <View>
+              <NearbyPlaceSearch
+                key={visit.id}
+                visit={visit}
+                reason={visit.tag ? 'manual' : 'untagged'}
+                sample={sample}
+              />
+              {/* Live only: the sample mode never sends coordinates anywhere. */}
+              {sample ? null : (
+                <RegionCheck key={`r${visit.id}`} visit={visit} />
+              )}
+            </View>
           }
         />
       </View>

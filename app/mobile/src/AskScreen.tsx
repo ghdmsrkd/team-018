@@ -12,6 +12,7 @@ import { DEMO_QA, DemoQA, ResolvedCard, resolveCards } from './api/demoAnswer';
 import type { DataSource } from './dataSource';
 import { formatClock, formatDuration, formatShortDateTime } from './format';
 import { ReplayView } from './ReplayView';
+import { ServerChatTest } from './ServerChatTest';
 import { demoVisits } from './demoStore';
 import { normalizeVisits, Stay } from './summary';
 import { colors } from './theme';
@@ -67,7 +68,8 @@ function Card({ card, onPress }: { card: ResolvedCard; onPress: () => void }) {
 }
 
 /**
- * 기억 챗. Live: shows relay health only; sending is disabled (see CHAT_SEND_ENABLED).
+ * 기억 챗. Live: relay health plus free-text questions over the fixed demo data via /chat
+ * (ServerChatTest). Questions about the user's own records stay off (CHAT_SEND_ENABLED).
  * Demo: fixed AgentAnswer fixtures whose cards resolve to the local sample rows.
  */
 export function AskScreen({ source }: { source: DataSource }) {
@@ -150,29 +152,31 @@ export function AskScreen({ source }: { source: DataSource }) {
         </>
       ) : (
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>아직 질문을 보낼 수 없어요</Text>
+          <Text style={styles.cardTitle}>
+            내 기록 질문은 아직 준비 중이에요
+          </Text>
           <HealthLine health={health} />
           <Text style={styles.cardText}>
             {CHAT_SEND_ENABLED
               ? ''
-              : '답을 만들 때 쓸 이 기기의 기록(memory.db)과 그 기록을 읽기 전용으로 조회하는 도구가 아직 준비 중이에요. 기록 없이 만든 답을 보여 주지 않으려고 전송을 막아 두었어요.'}
+              : '내 실제 방문 기록으로 답하는 조회 도구는 아직 준비 중이에요. 아래 입력창의 질문은 고정 데모 데이터로만 답해요.'}
           </Text>
         </View>
       )}
+      {/* Live: working input over the fixed demo data via /chat (ServerChatTest). */}
+      {demo ? null : <ServerChatTest health={health} />}
 
-      <View style={[styles.askbox, styles.off]}>
-        <TextInput
-          editable={false}
-          placeholder={
-            demo
-              ? '샘플에서는 위 질문만 고를 수 있어요'
-              : '예: 지난달 카페 몇 번 갔지?'
-          }
-          placeholderTextColor={colors.muted}
-          style={styles.input}
-          accessibilityLabel="질문 입력, 아직 사용할 수 없음"
-        />
-      </View>
+      {demo ? (
+        <View style={[styles.askbox, styles.off]}>
+          <TextInput
+            editable={false}
+            placeholder="샘플에서는 위 질문만 고를 수 있어요"
+            placeholderTextColor={colors.muted}
+            style={styles.input}
+            accessibilityLabel="질문 입력, 샘플 모드에서는 사용할 수 없음"
+          />
+        </View>
+      ) : null}
       <ReplayView
         title={replay?.title ?? ''}
         stays={replay?.stays ?? null}

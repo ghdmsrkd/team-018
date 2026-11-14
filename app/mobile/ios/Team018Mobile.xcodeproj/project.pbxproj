@@ -20,6 +20,9 @@
 		A1B2C3D4E5F6071800000015 /* VisitPlaceMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071800000005 /* VisitPlaceMatcher.swift */; };
 		A1B2C3D4E5F6071800000016 /* PhotoLibraryModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071800000006 /* PhotoLibraryModule.swift */; };
 		A1B2C3D4E5F6071800000017 /* PhotoLibraryModule.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071800000007 /* PhotoLibraryModule.m */; };
+		A1B2C3D4E5F6071800000018 /* DemoMemoryModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071800000008 /* DemoMemoryModule.swift */; };
+		A1B2C3D4E5F6071800000019 /* DemoMemoryModule.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071800000009 /* DemoMemoryModule.m */; };
+		A1B2C3D4E5F607180000001A /* haru-demo-memory.db in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F607180000000A /* haru-demo-memory.db */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -41,6 +44,9 @@
 		A1B2C3D4E5F6071800000005 /* VisitPlaceMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VisitPlaceMatcher.swift; path = Team018Mobile/VisitPlaceMatcher.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6071800000006 /* PhotoLibraryModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PhotoLibraryModule.swift; path = Team018Mobile/PhotoLibraryModule.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6071800000007 /* PhotoLibraryModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = PhotoLibraryModule.m; path = Team018Mobile/PhotoLibraryModule.m; sourceTree = "<group>"; };
+		A1B2C3D4E5F6071800000008 /* DemoMemoryModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DemoMemoryModule.swift; path = Team018Mobile/DemoMemoryModule.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6071800000009 /* DemoMemoryModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = DemoMemoryModule.m; path = Team018Mobile/DemoMemoryModule.m; sourceTree = "<group>"; };
+		A1B2C3D4E5F607180000000A /* haru-demo-memory.db */ = {isa = PBXFileReference; lastKnownFileType = file; name = haru-demo-memory.db; path = Team018Mobile/DemoData/haru-demo-memory.db; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +68,9 @@
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				761780EE2CA45674006654EF /* SceneDelegate.swift */,
 				A1B2C3D4E5F6071800000001 /* VisitStore.swift */,
+				A1B2C3D4E5F607180000000A /* haru-demo-memory.db */,
+				A1B2C3D4E5F6071800000009 /* DemoMemoryModule.m */,
+				A1B2C3D4E5F6071800000008 /* DemoMemoryModule.swift */,
 				A1B2C3D4E5F6071800000007 /* PhotoLibraryModule.m */,
 				A1B2C3D4E5F6071800000006 /* PhotoLibraryModule.swift */,
 				A1B2C3D4E5F6071800000005 /* VisitPlaceMatcher.swift */,
@@ -185,6 +194,7 @@
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				A1B2C3D4E5F607180000001A /* haru-demo-memory.db in Resources */,
 				80834C1DA6A27D94F922AF75 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -297,6 +307,8 @@
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
 				761780EF2CA45674006654EF /* SceneDelegate.swift in Sources */,
 				A1B2C3D4E5F6071800000011 /* VisitStore.swift in Sources */,
+				A1B2C3D4E5F6071800000019 /* DemoMemoryModule.m in Sources */,
+				A1B2C3D4E5F6071800000018 /* DemoMemoryModule.swift in Sources */,
 				A1B2C3D4E5F6071800000017 /* PhotoLibraryModule.m in Sources */,
 				A1B2C3D4E5F6071800000016 /* PhotoLibraryModule.swift in Sources */,
 				A1B2C3D4E5F6071800000015 /* VisitPlaceMatcher.swift in Sources */,
