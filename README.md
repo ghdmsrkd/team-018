@@ -11,7 +11,7 @@
 | [design/haru-mockup.html](design/haru-mockup.html) | 메인 화면 목업 v0.3 (24시간 도넛 · 기간별 비중 · 물어보기) |
 | [design/haru-app-design.html](design/haru-app-design.html) | 앱 전체 디자인 v0.1 (온보딩 · 오늘 · 물어보기 · 재생 · 여행 · 태그) |
 | [docs/PLAN.md](docs/PLAN.md) | 기능 기획 상세 (데이터 모델, 기억 챗, 더미 데이터 설계) |
-| [docs/system-design.html](docs/system-design.html) | 시스템 설계 (기기 SQLite, Cognito 게스트 자격 증명, Bedrock 에이전트) |
+| [docs/system-design.html](docs/system-design.html) | 시스템 설계 (기기 SQLite, Lambda 중계, Bedrock 에이전트) |
 | [docs/user-stories.html](docs/user-stories.html) | 유저 스토리 맵 |
 | [docs/하루_기획서_v0.1.md](docs/하루_기획서_v0.1.md) | `feat/haru-planning` 브랜치 원본 기획서 |
 
@@ -74,7 +74,7 @@
 
 ### 2-5. 자연어 질문 (기억 챗)
 - 예: "올해 강원도 몇 번 갔지?" → "8번이에요. 마지막: 2026-10-03 · 속초 해변" + 근거 카드
-- 흐름: 질문 → 앱이 **Bedrock Converse** 직접 호출 (서버 없음) → 모델이 `query_sql`로 폰의 `memory.db` 읽기 전용 뷰를 조회 (최대 6회) → `final_answer {text, cards[ID]}` → 앱이 카드 ID를 로컬 DB에서 다시 조회해 근거 카드를 만든다
+- 흐름: 질문 → 앱이 **Lambda 중계(`/chat`)** 를 거쳐 Bedrock Converse 호출 → 모델이 `query_sql`로 폰의 `memory.db` 읽기 전용 뷰를 조회 (최대 6회) → `final_answer {text, cards[ID]}` → 앱이 카드 ID를 로컬 DB에서 다시 조회해 근거 카드를 만든다
 - 카드 내용은 모델이 쓴 글자가 아니라 DB 조회 결과다. 모델이 날짜를 지어내도 카드는 틀리지 않는다
 - 근거 카드를 누르면 그 날 / 그 여행을 재생한다
 - 자세한 루프와 SQL 가드: [시스템 설계 3–4장](docs/system-design.html)
@@ -154,7 +154,7 @@ Trip    { start, end, regions, visits }  ← 집 기준 생활권을 벗어난 �
 
 | 영역 | 기술 |
 |---|---|
-**서버도 서버 DB도 두지 않는다.** 데이터는 전부 폰의 SQLite에 있고, 앱이 Cognito 게스트 임시 자격 증명으로 Bedrock을 직접 호출한다. 코드에 API 키가 없다. ([시스템 설계](docs/system-design.html))
+**서버 DB는 두지 않는다.** 데이터는 전부 폰의 SQLite에 있고, 앱은 Lambda 함수 하나(Function URL)를 거쳐 Bedrock과 Kakao를 호출한다. API 키와 AWS 자격 증명은 앱에도 GitHub에도 없다. ([시스템 설계](docs/system-design.html))
 
 | 영역 | 기술 |
 |---|---|
@@ -164,16 +164,16 @@ Trip    { start, end, regions, visits }  ← 집 기준 생활권을 벗어난 �
 | 차트 | `react-native-svg` + `d3-shape` |
 | 상태 · 내비게이션 | Zustand · React Navigation v7 |
 | 저장 | 기기 SQLite 2개: `raw.db` (원시 좌표, 에이전트 접근 불가) · `memory.db` (장소·방문·여행·하루) |
-| 인증 | Cognito Identity Pool 게스트 ID → STS 임시 자격 증명 (1시간) · 역할 `HaruGuestRole` |
+| 중계 | Lambda 1개 + Function URL: `/chat` → Bedrock, `/geocode` → Kakao · 모델·`maxTokens` 서버 고정 · 예약 동시성 5 · URL은 `.env`(gitignore) |
 | LLM | Amazon Bedrock Converse · `global.openai.gpt-6-luna` (ap-northeast-2) · 태그 추론 + 기억 챗 |
-| 장소 · 행정구역 | 데모는 더미 생성기의 장소명 사용, 실사용 기록만 Amazon Location Service (키 없음) |
-| 비용 방어 | AWS Budgets 자동 차단 · 서비스 쿼터 · CloudWatch 경보 |
+| 장소 · 행정구역 | Kakao Local API (키는 Lambda 환경변수에만) · 더미 데이터는 생성기의 장소명을 그대로 사용 |
+| 비용 방어 | AWS Budgets 도달 시 Lambda 동시성 0 · CloudWatch 경보 (요청 본문은 로그에 남기지 않음) |
 
-쓰지 않는 것: Lambda, API Gateway, DynamoDB, RDS, S3
+쓰지 않는 것: API Gateway, DynamoDB, RDS, S3, Cognito
 
 **권한**: iOS `NSLocationAlwaysAndWhenInUseUsageDescription`, Android `ACCESS_BACKGROUND_LOCATION`
 
-**프라이버시**: 데이터는 기기에만 저장 · AI에는 뷰 스키마와 SQL 결과 행만 전달 (원시 좌표, 집·회사 위치는 보내지 않음) · 기간 삭제 · 기록 일시정지
+**프라이버시**: 데이터는 기기에만 저장 · AI에는 뷰 스키마와 SQL 결과 행만 전달 (원시 좌표, 집·회사 위치는 보내지 않음) · 지오코딩에는 원시 점이 아니라 장소 중심점만 보냄 · 기간 삭제 · 기록 일시정지
 
 ---
 
@@ -210,7 +210,7 @@ Trip    { start, end, regions, visits }  ← 집 기준 생활권을 벗어난 �
 |---|---|
 | A · 앱 | 수집, 메인 도넛 화면, 타임라인, 지도 재생 |
 | B · 엔진 | 더미 데이터 생성기, 방문/여행 감지, 역지오코딩, 태그 추론 |
-| C · 챗 | Cognito · Bedrock 설정, 에이전트 런타임 (SQL 가드, 도구 루프, 카드 조립) |
+| C · 챗 | Lambda 중계 · Bedrock 설정, 에이전트 런타임 (SQL 가드, 도구 루프, 카드 조립) |
 
 B가 SQLite DDL을 먼저 고정하면 A와 C는 목업 데이터로 병렬 개발할 수 있다. 구현 순서는 [시스템 설계 9장](docs/system-design.html)에 있다.
 
@@ -223,14 +223,15 @@ B가 SQLite DDL을 먼저 고정하면 A와 C는 목업 데이터로 병렬 개�
 **정해진 것**
 - [x] **LLM**: Bedrock `gpt-6-luna` 하나로 통일 (원본 브랜치의 GPT-4o mini 직접 호출은 쓰지 않음)
 - [x] **데이터 저장 위치**: 기기에만 저장. 백업은 이번 범위에서 뺀다
-- [x] **가입**: 해커톤은 게스트로 간다
+- [x] **가입**: 해커톤은 로그인 없이 간다
+- [x] **Bedrock 호출 경로**: Lambda 중계 1개 (Cognito 직접 호출안은 철회)
+- [x] **지오코딩**: Kakao Local API를 Lambda로 중계
 - [x] **분류 체계**: 닫힌 태그 7개 (`기타` 없음, 모르면 비움). 원본 브랜치의 `HOME/CAFE/GYM/TRANSIT/OTHER`는 쓰지 않음
 
 **남은 것**
 - [ ] **`gpt-6-luna` 도구 호출 지원 여부**: 구현 첫날 확인. 안 되면 JSON 출력 모드로 같은 루프를 만든다
 - [ ] **방문 기준**: 15분 vs 10분 이상 머무름 (iOS Visit 원본을 쓰면 OS 기준을 따른다)
 - [ ] **사진 연동 시점**: MVP 포함 vs 이후 → 본문은 "여유 있으면"
-- [ ] **지오코딩**: 시스템 설계는 (b) 데모는 생략 + 실사용만 Amazon Location을 권한다
 - [ ] **1차 타깃**: 여행 기록 vs 일상 회고
 
 ---
