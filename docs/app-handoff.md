@@ -28,7 +28,7 @@
 ## 아직 없는 것 (백엔드 담당이 만드는 중)
 | 항목 | 상태 | 그동안 앱에서 할 일 |
 |---|---|---|
-| **에이전트 패키지** (SQL 가드, 도구 루프, 카드 조립) | 미완 | 챗 화면은 `AgentAnswer` 타입의 고정 응답으로 목업한다 |
+| **에이전트의 iOS 연동** | 공용 도구 루프·카드 검증 구현 | 읽기 전용 SQLite 조회와 카드 존재 확인을 iOS 어댑터에 연결한다 |
 
 ### `/chat` 모델
 개발 중에는 **Claude Haiku 4.5**(`global.anthropic.claude-haiku-4-5-20251001-v1:0`)로 배포되어 있고, 도구 호출까지 동작한다. 데모용 `gpt-6-luna`는 계약은 맺었지만 아직 호출이 거부되어 보류 중이다. 모델은 Lambda 환경변수 `MODEL_ID` 하나로 바뀌므로 앱 코드는 바꿀 필요가 없다.
@@ -45,7 +45,8 @@ curl -s $EXPO_PUBLIC_API_URL/health
 
 - `artifacts/memory.db`는 2025-11-15~2026-11-14의 365일, 장소 48개, 체류 1,982건, 여행 10건, 이동 1,617건을 담는다. `PRAGMA quick_check`와 `PRAGMA foreign_key_check`를 통과했다. `artifacts/memory.groundtruth.db`는 생성기의 정답 데이터이며 앱 검증용 산출물은 `memory.db`다.
 - 데모를 연결할 때는 별도 번들 DB로 열 수 있다. 실사용 시에는 기존 `visits.sqlite`의 CLVisit에서 방문→장소→체류를 변환해 기기의 별도 `memory.db`를 채워야 한다. 출발 시각이 아직 없는 방문과 늦게 도착하는 방문을 변환 과정에서 처리한다. 지도 재생의 `moves.path`는 JSON이고 CLVisit 사이 실제 경로는 별도 데이터가 필요하다.
-- `packages/agent/src/index.ts`는 빈 모듈이다. `/chat`은 Bedrock 도구 요청을 중계한다. 앱 연결에는 허용 뷰와 출력 행 수를 제한하는 로컬 읽기 전용 SQL 실행기, `toolUseId`로 결과를 돌려주는 도구 루프, 실제 행으로 `CardRef`를 확인하는 코드가 필요하다. 허용 뷰는 `v_days`, `v_places`, `v_stays`, `v_stay_places`, `v_trips`다. SQL 실행기는 뷰 밖의 테이블과 원본 좌표 접근을 차단해야 한다.
+- `@haru/agent`의 `askMemory(question, adapters)`는 최대 6회 도구 결과를 `toolUseId`에 맞춰 `/chat`에 돌려주고, 최종 답변의 카드 중 로컬 DB에 존재하는 참조를 남긴다. Bedrock `toolResult.content[].json`에는 배열을 직접 넣으면 HTTP 400이므로 `{ rows: [...] }` 객체로 감싼다.
+- iOS는 로컬 `querySql`과 `cardExists`를 어댑터로 제공할 수 있다. SQL 실행기에서 `v_days`, `v_places`, `v_stays`, `v_stay_places`, `v_trips`만 허용하고 행 수와 출력 크기를 제한한다. `/chat`은 Bedrock 중계이고 SQL은 앱 내부에서 실행하므로 별도 HTTP `/sql` 경로는 필요 없다.
 - 현재 Node용 SQLite 구현은 `node:sqlite`를 사용한다. bare React Native iOS에서는 Swift 쪽 SQLite 실행기나 RN 호환 어댑터를 연결한다. 시간대와 태그 매핑 차이는 아래 실기기 연동 항목을 따른다.
 
 ## 변경이 생기면
