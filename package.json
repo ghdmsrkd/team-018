@@ -1,0 +1,9 @@
+{
+  "name": "haru",
+  "private": true,
+  "packageManager": "pnpm@10.26.2",
+  "scripts": {
+    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm -r --if-present typecheck"
+  }
+}

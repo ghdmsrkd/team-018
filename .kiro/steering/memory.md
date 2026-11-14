@@ -14,6 +14,12 @@ inclusion: always
 - 회사 프로필(`default`, `default-stayge`, `derma-clinic`)은 사용하지 않는다.
 - 이 프로필은 `~/.aws/config`에 리전 설정이 없으므로 필요하면 `--region ap-northeast-2`를 명시한다.
 
+## 인프라
+- 인프라는 AWS CLI 스크립트로만 만든다 (`backend/scripts/`). CDK, Terraform은 쓰지 않는다.
+- 구조: 앱(SQLite) → Lambda Function URL(`haru-api`) → Bedrock. Cognito는 쓰지 않는다.
+- 저장소가 공개라서 키, Lambda URL, `.env`는 커밋하지 않는다.
+- `global.openai.gpt-6-luna`는 이 계정에서 사용 계약(agreement)이 필요하다. 사용자 승인 없이 계약하지 않는다.
+
 ## Git
 - Git 작업은 에이전트가 전부 처리한다.
 - 의미 있는 작업 단위마다 중간중간 커밋한다.
