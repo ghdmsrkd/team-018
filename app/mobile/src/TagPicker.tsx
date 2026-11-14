@@ -168,7 +168,15 @@ export function TagPicker({ visit, onClose }: Props) {
               color="#c62828"
               disabled={busy}
               onPress={() =>
-                run(() => visitMonitor.clearVisitTag(visit.id), true)
+                run(
+                  () =>
+                    Promise.all(
+                      [visit.id, ...(visit.mergedVisitIds ?? [])].map(id =>
+                        visitMonitor.clearVisitTag(id),
+                      ),
+                    ),
+                  true,
+                )
               }
             />
           </View>

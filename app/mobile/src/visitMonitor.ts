@@ -35,6 +35,11 @@ export type Visit = {
   tag?: VisitTag | null;
   /** Place ID chosen for this visit: Google as-is, Kakao as "kakao:<id>". Only the ID is stored. */
   googlePlaceId?: string | null;
+  /**
+   * JS only: ids of hidden duplicate rows (CLVisit arrival callbacks) merged into this one by
+   * normalizeVisits. Clearing a tag or place must clear these too, or the value comes back.
+   */
+  mergedVisitIds?: number[];
 };
 
 export type VisitTag = {
