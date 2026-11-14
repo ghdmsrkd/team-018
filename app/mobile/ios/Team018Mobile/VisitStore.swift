@@ -16,6 +16,28 @@ struct StoredVisit {
   /// place id prefixed with "kakao:". Names, addresses and coordinates from the provider are
   /// not stored; showing a name again needs a later lookup by ID.
   var googlePlaceId: String? = nil
+  /// Set only for test seed rows (visit_seeds), never for real CLVisit callbacks.
+  var seed: SeedInfo? = nil
+}
+
+struct SeedInfo {
+  let key: String
+  let placeName: String
+  let placeCategory: String?
+}
+
+/// One test seed visit supplied by JS: a public place with made-up times.
+struct SeedVisit {
+  let key: String
+  let placeName: String
+  let placeCategory: String?
+  let latitude: Double
+  let longitude: Double
+  let horizontalAccuracy: Double
+  let arrivalAt: Double
+  let departureAt: Double?
+  /// Preset tag name to apply as a manual tag, if it exists in the catalog.
+  let tagName: String?
 }
 
 enum TagSource: String {
@@ -65,9 +87,11 @@ enum VisitStoreError: Error, LocalizedError {
 /// - 1: adds `tags` (with Korean place presets) and `visit_tags`. Additive only.
 /// - 2: adds `visit_places` (visit → provider place ID only; Google as-is, Kakao as
 ///   "kakao:<id>"). Additive only.
+/// - 3: adds `visit_seeds` (marks test seed rows, with their public place name). Additive only.
 final class VisitStore {
   static let shared = VisitStore(path: nil)
-  static let schemaVersion: Int32 = 2
+  static let schemaVersion: Int32 = 3
+  static let maxSeedCount = 20
   static let maxTagNameLength = 30
 
   /// Place-only presets. Inserted with INSERT OR IGNORE, so existing rows are never touched.
@@ -147,6 +171,7 @@ final class VisitStore {
   private func migrate(_ db: OpaquePointer) -> Bool {
     if userVersion(db) < 1, !migrateV1(db) { return false }
     if userVersion(db) < 2, !migrateV2(db) { return false }
+    if userVersion(db) < 3, !migrateV3(db) { return false }
     return true
   }
 
@@ -162,6 +187,23 @@ final class VisitStore {
     """
     guard exec(db, "BEGIN IMMEDIATE;") else { return false }
     if exec(db, v2), exec(db, "PRAGMA user_version = 2;"), exec(db, "COMMIT;") { return true }
+    exec(db, "ROLLBACK;")
+    return false
+  }
+
+  /// Test seed markers. A visit is a seed only if it has a row here; real CLVisit rows never do.
+  private func migrateV3(_ db: OpaquePointer) -> Bool {
+    let v3 = """
+    CREATE TABLE IF NOT EXISTS visit_seeds (
+      visit_id INTEGER PRIMARY KEY REFERENCES visits(id) ON DELETE CASCADE,
+      seed_key TEXT NOT NULL UNIQUE,
+      place_name TEXT NOT NULL,
+      place_category TEXT,
+      seeded_at REAL NOT NULL
+    );
+    """
+    guard exec(db, "BEGIN IMMEDIATE;") else { return false }
+    if exec(db, v3), exec(db, "PRAGMA user_version = 3;"), exec(db, "COMMIT;") { return true }
     exec(db, "ROLLBACK;")
     return false
   }
@@ -295,7 +337,8 @@ final class VisitStore {
     let sql = """
     SELECT vt.tag_id, vt.place_latitude, vt.place_longitude, v.horizontal_accuracy
     FROM visit_tags vt JOIN visits v ON v.id = vt.visit_id
-    WHERE vt.source = 'manual' AND vt.visit_id != ?;
+    WHERE vt.source = 'manual' AND vt.visit_id != ?
+      \(userVersion(db) >= 3 ? "AND vt.visit_id NOT IN (SELECT visit_id FROM visit_seeds)" : "");
     """
     guard let stmt = prepare(db, sql, [.int(visitId)]) else { return [] }
     defer { sqlite3_finalize(stmt) }
@@ -376,15 +419,18 @@ final class VisitStore {
       let version = userVersion(db)
       let tagged = version >= 1
       let placed = version >= 2
+      let seeded = version >= 3
       let sql = tagged
         ? """
           SELECT v.id, v.latitude, v.longitude, v.horizontal_accuracy, v.arrival_at, v.departure_at,
                  v.received_at, vt.tag_id, t.name, vt.source, vt.match_distance,
-                 \(placed ? "vp.google_place_id" : "NULL")
+                 \(placed ? "vp.google_place_id" : "NULL"),
+                 \(seeded ? "vs.seed_key, vs.place_name, vs.place_category" : "NULL, NULL, NULL")
           FROM visits v
           LEFT JOIN visit_tags vt ON vt.visit_id = v.id
           LEFT JOIN tags t ON t.id = vt.tag_id
           \(placed ? "LEFT JOIN visit_places vp ON vp.visit_id = v.id" : "")
+          \(seeded ? "LEFT JOIN visit_seeds vs ON vs.visit_id = v.id" : "")
           WHERE \(condition)
           ORDER BY \(order);
           """
@@ -414,11 +460,140 @@ final class VisitStore {
           departureAt: optionalDouble(stmt, 5),
           receivedAt: sqlite3_column_double(stmt, 6),
           tag: tag,
-          googlePlaceId: tagged ? text(stmt, 11) : nil
+          googlePlaceId: tagged ? text(stmt, 11) : nil,
+          seed: tagged ? text(stmt, 12).flatMap { key in
+            text(stmt, 13).map {
+              SeedInfo(key: key, placeName: $0, placeCategory: text(stmt, 14))
+            }
+          } : nil
         ))
       }
       return rows
     }
+  }
+
+  // MARK: Test seed visits
+
+  static func isValidSeed(_ s: SeedVisit) -> Bool {
+    let keyOK = !s.key.isEmpty && s.key.count <= 64 && s.key.unicodeScalars.allSatisfy {
+      ($0.isASCII && CharacterSet.alphanumerics.contains($0)) || $0 == "-" || $0 == "_"
+    }
+    let nameOK = !s.placeName.trimmingCharacters(in: .whitespaces).isEmpty && s.placeName.count <= 60
+    let coordOK = VisitPlaceMatcher.isUsable(
+      latitude: s.latitude, longitude: s.longitude, horizontalAccuracy: s.horizontalAccuracy
+    )
+    let timeOK = s.arrivalAt.isFinite && (s.departureAt.map { $0.isFinite && $0 >= s.arrivalAt } ?? true)
+    return keyOK && nameOK && coordOK && timeOK
+  }
+
+  /// Inserts test seed visits in one transaction. Keys already present are skipped, so
+  /// retries and relaunches never duplicate. Seeds never run 50 m auto-matching and are
+  /// excluded from matching anchors. Returns how many rows were inserted.
+  @discardableResult
+  func insertSeeds(_ seeds: [SeedVisit]) throws -> Int {
+    guard seeds.count <= Self.maxSeedCount, seeds.allSatisfy(Self.isValidSeed),
+          Set(seeds.map(\.key)).count == seeds.count
+    else { throw VisitStoreError.invalidName }
+    return try queue.sync {
+      let db = try readyDB()
+      guard exec(db, "BEGIN IMMEDIATE;") else { throw message(db) }
+      var inserted = 0
+      var ok = true
+      let now = Date().timeIntervalSince1970
+      for s in seeds where ok {
+        guard let stmt = prepare(db, "SELECT 1 FROM visit_seeds WHERE seed_key = ?;", [.text(s.key)])
+        else { ok = false; break }
+        let exists = sqlite3_step(stmt) == SQLITE_ROW
+        sqlite3_finalize(stmt)
+        if exists { continue }
+        ok = run(
+          db,
+          """
+          INSERT INTO visits (latitude, longitude, horizontal_accuracy, arrival_at, departure_at, received_at)
+          VALUES (?, ?, ?, ?, ?, ?);
+          """,
+          [
+            .double(s.latitude), .double(s.longitude), .double(s.horizontalAccuracy),
+            .double(s.arrivalAt), s.departureAt.map { .double($0) } ?? .null,
+            .double(min(now, (s.departureAt ?? s.arrivalAt) + 12 * 60)),
+          ]
+        )
+        guard ok else { break }
+        let visitId = sqlite3_last_insert_rowid(db)
+        ok = run(
+          db,
+          "INSERT INTO visit_seeds (visit_id, seed_key, place_name, place_category, seeded_at) VALUES (?, ?, ?, ?, ?);",
+          [.int(visitId), .text(s.key), .text(s.placeName), s.placeCategory.map { .text($0) } ?? .null, .double(now)]
+        )
+        if ok, let tagName = s.tagName,
+           let tstmt = prepare(db, "SELECT id FROM tags WHERE name = ? AND is_preset = 1;", [.text(tagName)]) {
+          let tagId: Int64? = sqlite3_step(tstmt) == SQLITE_ROW ? sqlite3_column_int64(tstmt, 0) : nil
+          sqlite3_finalize(tstmt)
+          if let tagId = tagId {
+            ok = run(
+              db,
+              """
+              INSERT INTO visit_tags
+                (visit_id, tag_id, source, place_latitude, place_longitude, match_distance, assigned_at)
+              VALUES (?, ?, 'manual', ?, ?, NULL, ?);
+              """,
+              [.int(visitId), .int(tagId), .double(s.latitude), .double(s.longitude), .double(now)]
+            )
+          }
+        }
+        if ok { inserted += 1 }
+      }
+      if ok, exec(db, "COMMIT;") { return inserted }
+      exec(db, "ROLLBACK;")
+      throw message(db)
+    }
+  }
+
+  /// Deletes only seed rows (and their tags/place links). Real visits are untouched.
+  @discardableResult
+  func deleteSeeds() throws -> Int {
+    try queue.sync {
+      let db = try readyDB()
+      let before = seedCountLocked(db)
+      guard exec(db, "BEGIN IMMEDIATE;") else { throw message(db) }
+      let ids = "SELECT visit_id FROM visit_seeds"
+      let ok = exec(db, "DELETE FROM visit_tags WHERE visit_id IN (\(ids));")
+        && exec(db, "DELETE FROM visit_places WHERE visit_id IN (\(ids));")
+        && exec(db, "DELETE FROM visits WHERE id IN (\(ids));")
+        && exec(db, "DELETE FROM visit_seeds;")
+      if ok, exec(db, "COMMIT;") { return before }
+      exec(db, "ROLLBACK;")
+      throw message(db)
+    }
+  }
+
+  private func seedCountLocked(_ db: OpaquePointer) -> Int {
+    guard userVersion(db) >= 3, let stmt = prepare(db, "SELECT COUNT(*) FROM visit_seeds;", [])
+    else { return 0 }
+    defer { sqlite3_finalize(stmt) }
+    return sqlite3_step(stmt) == SQLITE_ROW ? Int(sqlite3_column_int64(stmt, 0)) : 0
+  }
+
+  /// The stored coordinates of a test seed visit, or nil if the id is not a seed row.
+  func seedCoordinate(visitId: Int64) -> (latitude: Double, longitude: Double, accuracy: Double)? {
+    queue.sync {
+      guard let db = openIfNeeded(), userVersion(db) >= 3,
+            let stmt = prepare(
+              db,
+              """
+              SELECT v.latitude, v.longitude, v.horizontal_accuracy FROM visits v
+              JOIN visit_seeds s ON s.visit_id = v.id WHERE v.id = ?;
+              """,
+              [.int(visitId)]
+            ) else { return nil }
+      defer { sqlite3_finalize(stmt) }
+      guard sqlite3_step(stmt) == SQLITE_ROW else { return nil }
+      return (sqlite3_column_double(stmt, 0), sqlite3_column_double(stmt, 1), sqlite3_column_double(stmt, 2))
+    }
+  }
+
+  func seedCount() -> Int {
+    queue.sync { openIfNeeded().map(seedCountLocked) ?? 0 }
   }
 
   func count() -> Int {

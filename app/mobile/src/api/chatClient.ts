@@ -10,7 +10,9 @@ import type {
 } from '@haru/schema';
 import { NativeModules, Platform } from 'react-native';
 
-type ConfigNative = { getApiConfig(): Promise<{ apiUrl: string | null }> };
+type ConfigNative = {
+  getApiConfig(): Promise<{ apiUrl: string | null; testKakaoDirect?: boolean }>;
+};
 
 const native: ConfigNative | undefined =
   Platform.OS === 'ios' && NativeModules.VisitMonitorModule?.getApiConfig
@@ -18,6 +20,23 @@ const native: ConfigNative | undefined =
     : undefined;
 
 let cached: Promise<string | null> | null = null;
+let cachedDirect: Promise<boolean> | null = null;
+
+/**
+ * True only in local test builds made with HARU_TEST_KAKAO_REST_KEY. The key stays in
+ * native code; JS only learns that direct Kakao search for seed visits is available.
+ */
+export function isTestKakaoDirect(): Promise<boolean> {
+  if (!cachedDirect) {
+    cachedDirect = native
+      ? native
+          .getApiConfig()
+          .then(c => c.testKakaoDirect === true)
+          .catch(() => false)
+      : Promise.resolve(false);
+  }
+  return cachedDirect;
+}
 
 /**
  * Lambda Function URL injected at build time from an untracked .env (see

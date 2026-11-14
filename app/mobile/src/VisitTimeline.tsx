@@ -131,6 +131,7 @@ function VisitRow({ visit, last, onTag, media, onOpenMedia }: RowProps) {
         {last ? null : <View style={styles.railLine} />}
       </View>
       <View style={styles.card}>
+        {visit.seed ? <Text style={styles.seedBadge}>확인용 더미</Text> : null}
         {visit.placeName ? (
           <Text style={styles.placeName}>
             {visit.placeName}
@@ -315,6 +316,17 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 14,
     backgroundColor: colors.card,
+  },
+  seedBadge: {
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+    paddingHorizontal: 6,
+    borderRadius: 4,
+    overflow: 'hidden',
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#A8480A',
+    backgroundColor: '#FBE7D6',
   },
   placeName: {
     fontSize: 16,

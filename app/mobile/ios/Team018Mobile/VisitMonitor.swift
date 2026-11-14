@@ -114,6 +114,7 @@ final class VisitMonitor: NSObject, CLLocationManagerDelegate {
       "alwaysRequested": hasRequestedAlways,
       "requestPending": requestPending,
       "visitCount": VisitStore.shared.count(),
+      "seedCount": VisitStore.shared.seedCount(),
       "lastError": lastError.map { $0 as Any } ?? NSNull(),
     ]
   }

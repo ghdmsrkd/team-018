@@ -19,6 +19,8 @@ export type MonitorState = {
   /** True while the first iOS prompt from an explicit request is still unanswered. */
   requestPending?: boolean;
   visitCount: number;
+  /** Test seed rows currently stored (0 when none). */
+  seedCount?: number;
   lastError: string | null;
 };
 
@@ -40,9 +42,11 @@ export type Visit = {
    * normalizeVisits. Clearing a tag or place must clear these too, or the value comes back.
    */
   mergedVisitIds?: number[];
-  /** JS-only sample data: public place name and category. Stored visits never have these. */
-  placeName?: string;
-  placeCategory?: string;
+  /** Public place name and category: JS samples, or stored test seed rows. */
+  placeName?: string | null;
+  placeCategory?: string | null;
+  /** True only for stored test seed rows (never for real CLVisit rows). */
+  seed?: boolean;
 };
 
 export type VisitTag = {
@@ -79,6 +83,20 @@ type Native = {
   clearVisitTag(visitId: number): Promise<void>;
   setVisitPlace(visitId: number, placeId: string): Promise<void>;
   clearVisitPlace(visitId: number): Promise<void>;
+  seedTestVisits(rows: SeedRow[]): Promise<number>;
+  deleteTestVisits(): Promise<number>;
+};
+
+export type SeedRow = {
+  key: string;
+  placeName: string;
+  placeCategory: string | null;
+  latitude: number;
+  longitude: number;
+  horizontalAccuracy: number;
+  arrivalAt: number;
+  departureAt: number | null;
+  tagName: string | null;
 };
 
 const native: Native | undefined =
@@ -110,6 +128,10 @@ export const visitMonitor = {
   setVisitPlace: (visitId: number, placeId: string) =>
     native!.setVisitPlace(visitId, placeId),
   clearVisitPlace: (visitId: number) => native!.clearVisitPlace(visitId),
+  /** Explicit user action only. Idempotent by key; returns rows inserted. */
+  seedTestVisits: (rows: SeedRow[]) => native!.seedTestVisits(rows),
+  /** Deletes only test seed rows. */
+  deleteTestVisits: () => native!.deleteTestVisits(),
   subscribe(listener: () => void): () => void {
     if (!native) {
       return () => {};

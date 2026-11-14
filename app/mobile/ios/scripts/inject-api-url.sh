@@ -14,6 +14,14 @@ for f in "$SRCROOT/../.env" "$SRCROOT/../../../.env"; do
 done
 PLIST="$TARGET_BUILD_DIR/$INFOPLIST_PATH"
 /usr/libexec/PlistBuddy -c "Delete :HaruApiUrl" "$PLIST" >/dev/null 2>&1 || true
+# Local test builds only: HARU_TEST_KAKAO_REST_KEY from the build environment (never from a
+# file in the repo) enables direct Kakao Local search for test seed visits. The key ends up
+# inside this build's Info.plist, so never distribute such a build. The value is never printed.
+/usr/libexec/PlistBuddy -c "Delete :HaruTestKakaoRestKey" "$PLIST" >/dev/null 2>&1 || true
+if [ -n "${HARU_TEST_KAKAO_REST_KEY:-}" ]; then
+  /usr/libexec/PlistBuddy -c "Add :HaruTestKakaoRestKey string $HARU_TEST_KAKAO_REST_KEY" "$PLIST" >/dev/null
+  echo "note: test-only direct Kakao search enabled for seed visits (key not shown)"
+fi
 case "$URL" in
   *xxxxxxxx*) echo "note: API URL is the .env.example placeholder; ask/health stay disabled" ;;
   https://*)

@@ -541,6 +541,7 @@ export function TodayScreen({
                       accessibilityHint="태그를 바꿔요"
                     >
                       <Text style={styles.stayName}>
+                        {s.visit.seed ? '[확인용] ' : ''}
                         {s.visit.placeName ? `${s.visit.placeName} · ` : ''}
                         {s.tag}
                         {s.tag === UNTAGGED ? (

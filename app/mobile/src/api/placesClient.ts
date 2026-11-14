@@ -5,7 +5,27 @@ import type {
   PlacesNearbyResponse,
   PlacesProvider,
 } from '@haru/schema';
-import { getApiUrl } from './chatClient';
+import { NativeModules, Platform } from 'react-native';
+import { getApiUrl, isTestKakaoDirect } from './chatClient';
+
+type DirectNative = {
+  kakaoTestNearby(visitId: number): Promise<PlacesNearbyResponse>;
+};
+const direct: DirectNative | undefined =
+  Platform.OS === 'ios' && NativeModules.VisitMonitorModule?.kakaoTestNearby
+    ? NativeModules.VisitMonitorModule
+    : undefined;
+
+/**
+ * Whether a search for this visit goes straight from the device to Kakao (test builds, seed
+ * rows only). Native re-checks that the visit id is a stored seed row before sending.
+ */
+export async function usesDirectKakao(visit: {
+  id: number;
+  seed?: boolean;
+}): Promise<boolean> {
+  return visit.seed === true && direct != null && (await isTestKakaoDirect());
+}
 
 export type NearbyResult =
   | { state: 'ok'; response: PlacesNearbyResponse }
@@ -69,13 +89,40 @@ export function nearbyRequestFor(v: {
  * provider (Google if configured there, otherwise Kakao).
  */
 export async function searchNearby(
-  visit: { latitude: number; longitude: number; horizontalAccuracy: number },
+  visit: {
+    id?: number;
+    seed?: boolean;
+    latitude: number;
+    longitude: number;
+    horizontalAccuracy: number;
+  },
   url?: string | null,
   fetchImpl: typeof fetch = fetch,
 ): Promise<NearbyResult> {
   const req = nearbyRequestFor(visit);
   if (!req) {
     return { state: 'invalid' };
+  }
+  if (
+    visit.id != null &&
+    (await usesDirectKakao({ id: visit.id, seed: visit.seed }))
+  ) {
+    try {
+      const response = await direct!.kakaoTestNearby(visit.id);
+      return {
+        state: 'ok',
+        response: {
+          ...response,
+          provider: 'kakao',
+          places: (response.places ?? []).map(p => ({
+            ...p,
+            provider: 'kakao' as const,
+          })),
+        },
+      };
+    } catch (e: any) {
+      return { state: 'error', detail: String(e?.message ?? e) };
+    }
   }
   const base = url === undefined ? await getApiUrl() : url;
   if (!base) {
@@ -93,6 +140,13 @@ export async function searchNearby(
     const body = await res.json().catch(() => ({}));
     if (res.status === 501) {
       return { state: 'notConfigured' };
+    }
+    if (res.status === 404) {
+      // The deployed relay predates /places/nearby. No fallback to other endpoints.
+      return {
+        state: 'error',
+        detail: '중계 서버에 장소 검색이 아직 배포되지 않았어요',
+      };
     }
     if (!res.ok) {
       const err = body as ApiError;

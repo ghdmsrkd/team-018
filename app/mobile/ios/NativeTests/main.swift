@@ -36,7 +36,7 @@ var store = VisitStore(path: path)
 var visits = store.fetch(limit: 50)
 check(visits.count == 1, "existing visit preserved after migration")
 check(visits.first?.departureAt == nil && visits.first?.arrivalAt == 1000, "existing visit fields intact")
-check(store.schemaVersionForTesting() == 2, "schema version is 2")
+check(store.schemaVersionForTesting() == 3, "schema version is 3")
 let tags = try! store.tags()
 check(tags.filter(\.isPreset).count >= 20, "20+ preset tags (\(tags.count))")
 for name in ["집", "회사", "카페", "미용실", "식당"] {
@@ -138,6 +138,26 @@ expectThrows("empty kakao id rejected") { try store.setVisitPlace(visitId: a.id,
 try! store.clearVisitPlace(visitId: a.id)
 check(store.fetch(limit: 100).first { $0.id == a.id }?.googlePlaceId == nil, "place id cleared")
 check(store.fetch(limit: 100).count == store.count(), "visits intact after place edits")
+
+// Test seeds: idempotent, marked, not anchors, deletable without touching real rows.
+let realBefore = store.count()
+func seed(_ key: String, _ lat: Double, _ lon: Double, tag: String?) -> SeedVisit {
+  SeedVisit(key: key, placeName: "테스트 \(key)", placeCategory: "교통", latitude: lat, longitude: lon,
+            horizontalAccuracy: 40, arrivalAt: 1_000, departureAt: 2_000, tagName: tag)
+}
+let seeds = [seed("s1", 20.0, 20.0, tag: "카페"), seed("s2", 21.0, 21.0, tag: "박물관")]
+check(try! store.insertSeeds(seeds) == 2, "seeds inserted")
+check(try! store.insertSeeds(seeds) == 0, "seed retry inserts nothing")
+check(store.seedCount() == 2 && store.count() == realBefore + 2, "seed count")
+let seeded = store.fetch(limit: 500).filter { $0.seed != nil }
+check(seeded.count == 2 && seeded.contains { $0.seed?.placeName == "테스트 s1" }, "seed marker and name")
+check(seeded.first { $0.seed?.key == "s1" }?.tag?.tagName == "카페", "seed preset tag applied")
+check(seeded.first { $0.seed?.key == "s2" }?.tag == nil, "non-preset seed tag skipped")
+check(addVisit(20.0001, 20.0).tag == nil, "seed is not a 50 m anchor")
+expectThrows("invalid seed rejected") { try store.insertSeeds([seed("bad key!", 20, 20, tag: nil)]) }
+let realNow = store.count() - store.seedCount()
+check(try! store.deleteSeeds() == 2, "seeds deleted")
+check(store.seedCount() == 0 && store.count() == realNow, "real visits kept after seed delete")
 
 // Pure matcher: boundary at exactly <= 50 m.
 let anchor = PlaceAnchor(tagId: 1, latitude: 0, longitude: 0, horizontalAccuracy: 5)

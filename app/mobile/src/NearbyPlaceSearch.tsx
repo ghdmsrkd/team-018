@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { checkHealth } from './api/chatClient';
 import {
+  usesDirectKakao,
   NearbyResult,
   parseStoredPlaceId,
   PROVIDER_ATTRIBUTION,
@@ -50,6 +51,7 @@ export function NearbyPlaceSearch({
   const [provider, setProvider] = useState<PlacesProvider | null | undefined>(
     undefined,
   );
+  const [directKakao, setDirectKakao] = useState(false);
   const [result, setResult] = useState<NearbyResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [picked, setPicked] = useState<PlaceCandidate | null>(null);
@@ -63,6 +65,7 @@ export function NearbyPlaceSearch({
       return;
     }
     let alive = true;
+    usesDirectKakao(visit).then(d => alive && setDirectKakao(d));
     checkHealth().then(h => {
       if (alive) {
         setProvider(h.state === 'ok' ? h.placesProvider : null);
@@ -71,7 +74,7 @@ export function NearbyPlaceSearch({
     return () => {
       alive = false;
     };
-  }, [sample]);
+  }, [sample, visit]);
 
   const search = async () => {
     setBusy(true);
@@ -156,6 +159,14 @@ export function NearbyPlaceSearch({
       <Text style={styles.notice}>
         {sample
           ? '샘플 모드예요. 위치를 어디에도 보내지 않고, 앱 안의 고정된 샘플 장소 목록에서 가까운 순으로 보여 줘요. 고른 결과는 저장되지 않아요.'
+          : directKakao
+          ? `테스트 빌드예요. 확인용 더미 방문이라 공개 장소(${
+              visit.placeName ?? ''
+            })의 테스트 좌표와 정확도가 이 기기에서 카카오(dapi.kakao.com)로 바로 전달돼요. 버튼을 누를 때만 보내요.`
+          : visit.seed
+          ? `확인용 더미 방문이라 공개 장소(${
+              visit.placeName ?? ''
+            })의 테스트 좌표만 보내요. 검색하면 이 좌표와 정확도가 하루 중계 서버(AWS Lambda)를 거쳐 ${destination} 전달돼요. 버튼을 누를 때만 보내요.`
           : `검색하면 이 방문의 위치(좌표와 정확도)가 하루 중계 서버(AWS Lambda)를 거쳐 ${destination} 전달돼요. 버튼을 누를 때만 보내요.`}
       </Text>
       <Pressable

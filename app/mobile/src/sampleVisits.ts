@@ -278,3 +278,37 @@ export const SAMPLE_TRIP = {
   name: '샘플 여행 · 서울 도심 한 바퀴',
   visitIds: [-1, -2, -3, -4, -5, -6],
 };
+
+/**
+ * Seed rows for the live mode's "확인용 데이터 추가": exactly one visit per public place
+ * (10 rows), reusing the sample fixture. Times are shifted so the sample "now" lands on
+ * `now`, so the rows cover the last ~3 days and the 남산서울타워 stay is in progress.
+ * Only preset tag names are passed; custom sample tags (박물관, 관광, 쇼핑) stay untagged so
+ * seeding never creates user tags.
+ */
+export function seedRowsFor(now: number) {
+  const shift = now - SAMPLE_NOW;
+  const presets = new Set(PRESET_TAG_NAMES);
+  const seen = new Set<string>();
+  const rows = [];
+  // Latest visit per place, so the in-progress 남산 and 서울숲 (untagged) are included.
+  for (const s of [...SEEDS].reverse()) {
+    if (seen.has(s.place)) {
+      continue;
+    }
+    seen.add(s.place);
+    const p = place(s.place);
+    rows.push({
+      key: `haru-seed-v1-${p.key}`,
+      placeName: p.name,
+      placeCategory: p.category,
+      latitude: p.latitude,
+      longitude: p.longitude,
+      horizontalAccuracy: s.accuracy,
+      arrivalAt: at(...s.from) + shift,
+      departureAt: s.to ? at(...s.to) + shift : null,
+      tagName: s.tag && presets.has(s.tag) ? s.tag : null,
+    });
+  }
+  return rows.reverse();
+}

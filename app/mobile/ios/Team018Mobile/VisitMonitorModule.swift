@@ -62,6 +62,9 @@ final class VisitMonitorModule: RCTEventEmitter {
         "departureAt": v.departureAt.map { $0 * 1000 as Any } ?? NSNull(),
         "receivedAt": v.receivedAt * 1000,
         "googlePlaceId": v.googlePlaceId.map { $0 as Any } ?? NSNull(),
+        "seed": v.seed != nil,
+        "placeName": v.seed.map { $0.placeName as Any } ?? NSNull(),
+        "placeCategory": v.seed?.placeCategory.map { $0 as Any } ?? NSNull(),
         "tag": v.tag.map { t -> Any in
           [
             "id": t.tagId,
@@ -153,6 +156,38 @@ final class VisitMonitorModule: RCTEventEmitter {
     }
   }
 
+  /// Explicit user action only. Each row: key, placeName, placeCategory?, latitude, longitude,
+  /// horizontalAccuracy, arrivalAt (ms), departureAt (ms | null), tagName?. Idempotent by key.
+  @objc func seedTestVisits(
+    _ rows: [[String: Any]], resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
+    perform(resolve, reject) {
+      let seeds = try rows.map { r -> SeedVisit in
+        guard let key = r["key"] as? String, let name = r["placeName"] as? String,
+              let lat = (r["latitude"] as? NSNumber)?.doubleValue,
+              let lng = (r["longitude"] as? NSNumber)?.doubleValue,
+              let acc = (r["horizontalAccuracy"] as? NSNumber)?.doubleValue,
+              let arrival = (r["arrivalAt"] as? NSNumber)?.doubleValue
+        else { throw VisitStoreError.invalidName }
+        return SeedVisit(
+          key: key, placeName: name, placeCategory: r["placeCategory"] as? String,
+          latitude: lat, longitude: lng, horizontalAccuracy: acc,
+          arrivalAt: arrival / 1000,
+          departureAt: (r["departureAt"] as? NSNumber).map { $0.doubleValue / 1000 },
+          tagName: r["tagName"] as? String
+        )
+      }
+      return try VisitStore.shared.insertSeeds(seeds)
+    }
+  }
+
+  @objc func deleteTestVisits(
+    _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
+    perform(resolve, reject) { try VisitStore.shared.deleteSeeds() }
+  }
+
   @objc func clearVisitTag(
     _ visitId: NSNumber, resolve: @escaping RCTPromiseResolveBlock,
     rejecter reject: @escaping RCTPromiseRejectBlock
@@ -202,7 +237,111 @@ final class VisitMonitorModule: RCTEventEmitter {
       guard t.hasPrefix("https://"), URL(string: t)?.host != nil else { return nil }
       return t
     }
-    resolve(["apiUrl": url.map { $0 as Any } ?? NSNull()])
+    resolve([
+      "apiUrl": url.map { $0 as Any } ?? NSNull(),
+      // Only whether the test key exists; the key itself never reaches JS.
+      "testKakaoDirect": Self.testKakaoKey != nil,
+    ])
+  }
+
+  // MARK: Test-only direct Kakao search (seed visits only)
+
+  private static var testKakaoKey: String? {
+    guard let k = Bundle.main.object(forInfoDictionaryKey: "HaruTestKakaoRestKey") as? String
+    else { return nil }
+    let t = k.trimmingCharacters(in: .whitespacesAndNewlines)
+    return t.isEmpty ? nil : t
+  }
+
+  /// Same fixed category set and merge rules as backend/lambda/index.mjs kakaoNearby.
+  private static let kakaoCategories = ["FD6", "CE7", "CS2", "MT1", "CT1", "AT4", "AD5"]
+
+  private static func haversine(_ a: (Double, Double), _ b: (Double, Double)) -> Double {
+    let r = 6_371_000.0, rad = Double.pi / 180
+    let dLat = (b.0 - a.0) * rad, dLng = (b.1 - a.1) * rad
+    let s = pow(sin(dLat / 2), 2) + cos(a.0 * rad) * cos(b.0 * rad) * pow(sin(dLng / 2), 2)
+    return 2 * r * asin(min(1, sqrt(s)))
+  }
+
+  /// Looks up the visit's coordinates natively and refuses anything that is not a stored
+  /// test seed row, so real visits can never be sent to Kakao from the device. Called only
+  /// from the search button. Response matches PlacesNearbyResponse (provider kakao).
+  @objc func kakaoTestNearby(
+    _ visitId: NSNumber, resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
+    guard let key = Self.testKakaoKey else {
+      reject("places", "direct_kakao_not_enabled", nil); return
+    }
+    guard let c = VisitStore.shared.seedCoordinate(visitId: visitId.int64Value) else {
+      reject("places", "not_a_seed_visit", nil); return
+    }
+    guard VisitPlaceMatcher.isUsable(latitude: c.latitude, longitude: c.longitude, horizontalAccuracy: c.accuracy),
+          c.accuracy <= 5000
+    else { reject("places", "invalid_coordinates", nil); return }
+    let radiusMeters = min(300, max(50, c.accuracy))
+    let radius = Int(radiusMeters.rounded())
+    let group = DispatchGroup()
+    let lock = NSLock()
+    var docs: [[String: Any]] = []
+    var failed = 0
+    var firstStatus: Int?
+    let session = URLSession(configuration: .ephemeral)
+    for code in Self.kakaoCategories {
+      var comps = URLComponents(string: "https://dapi.kakao.com/v2/local/search/category.json")!
+      comps.queryItems = [
+        .init(name: "category_group_code", value: code),
+        .init(name: "x", value: String(c.longitude)),
+        .init(name: "y", value: String(c.latitude)),
+        .init(name: "radius", value: String(radius)),
+        .init(name: "sort", value: "distance"),
+        .init(name: "size", value: "15"),
+      ]
+      var req = URLRequest(url: comps.url!, timeoutInterval: 8)
+      req.setValue("KakaoAK \(key)", forHTTPHeaderField: "Authorization")
+      group.enter()
+      session.dataTask(with: req) { data, response, _ in
+        defer { group.leave() }
+        let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+        let json = data.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
+        lock.lock(); defer { lock.unlock() }
+        if status == 200, let list = json?["documents"] as? [[String: Any]] {
+          docs.append(contentsOf: list)
+        } else {
+          failed += 1
+          if firstStatus == nil { firstStatus = status }
+        }
+      }.resume()
+    }
+    group.notify(queue: .global(qos: .userInitiated)) {
+      session.finishTasksAndInvalidate()
+      if failed == Self.kakaoCategories.count {
+        // Status only; no coordinates, key or bodies are logged or returned.
+        reject("places", "upstream_\(firstStatus ?? 0)", nil)
+        return
+      }
+      var seen = Set<String>()
+      let places = docs.compactMap { d -> [String: Any]? in
+        guard let id = d["id"] as? String, !id.isEmpty,
+              let la = Double(d["y"] as? String ?? ""), let lo = Double(d["x"] as? String ?? "")
+        else { return nil }
+        let road = d["road_address_name"] as? String
+        let addr = (road?.isEmpty == false ? road : d["address_name"] as? String) ?? ""
+        return [
+          "id": id, "provider": "kakao", "name": d["place_name"] as? String ?? "",
+          "address": addr.isEmpty ? NSNull() : addr, "lat": la, "lng": lo,
+          "distanceMeters": Int(Self.haversine((c.latitude, c.longitude), (la, lo)).rounded()),
+        ]
+      }
+      .sorted { ($0["distanceMeters"] as! Int) < ($1["distanceMeters"] as! Int) }
+      .filter { seen.insert($0["id"] as! String).inserted }
+      var out: [String: Any] = [
+        "places": Array(places.prefix(10)), "radiusMeters": radiusMeters,
+        "provider": "kakao", "source": "kakao_local",
+      ]
+      if failed > 0 { out["incomplete"] = true }
+      resolve(out)
+    }
   }
 
   /// The key window's real safe-area insets (Dynamic Island / status bar, home indicator).
