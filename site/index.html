@@ -63,6 +63,17 @@ h2 em { font-style: normal; color: var(--blue); }
 .slide.done .reveal { animation: fade .6s ease-out .2s forwards; }
 .reveal span { color: var(--blue); }
 
+/* 숫자 찾기: 눌러서 찾기 */
+#board-a .n { cursor: pointer; stroke: transparent; stroke-width: 22px; pointer-events: all; }
+#board-a .n:hover { opacity: .75; }
+#board-a .n.miss { fill: #C2412D; animation: shake .35s; transform-box: fill-box; transform-origin: center; }
+@keyframes shake { 0%, 100% { translate: 0 0; } 25% { translate: -6px 0; } 75% { translate: 6px 0; } }
+.good { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 34px; fill: #2F8A5B; pointer-events: none; animation: rise .9s ease-out forwards; }
+@keyframes rise { 0% { opacity: 0; translate: 0 6px; } 20% { opacity: 1; } 100% { opacity: 0; translate: 0 -36px; } }
+.next-n { font-size: 14px; color: var(--muted); text-align: right; margin-top: 6px; }
+.next-n b { font-family: var(--num); font-size: 26px; color: var(--blue); margin-left: 4px; }
+.hunt-done .timer { color: #2F8A5B; }
+
 /* 2막 비교 */
 .compare { margin-top: 30px; border-radius: 22px; overflow: hidden; border: 1px solid var(--line); background: var(--card); }
 .compare table { width: 100%; border-collapse: collapse; font-size: clamp(13px, 1.1vw, 16px); }
@@ -168,10 +179,10 @@ h2 em { font-style: normal; color: var(--blue); }
   </section>
 
   <!-- 1-a. 숫자 찾기 (칸 없음) -->
-  <section class="slide" data-act="1" id="hunt" data-note="시작하기 전에 하나만 해 보겠습니다. 화면에 1부터 27까지 숫자가 흩어져 있습니다. 1부터 차례대로 찾아보세요. 1, 2, 3… 생각보다 오래 걸리죠? 숫자는 다 있는데, 어디에 있는지 모르니까 하나하나 훑어봐야 합니다.">
+  <section class="slide" data-act="1" id="hunt" data-note="시작하기 전에 하나만 해 보겠습니다. 화면에 1부터 27까지 숫자가 흩어져 있습니다. 1부터 차례대로 찾아보세요. 화면의 숫자를 순서대로 누르면 Good!이 뜹니다. 1, 2, 3… 생각보다 오래 걸리죠? 숫자는 다 있는데, 어디에 있는지 모르니까 하나하나 훑어봐야 합니다.">
     <div class="hunt-head">
       <div><div class="act"><b>01</b> 동기부여</div><h2>1부터 27까지, <em>순서대로</em> 찾아보세요</h2></div>
-      <div class="timer" id="timer"><small>걸린 시간</small><span>0.0</span>초</div>
+      <div><div class="timer" id="timer"><small>걸린 시간</small><span>0.0</span>초</div><div class="next-n" id="next-n">다음 숫자<b>1</b></div></div>
     </div>
     <div class="board"><svg id="board-a" viewBox="0 0 1200 640" preserveAspectRatio="xMidYMid meet" aria-label="1부터 27까지 흩어진 숫자"></svg></div>
   </section>
@@ -345,7 +356,7 @@ function go(i) {
   const act = +slides[cur].dataset.act;
   document.querySelectorAll('#acts button').forEach(b => b.setAttribute('aria-current', +slides[+b.dataset.go].dataset.act === act));
   if (slides[cur].id === 'demo') sendStep(); else setNote(slides[cur].dataset.note);
-  slides[cur].id === 'hunt' ? startTimer() : stopTimer();
+  if (slides[cur].id === 'hunt') { if (typeof resetHunt === 'function') resetHunt(); startTimer(); } else stopTimer();
   if (typeof resetGrid === 'function') resetGrid();
   const total = slides.length - 1 + STEPS.length - 1;
   const pos = cur < DEMO ? cur : cur === DEMO ? DEMO + step : total;
@@ -469,6 +480,37 @@ function playGrid() {
 let t0 = 0, tid = 0;
 function startTimer() { stopTimer(); t0 = performance.now(); const el = document.querySelector('#timer span'); tid = setInterval(() => el.textContent = ((performance.now() - t0) / 1000).toFixed(1), 100); }
 function stopTimer() { clearInterval(tid); }
+
+// 숫자 찾기: 순서대로 누르면 Good!
+let want = 1;
+function resetHunt() {
+  want = 1;
+  const sl = document.getElementById('hunt'); sl.classList.remove('hunt-done');
+  sl.querySelectorAll('.n').forEach(t => t.classList.remove('hit', 'miss'));
+  sl.querySelectorAll('.good').forEach(g => g.remove());
+  document.getElementById('next-n').innerHTML = '다음 숫자<b>1</b>';
+  document.querySelector('#timer span').textContent = '0.0';
+}
+document.getElementById('board-a').addEventListener('click', e => {
+  const t = e.target.closest('.n'); if (!t) return;
+  const n = +t.dataset.n, svg = document.getElementById('board-a');
+  if (t.classList.contains('hit')) return;
+  if (n !== want) { t.classList.remove('miss'); void t.getBBox(); t.classList.add('miss'); setTimeout(() => t.classList.remove('miss'), 400); return; }
+  t.classList.add('hit');
+  const [x, y, size] = HUNT_META[n];
+  const g = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  g.setAttribute('class', 'good'); g.setAttribute('x', x); g.setAttribute('y', y - size * .55); g.setAttribute('text-anchor', 'middle');
+  g.textContent = want === 27 ? 'Perfect!' : 'Good!';
+  svg.appendChild(g); setTimeout(() => g.remove(), 950);
+  want++;
+  if (want > 27) {
+    stopTimer();
+    document.getElementById('hunt').classList.add('hunt-done');
+    document.getElementById('next-n').innerHTML = '<b style="color:#2F8A5B">완료!</b>';
+  } else {
+    document.getElementById('next-n').innerHTML = `다음 숫자<b>${want}</b>`;
+  }
+});
 
 const start = parseInt((location.hash || '#0').slice(1), 10);
 go(Number.isFinite(start) ? start : 0);
