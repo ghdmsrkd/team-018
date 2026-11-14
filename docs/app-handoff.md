@@ -29,11 +29,18 @@
 |---|---|---|
 | **더미 `memory.db` (12개월 치)** | 미완 | 화면은 `MEMORY_DDL`로 빈 DB를 만들고 직접 몇 행을 넣어 개발한다 |
 | **에이전트 패키지** (SQL 가드, 도구 루프, 카드 조립) | 미완 | 챗 화면은 `AgentAnswer` 타입의 고정 응답으로 목업한다 |
-| **`/chat` 실제 응답** | **막힘** | 아래 참고 |
 | `/geocode` | 키 미설정 (501) | 데모는 호출하지 않는다 |
 
-### `/chat`이 지금 실패하는 이유
-Bedrock이 `AccessDeniedException`을 돌려준다. `gpt-6-luna`는 사용 계약(agreement)을 맺어 상태가 `AVAILABLE`인데도 호출이 거부되고, 원인은 아직 모른다. 해결되면 이 문서와 팀 채팅에 알린다. 그때까지 `/chat`에 의존하는 코드는 목업으로 둔다.
+### `/chat` 모델
+개발 중에는 **Claude Haiku 4.5**(`global.anthropic.claude-haiku-4-5-20251001-v1:0`)로 배포되어 있고, 도구 호출까지 동작한다. 데모용 `gpt-6-luna`는 계약은 맺었지만 아직 호출이 거부되어 보류 중이다. 모델은 Lambda 환경변수 `MODEL_ID` 하나로 바뀌므로 앱 코드는 바꿀 필요가 없다.
+
+연결 확인:
+```bash
+curl -s $EXPO_PUBLIC_API_URL/health
+# {"ok":true,"model":"global.anthropic.claude-haiku-4-5-20251001-v1:0"}
+```
+`/chat` 요청은 `packages/schema/src/api.ts`의 `ChatRequest`, 응답은 `ChatResponse`다. 응답의 `stopReason`이 `tool_use`면 `toolUse` 블록을 실행하고 `toolResult`를 붙여 다시 보내는 것을 반복한다 (최대 6회).
+오류 응답: 400 잘못된 요청, 413 본문이 200KB 초과, 429 호출 과다, 502 Bedrock 오류.
 
 ## 이어서 진행하는 순서 (앱)
 1. 앱 골격(Expo) + `expo-sqlite`로 `raw.db`, `memory.db` 열기, DDL 실행

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 하루 API Lambda 배포 (AWS CLI만 사용, 여러 번 실행해도 안전)
 #   AWS_PROFILE=me-private-m1-mac-pro ./backend/scripts/deploy.sh
-#   MODEL_ID=... 로 모델을 바꿀 수 있다 (기본 global.openai.gpt-6-luna)
+#   MODEL_ID=... 로 모델을 바꿀 수 있다 (기본 global.anthropic.claude-haiku-4-5-20251001-v1:0)
 set -euo pipefail
 
 export AWS_PROFILE="${AWS_PROFILE:-me-private-m1-mac-pro}"
@@ -11,7 +11,7 @@ export AWS_PAGER=""
 
 FN="${FUNCTION_NAME:-haru-api}"
 ROLE="${ROLE_NAME:-haru-api-role}"
-MODEL_ID="${MODEL_ID:-global.openai.gpt-6-luna}"
+MODEL_ID="${MODEL_ID:-global.anthropic.claude-haiku-4-5-20251001-v1:0}"
 RESERVED_CONCURRENCY="${RESERVED_CONCURRENCY:-5}"
 
 DIR="$(cd "$(dirname "$0")/.." && pwd)"

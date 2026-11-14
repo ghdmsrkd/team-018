@@ -3,7 +3,7 @@
 import { BedrockRuntimeClient, ConverseCommand } from "@aws-sdk/client-bedrock-runtime";
 
 const REGION = process.env.AWS_REGION || "ap-northeast-2";
-const MODEL_ID = process.env.MODEL_ID || "global.openai.gpt-6-luna";
+const MODEL_ID = process.env.MODEL_ID || "global.anthropic.claude-haiku-4-5-20251001-v1:0";
 const MAX_TOKENS = Number(process.env.MAX_TOKENS || 1024);
 const MAX_BODY_BYTES = 200_000;
 const MAX_MESSAGES = 60;
