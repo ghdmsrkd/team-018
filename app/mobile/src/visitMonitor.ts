@@ -33,6 +33,8 @@ export type Visit = {
   receivedAt: number;
   /** Place tag on a stored visit. JS-only sample rows have none. */
   tag?: VisitTag | null;
+  /** Place ID chosen for this visit: Google as-is, Kakao as "kakao:<id>". Only the ID is stored. */
+  googlePlaceId?: string | null;
 };
 
 export type VisitTag = {
@@ -67,6 +69,8 @@ type Native = {
   renameTag(tagId: number, name: string): Promise<PlaceTag>;
   setVisitTag(visitId: number, tagId: number): Promise<void>;
   clearVisitTag(visitId: number): Promise<void>;
+  setVisitPlace(visitId: number, placeId: string): Promise<void>;
+  clearVisitPlace(visitId: number): Promise<void>;
 };
 
 const native: Native | undefined =
@@ -94,6 +98,10 @@ export const visitMonitor = {
   setVisitTag: (visitId: number, tagId: number) =>
     native!.setVisitTag(visitId, tagId),
   clearVisitTag: (visitId: number) => native!.clearVisitTag(visitId),
+  /** Stores only the place ID (see storedPlaceId); tags and 50 m matching are separate. */
+  setVisitPlace: (visitId: number, placeId: string) =>
+    native!.setVisitPlace(visitId, placeId),
+  clearVisitPlace: (visitId: number) => native!.clearVisitPlace(visitId),
   subscribe(listener: () => void): () => void {
     if (!native) {
       return () => {};

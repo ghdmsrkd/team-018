@@ -5,6 +5,8 @@ import type {
   ApiError,
   ChatRequest,
   ChatResponse,
+  HealthResponse,
+  PlacesProvider,
 } from '@haru/schema';
 import { NativeModules, Platform } from 'react-native';
 
@@ -43,7 +45,7 @@ export const CHAT_SEND_ENABLED = false;
 
 export type Health =
   | { state: 'unconfigured' }
-  | { state: 'ok'; model: string | null }
+  | { state: 'ok'; model: string | null; placesProvider: PlacesProvider | null }
   | { state: 'error'; detail: string };
 
 const join = (base: string, path: string) => `${base.replace(/\/+$/, '')}${path}`;
@@ -72,12 +74,14 @@ export async function checkHealth(
       signal => fetchImpl(join(base, '/health'), { method: 'GET', signal }),
       8000,
     );
-    const body = (await res.json().catch(() => ({}))) as {
-      ok?: boolean;
-      model?: string;
-    };
+    const body = (await res.json().catch(() => ({}))) as Partial<HealthResponse>;
+    const provider = body.placesProvider;
     return res.ok && body.ok
-      ? { state: 'ok', model: body.model ?? null }
+      ? {
+          state: 'ok',
+          model: body.model ?? null,
+          placesProvider: provider === 'google' || provider === 'kakao' ? provider : null,
+        }
       : { state: 'error', detail: `HTTP ${res.status}` };
   } catch (e: any) {
     return { state: 'error', detail: String(e?.name === 'AbortError' ? '시간 초과' : e?.message ?? e) };

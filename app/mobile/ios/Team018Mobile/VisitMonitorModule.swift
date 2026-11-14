@@ -61,6 +61,7 @@ final class VisitMonitorModule: RCTEventEmitter {
         "arrivalAt": v.arrivalAt.map { $0 * 1000 as Any } ?? NSNull(),
         "departureAt": v.departureAt.map { $0 * 1000 as Any } ?? NSNull(),
         "receivedAt": v.receivedAt * 1000,
+        "googlePlaceId": v.googlePlaceId.map { $0 as Any } ?? NSNull(),
         "tag": v.tag.map { t -> Any in
           [
             "id": t.tagId,
@@ -128,6 +129,26 @@ final class VisitMonitorModule: RCTEventEmitter {
   ) {
     perform(resolve, reject) {
       try VisitStore.shared.setVisitTag(visitId: visitId.int64Value, tagId: tagId.int64Value)
+      return nil
+    }
+  }
+
+  @objc func setVisitPlace(
+    _ visitId: NSNumber, placeId: String, resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
+    perform(resolve, reject) {
+      try VisitStore.shared.setVisitPlace(visitId: visitId.int64Value, placeId: placeId)
+      return nil
+    }
+  }
+
+  @objc func clearVisitPlace(
+    _ visitId: NSNumber, resolve: @escaping RCTPromiseResolveBlock,
+    rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
+    perform(resolve, reject) {
+      try VisitStore.shared.clearVisitPlace(visitId: visitId.int64Value)
       return nil
     }
   }

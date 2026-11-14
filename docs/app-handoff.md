@@ -76,3 +76,10 @@ curl -s $EXPO_PUBLIC_API_URL/health
 - 기기의 `memory.db`(`v_*` 뷰 포함)와, 그 위에서 도는 에이전트 패키지(SQL 가드, 도구 루프, 카드 조립) + 로컬 읽기 전용 `query_sql` 도구. 앱의 라이브 질문 전송을 막는 실제 이유는 이것이다.
 - 실제 배포 URL이 앱 담당 로컬에 아직 없다. 받으면 `app/mobile/.env`(gitignore)에 넣고 빌드해 `/health`를 실기기에서 확인한다.
 - 위가 갖춰지면 `CHAT_SEND_ENABLED`를 켜고 `/chat`을 실기기에서 검증한다.
+
+### 앱 담당 코멘트: 주변 장소 후보 (`POST /places/nearby`, 2026-11-14)
+- 백엔드: Lambda `/places/nearby`가 Google Places API (New) Nearby Search 또는 Kakao Local 카테고리 검색 중 **설정된 한 공급자**만 호출한다(Google 키 우선, 없으면 `KAKAO_REST_KEY`). 둘 다 없으면 501이고 외부 호출이 없다. `/health`가 `placesProvider`를 알려 준다. 세부는 `backend/README.md`, 타입은 `api.ts`(`PlacesProvider`, `PlaceCandidate`, `PlacesNearbyResponse`, `HealthResponse`). **배포·키 발급·실제 호출은 안 했다.** `deploy.sh`는 이제 넘기지 않은 키를 기존 함수 설정에서 보존한다.
+- 앱: 태그 시트(미분류 방문의 "태그 달기", 기존 방문의 "변경" 둘 다)에 "주변 장소 찾기"가 있다. 버튼을 누를 때만 해당 방문의 `lat/lng/horizontalAccuracy` 세 값을 보낸다. 검색 전에 "AWS Lambda를 거쳐 {Google|카카오} 한 곳으로 전달"을 안내하고(시트를 열 때 위치 없이 `/health`만 확인), 결과 아래에 공급자 표기("Google Maps" / "© Kakao")와 후보별 제3자 출처를 보여 준다. 자동·백그라운드 전송은 없다.
+- 저장: 후보를 고르면 앱 SQLite에 **장소 ID만** 저장한다(스키마 v2, 별도 테이블 `visit_places(visit_id, google_place_id, chosen_at)`, 기존 행 변경 없음). 컬럼 이름은 처음 구현 그대로 두었고, 값은 Google ID 그대로(이전 저장분과 호환) 또는 `kakao:<id>`다. 이름·주소·좌표는 화면 상태에만 있고 시트를 닫으면 사라진다. 이름을 다시 보여 주려면 저장된 ID로 공급자별 상세 조회가 추후 필요하다. 방문 태그(25+ 사용자 태그)와 50m 자동 매칭은 이것과 독립이다.
+- 미구현: 선행 "장소 제안" 계약(자동 추정 결과 unknown/failed)은 없다. 앱의 검색 UI(`app/mobile/src/NearbyPlaceSearch.tsx`)는 `reason='unknown'|'failed'`를 받아 같은 화면으로 재사용할 수 있게 해 두었다.
+- 실기기 확인은 배포 URL과 키가 생긴 뒤 필요하다. 지금 빌드는 URL이 없어 "중계 서버 주소가 설정되지 않음"으로 끝난다.

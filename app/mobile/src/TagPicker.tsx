@@ -9,6 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { NearbyPlaceSearch } from './NearbyPlaceSearch';
 import { PlaceTag, Visit, visitMonitor } from './visitMonitor';
 
 type Props = {
@@ -194,6 +195,13 @@ export function TagPicker({ visit, onClose }: Props) {
           keyExtractor={t => String(t.id)}
           renderItem={renderTag}
           keyboardShouldPersistTaps="handled"
+          ListHeaderComponent={
+            <NearbyPlaceSearch
+              key={visit.id}
+              visit={visit}
+              reason={visit.tag ? 'manual' : 'untagged'}
+            />
+          }
         />
       </View>
     </Modal>

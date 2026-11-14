@@ -43,31 +43,50 @@ ROLE_ARN="arn:aws:iam::${ACCOUNT}:role/${ROLE}"
 
 # 2) 코드 압축
 TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
 ( cd "$DIR/lambda" && zip -q -j "$TMP/fn.zip" index.mjs )
 
 # 3) 함수 생성 또는 갱신
 # 비밀값은 환경변수 또는 backend/.secrets.env(gitignore)에서 읽는다. 코드와 명령행에는 넣지 않는다.
 if [ -f "$DIR/.secrets.env" ]; then set -a; . "$DIR/.secrets.env"; set +a; fi
-# 키를 안 줬는데 함수에 이미 있으면 유지한다 (재배포로 키가 지워지지 않게)
-if [ -z "${KAKAO_REST_KEY:-}" ] && aws lambda get-function --function-name "$FN" >/dev/null 2>&1; then
-  KAKAO_REST_KEY="$(aws lambda get-function-configuration --function-name "$FN" \
-    --query 'Environment.Variables.KAKAO_REST_KEY' --output text)"
-  [ "$KAKAO_REST_KEY" = "None" ] && KAKAO_REST_KEY=""
+# 공급자 키를 따로 설정하지 않으면 기존 Lambda 값을 보존한다.
+FUNCTION_EXISTS=0
+if aws lambda get-function --function-name "$FN" >/dev/null 2>&1; then
+  FUNCTION_EXISTS=1
 fi
-# 환경변수는 JSON 파일(600)로 넘긴다. ps 에 값이 보이지 않는다.
+existing_key() {
+  local key
+  key="$(aws lambda get-function-configuration --function-name "$FN" \
+    --query "Environment.Variables.$1" --output text)" || return
+  if [ "$key" != "None" ]; then printf '%s' "$key"; fi
+}
+if [ "$FUNCTION_EXISTS" = 1 ]; then
+  if [ -z "${KAKAO_REST_KEY:-}" ]; then KAKAO_REST_KEY="$(existing_key KAKAO_REST_KEY)"; fi
+  if [ -z "${GOOGLE_PLACES_API_KEY:-}" ]; then GOOGLE_PLACES_API_KEY="$(existing_key GOOGLE_PLACES_API_KEY)"; fi
+fi
+# 환경변수는 권한 600 JSON 파일로 AWS CLI에 넘긴다.
 ENV_FILE="$TMP/env.json"
 ( umask 077
-  MODEL_ID="$MODEL_ID" KAKAO_REST_KEY="${KAKAO_REST_KEY:-}" python3 - "$ENV_FILE" <<'PY'
+  MODEL_ID="$MODEL_ID" KAKAO_REST_KEY="${KAKAO_REST_KEY:-}" GOOGLE_PLACES_API_KEY="${GOOGLE_PLACES_API_KEY:-}" \
+    python3 - "$ENV_FILE" <<'CONFIG_PY'
 import json, os, sys
-v = {"MODEL_ID": os.environ["MODEL_ID"], "MAX_TOKENS": "1024"}
-if os.environ.get("KAKAO_REST_KEY"):
-    v["KAKAO_REST_KEY"] = os.environ["KAKAO_REST_KEY"]
-json.dump({"Variables": v}, open(sys.argv[1], "w"))
-PY
+variables = {"MODEL_ID": os.environ["MODEL_ID"], "MAX_TOKENS": "1024"}
+for name in ("KAKAO_REST_KEY", "GOOGLE_PLACES_API_KEY"):
+    if os.environ.get(name):
+        variables[name] = os.environ[name]
+with open(sys.argv[1], "w") as target:
+    json.dump({"Variables": variables}, target)
+CONFIG_PY
 )
 ENV_VARS="file://$ENV_FILE"
-echo "kakao key: $([ -n "${KAKAO_REST_KEY:-}" ] && echo 설정됨 || echo 없음)"
-if aws lambda get-function --function-name "$FN" >/dev/null 2>&1; then
+if [ -n "${GOOGLE_PLACES_API_KEY:-}" ]; then
+  echo "places provider: google"
+elif [ -n "${KAKAO_REST_KEY:-}" ]; then
+  echo "places provider: kakao"
+else
+  echo "places provider: none"
+fi
+if [ "$FUNCTION_EXISTS" = 1 ]; then
   aws lambda update-function-code --function-name "$FN" --zip-file "fileb://$TMP/fn.zip" >/dev/null
   aws lambda wait function-updated --function-name "$FN"
   aws lambda update-function-configuration --function-name "$FN" \
@@ -99,8 +118,6 @@ URL="$(aws lambda get-function-url-config --function-name "$FN" --query Function
 URL="${URL%/}"
 printf '{"function":"%s","url":"%s","model":"%s","region":"%s"}\n' "$FN" "$URL" "$MODEL_ID" "$AWS_REGION" \
   > "$DIR/.deploy-state.json"
-rm -rf "$TMP"
-
 echo
 echo "배포 완료"
 echo "URL: $URL   (.env 의 EXPO_PUBLIC_API_URL 에 넣고, 저장소에는 올리지 않는다)"
