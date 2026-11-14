@@ -52,15 +52,15 @@ h2 em { font-style: normal; color: var(--blue); }
 .board { flex: 1; min-height: 0; margin-top: 2vh; display: flex; }
 .board svg { width: 100%; height: 100%; display: block; }
 .board .gl { stroke: var(--blue); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1200; stroke-dashoffset: 1200; }
-.board .cl { opacity: 0; font-family: 'IBM Plex Mono', monospace; font-size: 16px; fill: var(--blue); }
 .slide.on .board.grid .gl { animation: draw 1s ease-out .5s forwards; }
-.slide.on .board.grid .cl { animation: fade .5s ease-out 1.4s forwards; }
-.slide.on .board.grid .cell { animation: fade .6s ease-out 1.2s forwards; }
-.board .cell { opacity: 0; }
+.board .n { transition: fill .2s; }
+.board .n.hit { fill: var(--blue); }
+.board .trail { fill: none; stroke: var(--orange); stroke-width: 3; stroke-dasharray: 2 8; stroke-linecap: round; opacity: .7; }
+.board .ring { fill: none; stroke: var(--orange); stroke-width: 5; transition: cx .25s, cy .25s, r .25s; }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 @keyframes fade { to { opacity: 1; } }
-.reveal { margin-top: 1.5vh; font-size: clamp(18px, 2vw, 28px); font-weight: 700; opacity: 0; }
-.slide.on .reveal { animation: fade .6s ease-out 1.8s forwards; }
+.reveal { margin-top: 1.5vh; font-size: clamp(18px, 2vw, 28px); font-weight: 700; opacity: 0; min-height: 1.4em; }
+.slide.done .reveal { animation: fade .6s ease-out .2s forwards; }
 .reveal span { color: var(--blue); }
 
 /* 2막 비교 */
@@ -177,8 +177,8 @@ h2 em { font-style: normal; color: var(--blue); }
   </section>
 
   <!-- 1-b. 칸 보여주기 -->
-  <section class="slide" data-act="1" id="grid" data-note="이번엔 똑같은 화면에 선만 그어 보겠습니다. 숫자 위치는 하나도 바뀌지 않았습니다. 그런데 이제 보이시죠? 1은 첫 번째 칸, 2는 두 번째 칸, 3은 세 번째 칸. 칸을 차례로 한 바퀴 돌면 9까지, 다시 돌면 10부터 18까지. 칸만 생겨도 바로 찾을 수 있습니다. 정보가 아무리 많아도 나뉘어 있으면 찾을 수 있고, 나뉘어 있지 않으면 못 찾습니다. 우리의 하루도 똑같습니다.">
-    <div><div class="act"><b>01</b> 동기부여</div><h2>숫자는 그대로, <em>칸만</em> 그었습니다</h2></div>
+  <section class="slide" data-act="1" id="grid" data-note="똑같은 화면에 선만 그어 보겠습니다. 숫자 위치는 하나도 바뀌지 않았습니다. 이렇게 하면 규칙이 보이시나요? (잠시 멈춘 뒤 → 키) 하나씩 따라가 보겠습니다. 1은 첫 번째 칸, 2는 두 번째 칸, 3은 세 번째 칸… 9까지 칸을 한 바퀴 돌고, 10은 다시 첫 번째 칸. 칸만 생겨도 바로 찾을 수 있습니다. 정보가 아무리 많아도 나뉘어 있으면 찾을 수 있고, 나뉘어 있지 않으면 못 찾습니다. 우리의 하루도 똑같습니다.">
+    <div><div class="act"><b>01</b> 동기부여</div><h2>이렇게 하면 <em>규칙</em>이 보이시나요?</h2></div>
     <div class="board grid"><svg id="board-b" viewBox="0 0 1200 640" preserveAspectRatio="xMidYMid meet" aria-label="같은 숫자를 9칸으로 나눈 화면"></svg></div>
     <div class="reveal">정보가 같아도, <span>나뉘어 있으면 찾을 수 있습니다.</span> 우리의 하루도 마찬가지입니다.</div>
   </section>
@@ -346,16 +346,20 @@ function go(i) {
   document.querySelectorAll('#acts button').forEach(b => b.setAttribute('aria-current', +slides[+b.dataset.go].dataset.act === act));
   if (slides[cur].id === 'demo') sendStep(); else setNote(slides[cur].dataset.note);
   slides[cur].id === 'hunt' ? startTimer() : stopTimer();
+  if (typeof resetGrid === 'function') resetGrid();
   const total = slides.length - 1 + STEPS.length - 1;
   const pos = cur < DEMO ? cur : cur === DEMO ? DEMO + step : total;
   document.getElementById('prog').style.width = (pos / total * 100) + '%';
   try { history.replaceState(null, '', '#' + cur); } catch (e) {}
 }
 function next() {
+  if (slides[cur].id === 'grid' && gridStep === 0) return playGrid();
+  if (slides[cur].id === 'grid' && gridStep === 1) { clearInterval(gridTid); for (let k = 1; k <= 27; k++) document.querySelector(`#grid .n[data-n="${k}"]`).classList.add('hit'); document.getElementById('ring').setAttribute('r', 0); document.getElementById('grid').classList.add('done'); gridStep = 2; return; }
   if (slides[cur].id === 'demo' && step < STEPS.length - 1) { step++; return go(cur); }
   go(cur + 1);
 }
 function prev() {
+  if (slides[cur].id === 'grid' && gridStep > 0) return resetGrid();
   if (slides[cur].id === 'demo' && step > 0) { step--; return go(cur); }
   if (slides[cur - 1] && slides[cur - 1].id === 'demo') step = STEPS.length - 1;
   go(cur - 1);
@@ -409,7 +413,7 @@ fetch(vid.getAttribute('src'), { method: 'HEAD' }).then(r => { if (!r.ok) vbox.c
 (function boards() {
   let seed = 11;
   const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const W = 400, H = 213.3, cells = [];
+  const W = 400, H = 213.3, cells = [], meta = [];
   const order = [0, 1, 2, 3, 4, 5, 6, 7, 8];
   let nums = '';
   order.forEach(ci => {
@@ -425,18 +429,41 @@ fetch(vid.getAttribute('src'), { method: 'HEAD' }).then(r => { if (!r.ok) vbox.c
       const rot = Math.round((rnd() - .5) * 30);
       const shade = ['#16191D', '#3D444B', '#5A6168', '#2B3138'][Math.floor(rnd() * 4)];
       const weight = rnd() > .5 ? 700 : 500;
-      nums += `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" font-family="Barlow Condensed, sans-serif" font-weight="${weight}" font-size="${size}" fill="${shade}" transform="rotate(${rot} ${x.toFixed(1)} ${(y - size * .35).toFixed(1)})">${n}</text>`;
+      meta[n] = [x, y - size * .35, size];
+      nums += `<text class="n" data-n="${n}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" font-family="Barlow Condensed, sans-serif" font-weight="${weight}" font-size="${size}" fill="${shade}" transform="rotate(${rot} ${x.toFixed(1)} ${(y - size * .35).toFixed(1)})">${n}</text>`;
     }
   });
   document.getElementById('board-a').innerHTML = nums;
-  const tint = cells.map(([x, y], i) => `<rect class="cell" x="${x + 6}" y="${y + 6}" width="${W - 12}" height="${H - 12}" rx="14" fill="${i % 2 ? '#E4EAFB' : '#EEF2FD'}"/>`).join('');
   const lines = [
     `<line class="gl" x1="400" y1="8" x2="400" y2="632"/>`, `<line class="gl" x1="800" y1="8" x2="800" y2="632"/>`,
     `<line class="gl" x1="8" y1="213.3" x2="1192" y2="213.3"/>`, `<line class="gl" x1="8" y1="426.6" x2="1192" y2="426.6"/>`
   ].join('');
-  const labels = cells.map(([x, y], i) => `<text class="cl" x="${x + 16}" y="${y + 28}">${i + 1} · ${i + 10} · ${i + 19}</text>`).join('');
-  document.getElementById('board-b').innerHTML = tint + nums + lines + labels;
+  document.getElementById('board-b').innerHTML = lines + '<polyline class="trail" id="trail" points=""/>' + nums + '<circle class="ring" id="ring" cx="-100" cy="-100" r="0"/>';
+  window.HUNT_META = meta;
 })();
+
+// 칸 화면: → 를 누르면 1부터 27까지 하나씩 짚는다
+let gridStep = 0, gridTid = 0;
+function resetGrid() {
+  clearInterval(gridTid); gridStep = 0;
+  const sl = document.getElementById('grid'); sl.classList.remove('done');
+  sl.querySelectorAll('.n').forEach(t => t.classList.remove('hit'));
+  document.getElementById('trail').setAttribute('points', '');
+  const ring = document.getElementById('ring'); ring.setAttribute('cx', -100); ring.setAttribute('cy', -100); ring.setAttribute('r', 0);
+}
+function playGrid() {
+  resetGrid(); gridStep = 1;
+  const sl = document.getElementById('grid'), ring = document.getElementById('ring'), trail = document.getElementById('trail');
+  const pts = []; let n = 0;
+  gridTid = setInterval(() => {
+    n++;
+    if (n > 27) { clearInterval(gridTid); ring.setAttribute('r', 0); sl.classList.add('done'); gridStep = 2; return; }
+    const [x, y, size] = HUNT_META[n];
+    sl.querySelector(`.n[data-n="${n}"]`).classList.add('hit');
+    ring.setAttribute('cx', x); ring.setAttribute('cy', y); ring.setAttribute('r', size * .62);
+    pts.push(`${x.toFixed(1)},${y.toFixed(1)}`); trail.setAttribute('points', pts.join(' '));
+  }, 360);
+}
 
 // 타이머
 let t0 = 0, tid = 0;
