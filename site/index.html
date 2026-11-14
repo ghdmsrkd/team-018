@@ -50,13 +50,13 @@ h2 em { font-style: normal; color: var(--blue); }
 .timer { font-family: var(--num); font-weight: 700; font-size: clamp(40px, 5vw, 72px); line-height: 1; color: var(--orange-ink); font-variant-numeric: tabular-nums; }
 .timer small { display: block; font-family: 'IBM Plex Sans KR', sans-serif; font-size: 13px; font-weight: 500; color: var(--muted); text-align: right; margin-bottom: 4px; }
 .board { flex: 1; min-height: 0; margin-top: 2vh; display: flex; }
-.board svg { width: 100%; height: 100%; display: block; }
+.board svg { width: 100%; height: 100%; display: block; overflow: visible; }
 .board .gl { stroke: var(--blue); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1200; stroke-dashoffset: 1200; }
 .slide.on .board.grid .gl { animation: draw 1s ease-out .5s forwards; }
 .board .n { transition: fill .2s; }
 .board .n.hit { fill: var(--blue); }
-.board .trail { fill: none; stroke: var(--orange); stroke-width: 3; stroke-dasharray: 2 8; stroke-linecap: round; opacity: .7; }
-.board .ring { fill: none; stroke: var(--orange); stroke-width: 5; transition: cx .25s, cy .25s, r .25s; }
+.board .mark { fill: none; stroke: var(--orange); stroke-width: 5; stroke-dasharray: 600; stroke-dashoffset: 600; animation: circle .45s ease-out forwards; }
+@keyframes circle { to { stroke-dashoffset: 0; } }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 @keyframes fade { to { opacity: 1; } }
 .reveal { margin-top: 1.5vh; font-size: clamp(18px, 2vw, 28px); font-weight: 700; opacity: 0; min-height: 1.4em; }
@@ -188,7 +188,7 @@ h2 em { font-style: normal; color: var(--blue); }
   </section>
 
   <!-- 1-b. 칸 보여주기 -->
-  <section class="slide" data-act="1" id="grid" data-note="똑같은 화면에 선만 그어 보겠습니다. 숫자 위치는 하나도 바뀌지 않았습니다. 이렇게 하면 규칙이 보이시나요? (잠시 멈춘 뒤 → 키) 하나씩 따라가 보겠습니다. 1은 첫 번째 칸, 2는 두 번째 칸, 3은 세 번째 칸… 9까지 칸을 한 바퀴 돌고, 10은 다시 첫 번째 칸. 칸만 생겨도 바로 찾을 수 있습니다. 정보가 아무리 많아도 나뉘어 있으면 찾을 수 있고, 나뉘어 있지 않으면 못 찾습니다. 우리의 하루도 똑같습니다.">
+  <section class="slide" data-act="1" id="grid" data-note="똑같은 화면에 선만 그어 보겠습니다. 숫자 위치는 하나도 바뀌지 않았습니다. 이렇게 하면 규칙이 보이시나요? (잠시 멈춘 뒤 → 키) 1부터 9까지 동그라미를 쳐 보겠습니다. 1은 첫 번째 칸, 2는 두 번째 칸, 3은 세 번째 칸… 9는 마지막 칸. 칸마다 하나씩 들어 있습니다. 그다음 10은 다시 첫 번째 칸이죠. 칸만 생겨도 바로 찾을 수 있습니다. 정보가 아무리 많아도 나뉘어 있으면 찾을 수 있고, 나뉘어 있지 않으면 못 찾습니다. 우리의 하루도 똑같습니다.">
     <div><div class="act"><b>01</b> 동기부여</div><h2>이렇게 하면 <em>규칙</em>이 보이시나요?</h2></div>
     <div class="board grid"><svg id="board-b" viewBox="0 0 1200 640" preserveAspectRatio="xMidYMid meet" aria-label="같은 숫자를 9칸으로 나눈 화면"></svg></div>
     <div class="reveal">정보가 같아도, <span>나뉘어 있으면 찾을 수 있습니다.</span> 우리의 하루도 마찬가지입니다.</div>
@@ -365,7 +365,7 @@ function go(i) {
 }
 function next() {
   if (slides[cur].id === 'grid' && gridStep === 0) return playGrid();
-  if (slides[cur].id === 'grid' && gridStep === 1) { clearInterval(gridTid); for (let k = 1; k <= 27; k++) document.querySelector(`#grid .n[data-n="${k}"]`).classList.add('hit'); document.getElementById('ring').setAttribute('r', 0); document.getElementById('grid').classList.add('done'); gridStep = 2; return; }
+  if (slides[cur].id === 'grid' && gridStep === 1) return finishGrid();
   if (slides[cur].id === 'demo' && step < STEPS.length - 1) { step++; return go(cur); }
   go(cur + 1);
 }
@@ -449,31 +449,35 @@ fetch(vid.getAttribute('src'), { method: 'HEAD' }).then(r => { if (!r.ok) vbox.c
     `<line class="gl" x1="400" y1="8" x2="400" y2="632"/>`, `<line class="gl" x1="800" y1="8" x2="800" y2="632"/>`,
     `<line class="gl" x1="8" y1="213.3" x2="1192" y2="213.3"/>`, `<line class="gl" x1="8" y1="426.6" x2="1192" y2="426.6"/>`
   ].join('');
-  document.getElementById('board-b').innerHTML = lines + '<polyline class="trail" id="trail" points=""/>' + nums + '<circle class="ring" id="ring" cx="-100" cy="-100" r="0"/>';
+  document.getElementById('board-b').innerHTML = lines + nums + '<g id="marks"></g>';
   window.HUNT_META = meta;
 })();
 
-// 칸 화면: → 를 누르면 1부터 27까지 하나씩 짚는다
+// 칸 화면: → 를 누르면 1부터 9까지 하나씩 동그라미를 친다
+const CIRCLE_TO = 9;
 let gridStep = 0, gridTid = 0;
+function circleAt(n) {
+  const [x, y, size] = HUNT_META[n];
+  const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+  c.setAttribute('class', 'mark'); c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', Math.max(30, size * .62));
+  document.getElementById('marks').appendChild(c);
+  document.querySelector(`#grid .n[data-n="${n}"]`).classList.add('hit');
+}
 function resetGrid() {
   clearInterval(gridTid); gridStep = 0;
   const sl = document.getElementById('grid'); sl.classList.remove('done');
   sl.querySelectorAll('.n').forEach(t => t.classList.remove('hit'));
-  document.getElementById('trail').setAttribute('points', '');
-  const ring = document.getElementById('ring'); ring.setAttribute('cx', -100); ring.setAttribute('cy', -100); ring.setAttribute('r', 0);
+  document.getElementById('marks').innerHTML = '';
+}
+function finishGrid() {
+  clearInterval(gridTid);
+  for (let n = document.querySelectorAll('#marks .mark').length + 1; n <= CIRCLE_TO; n++) circleAt(n);
+  document.getElementById('grid').classList.add('done'); gridStep = 2;
 }
 function playGrid() {
   resetGrid(); gridStep = 1;
-  const sl = document.getElementById('grid'), ring = document.getElementById('ring'), trail = document.getElementById('trail');
-  const pts = []; let n = 0;
-  gridTid = setInterval(() => {
-    n++;
-    if (n > 27) { clearInterval(gridTid); ring.setAttribute('r', 0); sl.classList.add('done'); gridStep = 2; return; }
-    const [x, y, size] = HUNT_META[n];
-    sl.querySelector(`.n[data-n="${n}"]`).classList.add('hit');
-    ring.setAttribute('cx', x); ring.setAttribute('cy', y); ring.setAttribute('r', size * .62);
-    pts.push(`${x.toFixed(1)},${y.toFixed(1)}`); trail.setAttribute('points', pts.join(' '));
-  }, 360);
+  let n = 0;
+  gridTid = setInterval(() => { n++; if (n > CIRCLE_TO) return finishGrid(); circleAt(n); }, 700);
 }
 
 // 타이머
