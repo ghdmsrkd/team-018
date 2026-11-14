@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>하루 기록 요약 목업</title>
+<title>하루 메인 화면 목업</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
 <style>
 :root {
@@ -15,128 +15,120 @@
 body { margin: 0; background: var(--bg); font-family: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', sans-serif; color: var(--ink); }
 header { padding: 40px 40px 8px; }
 header h1 { margin: 0; font-size: 28px; }
-header p { margin: 6px 0 0; color: #4A5157; font-size: 14px; max-width: 760px; line-height: 1.5; }
+header p { margin: 6px 0 0; color: #4A5157; font-size: 14px; max-width: 820px; line-height: 1.55; }
 header a { color: var(--blue); }
 .board { display: flex; flex-wrap: wrap; gap: 48px 40px; padding: 32px 40px 80px; }
 .screen { display: flex; flex-direction: column; gap: 12px; }
 .label { margin: 0; font-size: 14px; font-weight: 600; }
 .label small { font-weight: 400; color: var(--muted); margin-left: 6px; }
 .device { width: 390px; height: 844px; border-radius: 28px; overflow: hidden; background: var(--paper); box-shadow: 0 0 0 1px rgba(22,25,29,.12), 0 12px 32px rgba(22,25,29,.12); display: flex; flex-direction: column; position: relative; }
-.body { flex: 1; overflow-y: auto; scrollbar-width: none; }
+.body { flex: 1; overflow-y: auto; scrollbar-width: none; padding-bottom: 20px; }
 .body::-webkit-scrollbar { display: none; }
+button { font: inherit; }
 
 /* 상단 */
-.top { padding: 58px 20px 0; display: flex; justify-content: space-between; align-items: center; }
-.brand { display: flex; flex-direction: column; gap: 2px; }
-.brand .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--muted); }
-.brand .title { font-size: 22px; font-weight: 700; }
-.avatar { width: 40px; height: 40px; border-radius: 20px; background: #C9D3E8; color: var(--blue); display: grid; place-items: center; font-weight: 700; font-size: 15px; }
-
-/* 날짜 스트립 */
-.dates { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; padding: 16px 20px 0; }
-.dates::-webkit-scrollbar { display: none; }
-.date { height: 58px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 11px; color: var(--muted); cursor: pointer; }
-.date b { font-family: var(--num); font-size: 22px; font-weight: 600; color: var(--ink); line-height: 1; }
-.date[aria-current="date"] { background: var(--ink); border-color: var(--ink); color: #C9CEC6; }
-.date[aria-current="date"] b { color: #FFFFFF; }
+.top { padding: 58px 20px 8px; display: flex; justify-content: space-between; align-items: flex-end; }
+.when { display: flex; flex-direction: column; gap: 2px; }
+.when .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--muted); }
+.when .title { display: flex; align-items: baseline; gap: 10px; }
+.when .title b { font-family: var(--num); font-weight: 700; font-size: 44px; line-height: .9; letter-spacing: -.01em; }
+.when .title span { font-size: 16px; font-weight: 600; }
+.live { display: flex; align-items: center; gap: 6px; color: var(--orange-ink); font-size: 12px; font-weight: 600; padding-bottom: 4px; }
+.live i { width: 8px; height: 8px; border-radius: 4px; background: var(--orange); }
 
 /* 기간 탭 */
-.tabs { margin: 14px 20px 0; padding: 4px; border-radius: 12px; background: #E2E6DF; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
-.tab { height: 34px; border: 0; border-radius: 9px; background: transparent; font: inherit; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; }
+.tabs { margin: 16px 20px 0; padding: 4px; border-radius: 12px; background: #E2E6DF; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.tab { height: 34px; border: 0; border-radius: 9px; background: transparent; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; }
 .tab[aria-selected="true"] { background: var(--card); color: var(--ink); font-weight: 700; box-shadow: 0 1px 2px rgba(22,25,29,.12); }
 
-/* 카드 공통 */
+/* 큰 도넛 */
+.ring { position: relative; width: 310px; height: 310px; margin: 14px auto 0; }
+.ring svg { display: block; overflow: visible; }
+.ring .arc { cursor: pointer; transition: opacity .15s, stroke-width .15s; }
+.ring.has-sel .arc:not(.sel) { opacity: .28; }
+.ring .center { position: absolute; inset: 70px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; }
+.center .k { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.center .k i { width: 9px; height: 9px; border-radius: 3px; }
+.center .v { font-family: var(--num); font-weight: 700; font-size: 46px; line-height: 1; margin-top: 4px; letter-spacing: -.01em; }
+.center .s { font-size: 12px; color: var(--muted); margin-top: 4px; max-width: 150px; line-height: 1.4; }
+.hint { text-align: center; font-size: 12px; color: var(--muted); margin-top: 6px; }
+.cap { margin: 16px 24px 0; font-size: 12px; color: var(--muted); display: flex; justify-content: space-between; }
+
+/* 범례 리스트 */
+.list { margin: 14px 20px 0; border-radius: 18px; background: var(--card); border: 1px solid var(--line); overflow: hidden; }
+.row { display: grid; grid-template-columns: 12px 1fr auto; column-gap: 12px; row-gap: 6px; align-items: center; padding: 12px 16px; border-top: 1px solid #ECEEEA; cursor: pointer; }
+.row:first-child { border-top: 0; }
+.row.sel { background: #F4F6F2; }
+.row .sw { width: 12px; height: 12px; border-radius: 4px; }
+.row .name { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.row .name small { font-size: 11px; font-weight: 500; color: var(--muted); }
+.row .dur { font-family: var(--num); font-size: 20px; font-weight: 600; text-align: right; }
+.row .meter { grid-column: 2 / 4; height: 4px; border-radius: 2px; background: #EEF0EC; overflow: hidden; }
+.row .meter i { display: block; height: 100%; border-radius: 2px; }
+.row .delta { font-size: 11px; font-weight: 600; margin-left: 4px; }
+.up { color: #2F8A5B; } .down { color: #B5452E; }
+.none-sw { background: repeating-linear-gradient(45deg, #C9CEC6 0 2px, #FFFFFF 2px 4px); border: 1px dashed #8A939B; }
+
+/* 카드 */
 .card { margin: 12px 20px 0; padding: 16px; border-radius: 18px; background: var(--card); border: 1px solid var(--line); }
 .card h3 { margin: 0 0 12px; font-size: 13px; font-weight: 600; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
 .card h3 span { font-family: var(--mono); font-size: 10px; letter-spacing: .06em; font-weight: 500; }
-
-/* 도넛 */
-.donut-wrap { display: grid; grid-template-columns: 148px 1fr; gap: 16px; align-items: center; }
-.donut { position: relative; width: 148px; height: 148px; }
-.donut svg { display: block; transform: rotate(-90deg); }
-.donut .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-.donut .center b { font-family: var(--num); font-size: 30px; font-weight: 700; line-height: 1; }
-.donut .center span { font-size: 11px; color: var(--muted); margin-top: 2px; }
-.legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
-.legend li { display: grid; grid-template-columns: 10px 1fr auto; gap: 8px; align-items: center; font-size: 13px; }
-.legend .sw { width: 10px; height: 10px; border-radius: 3px; }
-.legend .sw.none { background: repeating-linear-gradient(45deg, #C9CEC6 0 2px, #FFFFFF 2px 4px) !important; border: 1px dashed #8A939B; }
-.legend b { font-family: var(--num); font-size: 16px; font-weight: 600; }
-
-/* AI 요약 */
 .ai { background: #F2F5FD; border-color: #CBD7F5; }
 .ai h3 { color: var(--blue); }
-.ai p { margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink); }
-.ai .meta { margin-top: 12px; display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); }
-.conf { flex: 1; display: flex; align-items: center; gap: 8px; }
+.ai p { margin: 0; font-size: 14px; line-height: 1.6; }
+.ai .meta { margin-top: 10px; display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
 .bar { flex: 1; height: 5px; border-radius: 3px; background: #DCE3F4; overflow: hidden; }
-.bar i { display: block; height: 100%; background: var(--blue); border-radius: 3px; }
-.btn-ghost { border: 1px solid #CBD7F5; background: var(--card); color: var(--blue); font: inherit; font-size: 12px; font-weight: 600; border-radius: 8px; padding: 5px 10px; cursor: pointer; }
+.bar i { display: block; height: 100%; background: var(--blue); }
+.btn-ghost { border: 1px solid #CBD7F5; background: var(--card); color: var(--blue); font-size: 12px; font-weight: 600; border-radius: 8px; padding: 4px 10px; cursor: pointer; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; text-align: center; }
+.stats b { display: block; font-family: var(--num); font-size: 22px; font-weight: 600; line-height: 1.1; }
+.stats span { font-size: 11px; color: var(--muted); }
 
-/* 스탯 */
-.stats { margin: 12px 20px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.stat { padding: 14px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; }
-.stat span { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
-.stat b { font-family: var(--num); font-size: 28px; font-weight: 600; line-height: 1; }
-.stat b small { font-family: 'IBM Plex Sans KR', sans-serif; font-size: 13px; font-weight: 500; color: var(--muted); margin-left: 3px; }
-
-/* 타임라인 */
-.tl { display: grid; grid-template-columns: 48px 18px 1fr; column-gap: 8px; }
-.tl .t { font-family: var(--num); font-size: 18px; font-weight: 600; line-height: 1; padding-top: 2px; }
-.tl .t small { display: block; font-size: 14px; color: var(--muted); font-weight: 500; margin-top: 2px; }
-.tl .rail { position: relative; }
-.tl .rail::before { content: ""; position: absolute; left: 7px; top: 0; bottom: 0; width: 3px; background: var(--ink); }
-.tl .rail.move::before { width: 0; border-left: 3px dotted var(--ink); background: none; }
-.tl .rail.end::before { bottom: auto; height: 8px; }
-.tl .dot { position: absolute; left: 0; top: 2px; width: 17px; height: 17px; border-radius: 9px; border: 3px solid var(--ink); background: #FFFFFF; }
-.tl .dot.now { border-color: #FFFFFF; background: var(--orange); box-shadow: 0 0 0 5px rgba(232,106,16,.2); }
-.tl .what { padding-bottom: 14px; display: flex; flex-direction: column; gap: 4px; }
-.tl .what b { font-size: 14px; font-weight: 600; }
-.tl .what span { font-size: 12px; color: var(--muted); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-.tl .gap { font-size: 12px; color: var(--muted); padding: 2px 0 12px; }
-.chip { font-size: 11px; font-weight: 600; border-radius: 5px; padding: 0 6px; line-height: 18px; border: 1.5px solid var(--ink); color: var(--ink); }
-.chip.ai { border: 1px solid var(--blue); color: var(--blue); font-weight: 500; background: #F2F5FD; }
-.chip.none { border: 1px dashed #8A939B; color: var(--blue); font-weight: 500; }
-
-/* 지역 / 월별 */
+/* 한 주: 요일 링 */
+.minis { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.mini { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); }
+.mini.today { color: var(--ink); font-weight: 700; }
+/* 1년: 지역 · 월 */
 .regions { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .regions li { display: grid; grid-template-columns: 64px 1fr 40px; gap: 10px; align-items: center; font-size: 13px; }
 .regions .rb { height: 8px; border-radius: 4px; background: #E2E6DF; overflow: hidden; }
 .regions .rb i { display: block; height: 100%; border-radius: 4px; background: var(--blue); }
 .regions b { font-family: var(--num); font-size: 17px; font-weight: 600; text-align: right; }
-.months { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; align-items: end; height: 92px; }
+.months { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; align-items: end; height: 80px; }
 .months div { display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
 .months i { width: 100%; border-radius: 4px 4px 2px 2px; background: #C9D3E8; }
 .months i.hot { background: var(--orange); }
 .months span { font-family: var(--mono); font-size: 9px; color: var(--muted); }
-
-/* 질문 입력 */
-.ask { margin: 12px 20px 20px; height: 50px; border-radius: 25px; background: var(--card); border: 1px solid var(--line); display: flex; align-items: center; gap: 10px; padding: 0 6px 0 18px; font-size: 14px; color: var(--muted); }
-.ask span { flex: 1; }
-.ask button { width: 38px; height: 38px; border-radius: 19px; border: 0; background: var(--ink); color: #FFFFFF; display: grid; place-items: center; cursor: pointer; }
+.weeks { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
 
 /* 탭바 */
-nav.bottom { height: 84px; padding: 8px 20px 24px; background: #FFFFFF; border-top: 1px solid var(--line); display: flex; justify-content: space-between; flex-shrink: 0; }
+nav.bottom { height: 84px; padding: 8px 28px 24px; background: #FFFFFF; border-top: 1px solid var(--line); display: flex; justify-content: space-between; flex-shrink: 0; }
 nav.bottom a { width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: var(--muted); font-size: 11px; font-weight: 500; }
 nav.bottom a[aria-current="page"] { color: var(--blue); font-weight: 600; }
 
-/* 챗 */
+/* 물어보기 */
+.ask-top { padding: 58px 20px 12px; border-bottom: 1px solid var(--line); }
+.ask-top .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--muted); }
+.ask-top .title { font-size: 22px; font-weight: 700; display: block; margin-top: 2px; }
 .chat { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 14px; }
 .bubble-me { align-self: flex-end; max-width: 78%; background: var(--ink); color: #FFFFFF; padding: 11px 15px; border-radius: 18px 18px 4px 18px; font-size: 15px; line-height: 1.45; }
 .bubble-ai { align-self: flex-start; max-width: 92%; background: var(--card); border: 1px solid var(--line); padding: 13px 15px; border-radius: 18px 18px 18px 4px; font-size: 15px; line-height: 1.55; }
 .bubble-ai .big { font-family: var(--num); font-size: 28px; font-weight: 700; color: var(--blue); line-height: 0; margin: 0 2px; }
-.tool { align-self: flex-start; font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .02em; border: 1px dashed #B5BCB3; border-radius: 6px; padding: 3px 7px; }
+.tool { align-self: flex-start; font-family: var(--mono); font-size: 10px; color: var(--muted); border: 1px dashed #B5BCB3; border-radius: 6px; padding: 3px 7px; }
 .evidence { display: flex; flex-direction: column; gap: 8px; }
 .ev { display: grid; grid-template-columns: 64px 1fr auto; gap: 12px; align-items: center; padding: 10px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
 .ev .map { width: 64px; height: 52px; border-radius: 10px; background: #E2E6DF; overflow: hidden; }
 .ev b { font-size: 14px; font-weight: 600; display: block; }
 .ev span { font-size: 12px; color: var(--muted); }
-.ev button { height: 32px; padding: 0 12px; border-radius: 16px; border: 0; background: var(--blue); color: #FFFFFF; font: inherit; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; }
-.more { align-self: flex-start; font-size: 13px; color: var(--blue); font-weight: 600; background: none; border: 0; padding: 0; cursor: pointer; font-family: inherit; }
+.ev button { height: 32px; padding: 0 12px; border-radius: 16px; border: 0; background: var(--blue); color: #FFFFFF; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+.more { align-self: flex-start; font-size: 13px; color: var(--blue); font-weight: 600; background: none; border: 0; padding: 0; cursor: pointer; }
 .suggest { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 20px 10px; }
 .suggest span { font-size: 12px; border: 1px solid var(--line); background: var(--card); border-radius: 14px; padding: 6px 10px; color: var(--ink2); }
+.askbox { margin: 0 20px 14px; height: 50px; border-radius: 25px; background: var(--card); border: 1px solid var(--line); display: flex; align-items: center; gap: 10px; padding: 0 6px 0 18px; font-size: 14px; color: var(--muted); }
+.askbox span { flex: 1; }
+.askbox button { width: 38px; height: 38px; border-radius: 19px; border: 0; background: var(--ink); color: #FFFFFF; display: grid; place-items: center; }
 
-/* 캡처 모드: ?screen=day|year|ask */
+/* 캡처 모드: ?screen=day|week|year|ask */
 body.shot { background: var(--paper); }
 body.shot header { display: none; }
 body.shot .board { padding: 0; }
@@ -148,29 +140,27 @@ body.shot .device { border-radius: 0; box-shadow: none; }
 </head>
 <body>
 <header>
-  <h1>하루 · 기록 요약 목업 v0.2</h1>
-  <p>README 통합 기획서 2-3(기록 요약)과 2-5(자연어 질문)를 화면으로 옮긴 목업입니다. 기간 탭(하루 / 한 주 / 한 달 / 1년)을 누르면 도넛과 요약이 바뀝니다. 색과 글꼴은 <a href="haru-app-design.html">앱 전체 디자인 v0.1</a>을 따릅니다. 데이터는 더미 페르소나 기준입니다.</p>
+  <h1>하루 · 메인 화면 목업 v0.3</h1>
+  <p>메인(오늘) 화면을 <b>24시간 도넛</b>으로 바꿨습니다. 하루는 시계처럼 0시가 맨 위이고, 머문 곳이 실제 시간 위치에 태그 색으로 칠해집니다. 도넛 조각이나 아래 목록을 누르면 가운데에 그 태그의 시간이 나옵니다. 한 주 / 한 달 / 1년 탭은 태그별 비중 도넛으로 바뀝니다. 색과 글꼴은 <a href="haru-app-design.html">앱 전체 디자인 v0.1</a>을 따르고, 데이터는 더미 페르소나 기준입니다.</p>
 </header>
 
 <main class="board">
-
   <section class="screen" id="day" data-period="day">
-    <h2 class="label">기록 요약 · 하루<small>2-3 · 도넛 + AI 요약 + 스탯 + 타임라인</small></h2>
+    <h2 class="label">오늘 · 하루<small>24시간 도넛 · 시간 위치 그대로</small></h2>
     <div class="device"></div>
   </section>
-
+  <section class="screen" id="week" data-period="week">
+    <h2 class="label">오늘 · 한 주<small>비중 도넛 + 요일별 링</small></h2>
+    <div class="device"></div>
+  </section>
   <section class="screen" id="year" data-period="year">
-    <h2 class="label">기록 요약 · 1년<small>2-3 · 한 해 패턴 + 많이 간 지역</small></h2>
+    <h2 class="label">오늘 · 1년<small>비중 도넛 + 많이 간 지역</small></h2>
     <div class="device"></div>
   </section>
-
   <section class="screen" id="ask">
-    <h2 class="label">물어보기<small>2-5 · 도구 조회 + 근거 카드</small></h2>
+    <h2 class="label">물어보기<small>query_sql 조회 + 근거 카드</small></h2>
     <div class="device">
-      <div class="top" style="padding-bottom: 12px; border-bottom: 1px solid var(--line)">
-        <div class="brand"><span class="eyebrow">ASK HARU</span><span class="title">물어보기</span></div>
-        <div class="avatar">지</div>
-      </div>
+      <div class="ask-top"><span class="eyebrow">ASK HARU</span><span class="title">물어보기</span></div>
       <div class="body">
         <div class="chat">
           <div class="bubble-me">나 올해에 강원도를 몇 번 갔지?</div>
@@ -181,212 +171,271 @@ body.shot .device { border-radius: 0; box-shadow: none; }
         </div>
       </div>
       <div class="suggest"><span>작년 크리스마스에 뭐 했어?</span><span>지난달 커피 몇 번?</span></div>
-      <div class="ask" style="margin: 0 20px 14px"><span>무엇이든 물어보세요</span><button type="button" aria-label="보내기"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 15V3M4 8l5-5 5 5"/></svg></button></div>
+      <div class="askbox"><span>무엇이든 물어보세요</span><button type="button" aria-label="보내기"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 15V3M4 8l5-5 5 5"/></svg></button></div>
       <nav class="bottom" data-current="ask"></nav>
     </div>
   </section>
-
 </main>
 
-<template id="summary-tpl">
+<template id="main-tpl">
   <div class="top">
-    <div class="brand"><span class="eyebrow" data-f="eyebrow"></span><span class="title">하루</span></div>
-    <div class="avatar">지</div>
+    <div class="when"><span class="eyebrow" data-f="eyebrow"></span><div class="title"><b data-f="big"></b><span data-f="sub"></span></div></div>
+    <div class="live"><i></i>기록 중</div>
   </div>
   <div class="body">
-    <div class="dates" data-f="dates"></div>
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" data-p="day">하루</button>
       <button class="tab" role="tab" data-p="week">한 주</button>
       <button class="tab" role="tab" data-p="month">한 달</button>
       <button class="tab" role="tab" data-p="year">1년</button>
     </div>
-    <div class="card">
-      <h3>어디서 시간을 보냈나 <span data-f="range"></span></h3>
-      <div class="donut-wrap">
-        <div class="donut"><svg width="148" height="148" viewBox="0 0 148 148" data-f="donut"></svg><div class="center"><b data-f="total"></b><span data-f="totalLabel"></span></div></div>
-        <ul class="legend" data-f="legend"></ul>
-      </div>
+    <div class="ring" data-f="ring">
+      <svg width="310" height="310" viewBox="0 0 310 310" data-f="svg"></svg>
+      <div class="center" data-f="center"></div>
     </div>
+    <div class="hint" data-f="hint"></div>
+    <div class="cap"><span>태그별 시간</span><span data-f="cap"></span></div>
+    <div class="list" data-f="list" style="margin-top: 8px"></div>
     <div class="card ai">
       <h3>AI 요약 <span>BEDROCK</span></h3>
       <p data-f="summary"></p>
-      <div class="meta">
-        <div class="conf">확신도 <div class="bar"><i data-f="confBar"></i></div><b data-f="conf" style="color: var(--blue)"></b></div>
-        <button class="btn-ghost" type="button">수정</button>
-      </div>
+      <div class="meta">확신도 <div class="bar"><i data-f="confBar"></i></div><b data-f="conf" style="color: var(--blue)"></b><button class="btn-ghost" type="button">수정</button></div>
     </div>
-    <div class="stats" data-f="stats"></div>
+    <div class="card"><div class="stats" data-f="stats"></div></div>
     <div class="card" data-f="extra"></div>
-    <div class="ask"><span>예: 올해 강원도 몇 번 갔지?</span><button type="button" aria-label="물어보기로 이동"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 15V3M4 8l5-5 5 5"/></svg></button></div>
   </div>
-  <nav class="bottom" data-current="summary"></nav>
+  <nav class="bottom" data-current="today"></nav>
 </template>
 
 <script>
 const TAG = {
-  '집':   '#2B3138',
-  '회사': '#1F4FD1',
-  '밥집': '#E86A10',
-  '커피': '#9A6B47',
-  '운동': '#2F8A5B',
-  '쇼핑': '#C2417A',
-  '관광': '#D9A515',
-  '이동': '#AEB6BD',
-  '태그 없음': 'none'
+  '집': '#2B3138', '회사': '#1F4FD1', '밥집': '#E86A10', '커피': '#9A6B47',
+  '운동': '#2F8A5B', '쇼핑': '#C2417A', '관광': '#D9A515', '이동': '#AEB6BD', '태그 없음': 'none'
 };
+const fill = t => TAG[t] === 'none' ? 'url(#hatch)' : TAG[t];
+const swCss = t => TAG[t] === 'none' ? '' : `background:${TAG[t]}`;
+const swCls = t => TAG[t] === 'none' ? 'sw none-sw' : 'sw';
+
+// 하루: [태그, 시작분, 끝분, 장소]
+const DAY = [
+  ['집', 0, 590, '집 · 망원동'],
+  ['이동', 590, 620, '도보 6분'],
+  ['커피', 620, 665, '카페 망원'],
+  ['이동', 665, 700, '지하철 41분'],
+  ['태그 없음', 700, 980, '키로톤 행사장 · 성수동']
+];
+const NOW = 980;
 
 const DATA = {
   day: {
-    eyebrow: '2026.11.14 · SAT', range: '00:00 – 16:20', total: '16h 20m', totalLabel: '기록됨',
-    slices: [['집', 590], ['커피', 45], ['이동', 65], ['태그 없음', 280]],
+    eyebrow: '2026 · SAT', big: '11.14', sub: '오늘',
+    hint: '0시가 맨 위 · 시계 방향 · 주황 점이 지금',
     summary: '아침은 망원 집에서 느긋하게 보내고, 동네 카페에서 커피를 마신 뒤 지하철로 성수에 와서 4시간 넘게 한곳에 머물고 있어요.',
     conf: 87,
-    stats: [['사진', '6', '장'], ['방문', '3', '곳'], ['이동 거리', '9.4', 'km'], ['첫 활동', '09:50', '']],
+    stats: [['3', '머문 곳'], ['9.4km', '이동'], ['6', '사진'], ['09:50', '첫 활동']],
+    delta: { '집': 12, '커피': -10, '이동': 5 },
     extra: 'timeline'
   },
   week: {
-    eyebrow: '11.08 – 11.14', range: '7일', total: '168h', totalLabel: '이번 주',
-    slices: [['집', 86], ['회사', 41], ['밥집', 6], ['커피', 7], ['운동', 5], ['쇼핑', 4], ['이동', 12], ['태그 없음', 7]],
+    eyebrow: '11.08 – 11.14', big: '이번 주', sub: '',
+    slices: [['집', 86], ['회사', 41], ['이동', 12], ['커피', 7], ['태그 없음', 7], ['밥집', 6], ['운동', 5], ['쇼핑', 4]],
+    hint: '태그별 비중 · 168시간 기준',
     summary: '평일엔 회사와 집을 오가는 패턴이 뚜렷했고, 운동은 화·목 두 번 했어요. 주말엔 망원과 성수에서 시간을 보냈어요.',
     conf: 81,
-    stats: [['사진', '64', '장'], ['방문', '31', '곳'], ['이동 거리', '72.3', 'km'], ['평균 첫 활동', '08:12', '']],
+    stats: [['31', '머문 곳'], ['72km', '이동'], ['64', '사진'], ['08:12', '평균 첫 활동']],
+    delta: { '회사': -4, '운동': 33, '커피': 15 },
     extra: 'week'
   },
   month: {
-    eyebrow: '2026.11', range: '11.01 – 11.14', total: '336h', totalLabel: '11월',
-    slices: [['집', 170], ['회사', 84], ['밥집', 13], ['커피', 15], ['운동', 10], ['쇼핑', 9], ['관광', 8], ['이동', 20], ['태그 없음', 7]],
+    eyebrow: '2026', big: '11월', sub: '',
+    slices: [['집', 170], ['회사', 84], ['이동', 20], ['커피', 15], ['밥집', 13], ['운동', 10], ['쇼핑', 9], ['관광', 8], ['태그 없음', 7]],
+    hint: '태그별 비중 · 11.01 – 11.14',
     summary: '11월 첫 주말엔 가평으로 당일치기를 다녀왔어요. 지난달보다 커피는 4번 늘고 운동은 1번 줄었어요.',
     conf: 76,
-    stats: [['사진', '211', '장'], ['방문', '68', '곳'], ['이동 거리', '284', 'km'], ['외출', '9', '번']],
+    stats: [['68', '머문 곳'], ['284km', '이동'], ['211', '사진'], ['9', '외출']],
+    delta: { '커피': 18, '운동': -8 },
     extra: 'month'
   },
   year: {
-    eyebrow: '2026', range: '01.01 – 11.14', total: '11', totalLabel: '번의 여행',
-    slices: [['집', 3820], ['회사', 2050], ['관광', 470], ['밥집', 400], ['커피', 390], ['운동', 310], ['쇼핑', 170], ['이동', 310], ['태그 없음', 90]],
+    eyebrow: '01.01 – 11.14', big: '2026', sub: '',
+    slices: [['집', 3820], ['회사', 2050], ['관광', 470], ['밥집', 400], ['커피', 390], ['운동', 310], ['이동', 310], ['쇼핑', 170], ['태그 없음', 90]],
+    hint: '태그별 비중 · 올해',
     summary: '올해는 여행이 많았던 해예요. 강원도만 8번 갔고, 특히 여름과 가을에 바다를 자주 찾았어요. 운동은 상반기보다 하반기에 꾸준했어요.',
     conf: 72,
-    stats: [['사진', '2,318', '장'], ['방문', '1,204', '곳'], ['이동 거리', '6,842', 'km'], ['가 본 시/군', '27', '곳']],
+    stats: [['1,204', '머문 곳'], ['6,842km', '이동'], ['2,318', '사진'], ['11', '여행']],
+    delta: { '관광': 40, '운동': 12 },
     extra: 'year'
   }
 };
 
+const WEEK = [
+  ['월', [['집',14],['이동',1.5],['회사',8.5]]], ['화', [['집',13],['이동',1.5],['회사',8],['운동',1.5]]],
+  ['수', [['집',14],['이동',1.5],['회사',8.5]]], ['목', [['집',13],['이동',1.5],['회사',8],['운동',1.5]]],
+  ['금', [['집',12],['이동',1.5],['회사',8],['밥집',2.5]]], ['토', [['집',11],['커피',2],['쇼핑',3],['이동',2],['밥집',2],['태그 없음',4]]],
+  ['일', [['집',9.5],['커피',3],['이동',2],['태그 없음',3],['밥집',1.5],['쇼핑',1]]]
+];
+
+const hm = m => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+const dur = m => { const h = Math.floor(m / 60), r = Math.round(m % 60); return h ? (r ? `${h}h ${r}m` : `${h}h`) : `${r}m`; };
+
+const DEFS = `<defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#FFFFFF"/><rect width="2.4" height="6" fill="#B9C0B7"/></pattern></defs>`;
+
+// 원호 path (0 = 맨 위, 시계 방향)
+function arcPath(cx, cy, r, a0, a1) {
+  const p = a => [cx + r * Math.sin(a), cy - r * Math.cos(a)];
+  const [x0, y0] = p(a0), [x1, y1] = p(a1);
+  return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`;
+}
+
+function ringDay(svg) {
+  const C = 155, R = 118, W = 38, T = 2 * Math.PI;
+  let s = DEFS;
+  // 바탕 트랙 + 아직 오지 않은 시간
+  s += `<circle cx="${C}" cy="${C}" r="${R}" fill="none" stroke="#E2E6DF" stroke-width="${W}"/>`;
+  s += `<path d="${arcPath(C, C, R, NOW / 1440 * T, T - 0.0001)}" fill="none" stroke="#E9ECE6" stroke-width="${W}" stroke-dasharray="2 5"/>`;
+  // 시간 눈금
+  for (let h = 0; h < 24; h++) {
+    const a = h / 24 * T, major = h % 6 === 0;
+    const r0 = R + W / 2 + 4, r1 = r0 + (major ? 8 : 4);
+    s += `<line x1="${C + r0 * Math.sin(a)}" y1="${C - r0 * Math.cos(a)}" x2="${C + r1 * Math.sin(a)}" y2="${C - r1 * Math.cos(a)}" stroke="${major ? '#16191D' : '#A9B0A7'}" stroke-width="${major ? 2 : 1}"/>`;
+    if (major) {
+      const rt = R - W / 2 - 12;
+      s += `<text x="${C + rt * Math.sin(a)}" y="${C - rt * Math.cos(a) + 4}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5A6168">${h}</text>`;
+    }
+  }
+  // 머문 곳 조각
+  DAY.forEach(([t, a, b], i) => {
+    const gap = 0.012;
+    s += `<path class="arc" data-tag="${t}" data-i="${i}" d="${arcPath(C, C, R, a / 1440 * T + gap, b / 1440 * T - gap)}" fill="none" stroke="${fill(t)}" stroke-width="${W}"><title>${t} ${hm(a)}–${hm(b)}</title></path>`;
+  });
+  // 지금
+  const an = NOW / 1440 * T;
+  s += `<circle cx="${C + R * Math.sin(an)}" cy="${C - R * Math.cos(an)}" r="11" fill="#E86A10" opacity=".22"/><circle cx="${C + R * Math.sin(an)}" cy="${C - R * Math.cos(an)}" r="6" fill="#E86A10" stroke="#FFFFFF" stroke-width="2.5"/>`;
+  svg.innerHTML = s;
+}
+
+function ringShare(svg, slices) {
+  const C = 155, R = 118, W = 38, T = 2 * Math.PI;
+  const total = slices.reduce((a, [, v]) => a + v, 0);
+  let s = DEFS + `<circle cx="${C}" cy="${C}" r="${R}" fill="none" stroke="#E2E6DF" stroke-width="${W}"/>`;
+  let acc = 0;
+  slices.forEach(([t, v]) => {
+    const a0 = acc / total * T, a1 = (acc + v) / total * T, gap = Math.min(0.012, (a1 - a0) / 4);
+    s += `<path class="arc" data-tag="${t}" d="${arcPath(C, C, R, a0 + gap, a1 - gap)}" fill="none" stroke="${fill(t)}" stroke-width="${W}"><title>${t} ${Math.round(v / total * 100)}%</title></path>`;
+    acc += v;
+  });
+  svg.innerHTML = s;
+}
+
+function miniRing(slices, today) {
+  const total = slices.reduce((a, [, v]) => a + v, 0), C = 20, R = 15, T = 2 * Math.PI;
+  let s = DEFS, acc = 0;
+  slices.forEach(([t, v]) => { s += `<path d="${arcPath(C, C, R, acc / total * T, Math.max((acc + v) / total * T - 0.04, acc / total * T + 0.01))}" fill="none" stroke="${fill(t)}" stroke-width="7"/>`; acc += v; });
+  return `<svg width="40" height="40" viewBox="0 0 40 40">${s}${today ? '<circle cx="20" cy="20" r="4" fill="#E86A10"/>' : ''}</svg>`;
+}
+
+function totals(period) {
+  if (period !== 'day') return DATA[period].slices;
+  const m = {};
+  DAY.forEach(([t, a, b]) => m[t] = (m[t] || 0) + (b - a));
+  return Object.entries(m).sort((x, y) => y[1] - x[1]);
+}
+
 const EXTRA = {
-  timeline: `<h3>타임라인 <span>TODAY</span></h3>
-    <div class="tl">
-      <div class="t">00:00<small>09:50</small></div><div class="rail"><div class="dot"></div></div>
-      <div class="what"><b>집 · 망원동</b><span><span class="chip">집</span>9시간 50분</span></div>
-      <div></div><div class="rail move"></div><div class="gap">도보 6분 · 450m</div>
-      <div class="t">10:20<small>11:05</small></div><div class="rail"><div class="dot"></div></div>
-      <div class="what"><b>카페 망원 · 망원동</b><span><span class="chip ai">AI · 커피 92%</span>45분 · 사진 2장</span></div>
-      <div></div><div class="rail move"></div><div class="gap">지하철 · 41분 · 8.9km</div>
-      <div class="t">11:40<small style="color: var(--orange-ink)">지금</small></div><div class="rail end"><div class="dot now"></div></div>
-      <div class="what"><b>키로톤 행사장 · 성수동</b><span><span class="chip none">태그 없음 · 달기</span>머무는 중 · 4시간 40분째</span></div>
-    </div>`,
-  week: `<h3>요일별 머문 곳 <span>MON – SUN</span></h3>` + weekRows(),
-  month: `<h3>외출 · 여행 <span>NOV</span></h3>
+  timeline: () => `<h3>머문 곳 <span>TODAY</span></h3>
+    <div style="display:flex;flex-direction:column;gap:10px">${DAY.filter(d => d[0] !== '이동').map(([t, a, b, p]) => `
+      <div style="display:grid;grid-template-columns:52px 12px 1fr auto;gap:10px;align-items:center">
+        <span style="font-family:var(--num);font-size:17px;font-weight:600">${hm(a)}</span>
+        <i class="${swCls(t)}" style="width:12px;height:12px;border-radius:4px;${swCss(t)}"></i>
+        <span style="font-size:14px;font-weight:600">${p}${t === '태그 없음' ? ' <span style="font-size:11px;font-weight:500;color:var(--blue);border:1px dashed #8A939B;border-radius:5px;padding:0 5px">태그 달기</span>' : ''}</span>
+        <span style="font-size:12px;color:${b === NOW ? 'var(--orange-ink)' : 'var(--muted)'}">${b === NOW ? '지금' : dur(b - a)}</span>
+      </div>`).join('')}</div>`,
+  week: () => `<h3>요일별 하루 <span>MON – SUN</span></h3>
+    <div class="minis">${WEEK.map(([d, sl], i) => `<div class="mini ${i === 5 ? 'today' : ''}">${miniRing(sl, i === 5)}${d}</div>`).join('')}</div>`,
+  month: () => `<h3>주별 회사 · 운동 시간 <span>NOV</span></h3>
+    <div class="weeks">${[['1주', 38, 4], ['2주', 41, 3], ['3주', 0, 0], ['4주', 0, 0], ['5주', 0, 0]].map(([w, c, g]) => `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--muted)">
+        <div style="height:70px;width:22px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px">
+          ${c ? `<i style="height:${g * 3}px;background:${TAG['운동']};border-radius:3px"></i><i style="height:${c * 1.4}px;background:${TAG['회사']};border-radius:3px"></i>` : '<i style="height:4px;background:#E2E6DF;border-radius:3px"></i>'}
+        </div>${w}</div>`).join('')}</div>`,
+  year: () => `<h3>많이 간 지역 <span>집 생활권 밖</span></h3>
     <ul class="regions">
-      <li><span>가평</span><div class="rb"><i style="width: 100%; background: #D9A515"></i></div><b>1회</b></li>
-      <li><span>성수</span><div class="rb"><i style="width: 80%"></i></div><b>4회</b></li>
-      <li><span>망원</span><div class="rb"><i style="width: 60%"></i></div><b>3회</b></li>
-    </ul>`,
-  year: `<h3>많이 간 지역 <span>집 생활권 밖</span></h3>
-    <ul class="regions">
-      <li><span>강원도</span><div class="rb"><i style="width: 100%"></i></div><b>8회</b></li>
-      <li><span>경기 북부</span><div class="rb"><i style="width: 50%"></i></div><b>4회</b></li>
-      <li><span>부산</span><div class="rb"><i style="width: 25%"></i></div><b>2회</b></li>
-      <li><span>제주</span><div class="rb"><i style="width: 12.5%"></i></div><b>1회</b></li>
+      <li><span>강원도</span><div class="rb"><i style="width:100%"></i></div><b>8회</b></li>
+      <li><span>경기 북부</span><div class="rb"><i style="width:50%"></i></div><b>4회</b></li>
+      <li><span>부산</span><div class="rb"><i style="width:25%"></i></div><b>2회</b></li>
+      <li><span>제주</span><div class="rb"><i style="width:12.5%"></i></div><b>1회</b></li>
     </ul>
-    <h3 style="margin-top: 18px">월별 여행 일수 <span>주황 = 강원도</span></h3>
-    <div class="months">${[[3,1],[2,1],[1,0],[2,1],[3,1],[2,1],[5,0],[4,1],[3,1],[4,1],[1,0],[0,0]].map((m,i) => `<div><i class="${m[1] ? 'hot' : ''}" style="height:${m[0]*13+4}px"></i><span>${i+1}</span></div>`).join('')}</div>`
+    <h3 style="margin-top:18px">월별 여행 일수 <span>주황 = 강원도</span></h3>
+    <div class="months">${[[3,1],[2,1],[1,0],[2,1],[3,1],[2,1],[5,0],[4,1],[3,1],[4,1],[1,0],[0,0]].map((m, i) => `<div><i class="${m[1] ? 'hot' : ''}" style="height:${m[0] * 11 + 4}px"></i><span>${i + 1}</span></div>`).join('')}</div>`
 };
 
-function weekRows() {
-  const days = ['월','화','수','목','금','토','일'];
-  const rows = [
-    [['집',14],['이동',1.5],['회사',8.5]], [['집',13],['이동',1.5],['회사',8],['운동',1.5]], [['집',14],['이동',1.5],['회사',8.5]],
-    [['집',13],['이동',1.5],['회사',8],['운동',1.5]], [['집',12],['이동',1.5],['회사',8],['밥집',2.5]],
-    [['집',11],['커피',2],['쇼핑',3],['이동',2],['밥집',2],['태그 없음',4]], [['집',9.5],['커피',3],['이동',2],['태그 없음',3],['밥집',1.5],['쇼핑',1]]
-  ];
-  return `<div style="display: flex; flex-direction: column; gap: 6px">${rows.map((r, i) => `
-    <div style="display: grid; grid-template-columns: 18px 1fr; gap: 8px; align-items: center; font-size: 12px; color: var(--muted)">${days[i]}
-      <div style="display: flex; height: 12px; border-radius: 4px; overflow: hidden; gap: 1px">${r.map(([t, h]) => `<i style="flex: ${h}; ${swatch(t)}"></i>`).join('')}</div>
-    </div>`).join('')}</div>`;
-}
-
-function swatch(tag) {
-  return TAG[tag] === 'none'
-    ? 'background: repeating-linear-gradient(45deg, #C9CEC6 0 2px, #FFFFFF 2px 4px)'
-    : `background: ${TAG[tag]}`;
-}
-
-function fmtMin(m) {
-  if (m >= 60) { const h = Math.floor(m / 60), r = m % 60; return r ? `${h}h ${r}m` : `${h}h`; }
-  return `${m}m`;
-}
-
-function donut(svg, slices) {
-  const total = slices.reduce((s, [, v]) => s + v, 0);
-  const r = 58, c = 2 * Math.PI * r, gap = 2;
-  let off = 0, out = `<defs><pattern id="hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="#FFFFFF"/><rect width="2" height="5" fill="#C9CEC6"/></pattern></defs>`;
-  out += `<circle cx="74" cy="74" r="${r}" fill="none" stroke="#EEF0EC" stroke-width="22"/>`;
-  for (const [tag, v] of slices) {
-    const len = v / total * c;
-    const color = TAG[tag] === 'none' ? 'url(#hatch)' : TAG[tag];
-    out += `<circle cx="74" cy="74" r="${r}" fill="none" stroke="${color}" stroke-width="22" stroke-dasharray="${Math.max(len - gap, 0.5)} ${c}" stroke-dashoffset="${-off}"><title>${tag} ${Math.round(v / total * 100)}%</title></circle>`;
-    off += len;
-  }
-  svg.innerHTML = out;
-}
-
 function render(device, period) {
-  const d = DATA[period];
-  const f = k => device.querySelector(`[data-f="${k}"]`);
-  f('eyebrow').textContent = d.eyebrow;
-  f('range').textContent = d.range;
-  f('total').textContent = d.total;
-  f('totalLabel').textContent = d.totalLabel;
-  donut(f('donut'), d.slices);
-  const total = d.slices.reduce((s, [, v]) => s + v, 0);
-  f('legend').innerHTML = d.slices.slice().sort((a, b) => b[1] - a[1]).slice(0, 6).map(([t, v]) =>
-    `<li><i class="sw ${TAG[t] === 'none' ? 'none' : ''}" style="background:${TAG[t]}"></i>${t}<b>${period === 'day' ? fmtMin(v) : Math.round(v / total * 100) + '%'}</b></li>`).join('');
+  const d = DATA[period], f = k => device.querySelector(`[data-f="${k}"]`);
+  f('eyebrow').textContent = d.eyebrow; f('big').textContent = d.big; f('sub').textContent = d.sub;
+  f('hint').textContent = d.hint;
+  f('cap').textContent = { day: '▲▼ 평소 토요일 대비', week: '▲▼ 지난주 대비', month: '▲▼ 지난달 대비', year: '▲▼ 작년 대비' }[period];
+  period === 'day' ? ringDay(f('svg')) : ringShare(f('svg'), d.slices);
+  const list = totals(period), sum = list.reduce((a, [, v]) => a + v, 0);
+  const val = (v) => period === 'day' ? dur(v) : `${Math.round(v / sum * 100)}%`;
+  f('list').innerHTML = list.map(([t, v]) => {
+    const dl = d.delta[t];
+    return `<div class="row" data-tag="${t}"><i class="${swCls(t)}" style="${swCss(t)}"></i>
+      <span class="name">${t}${dl ? `<span class="delta ${dl > 0 ? 'up' : 'down'}">${dl > 0 ? '▲' : '▼'} ${Math.abs(dl)}%</span>` : ''}${t === '태그 없음' ? '<small>눌러서 태그 달기</small>' : ''}</span>
+      <span class="dur">${val(v)}</span>
+      <div class="meter"><i style="width:${v / list[0][1] * 100}%;${TAG[t] === 'none' ? 'background:#C9CEC6' : `background:${TAG[t]}`}"></i></div></div>`;
+  }).join('');
   f('summary').textContent = d.summary;
-  f('conf').textContent = d.conf + '%';
-  f('confBar').style.width = d.conf + '%';
-  f('stats').innerHTML = d.stats.map(([k, v, u]) => `<div class="stat"><span>${k}</span><b>${v}${u ? `<small>${u}</small>` : ''}</b></div>`).join('');
-  f('extra').innerHTML = EXTRA[d.extra];
+  f('conf').textContent = d.conf + '%'; f('confBar').style.width = d.conf + '%';
+  f('stats').innerHTML = d.stats.map(([v, k]) => `<div><b>${v}</b><span>${k}</span></div>`).join('');
+  f('extra').innerHTML = EXTRA[d.extra]();
   device.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.p === period));
+
+  // 가운데 + 선택
+  const center = f('center'), ring = f('ring');
+  const idle = () => {
+    ring.classList.remove('has-sel');
+    device.querySelectorAll('.sel').forEach(e => e.classList.remove('sel'));
+    if (period === 'day') {
+      const cur = DAY[DAY.length - 1];
+      center.innerHTML = `<span class="k"><i style="background:#E86A10"></i>지금 · ${hm(NOW)}</span><span class="v">${dur(NOW - cur[1])}</span><span class="s">${cur[3]}<br>머무는 중</span>`;
+    } else {
+      center.innerHTML = `<span class="k">${d.big}</span><span class="v">${period === 'year' ? '11' : sum >= 300 ? Math.round(sum) + 'h' : sum + 'h'}</span><span class="s">${period === 'year' ? '번의 여행' : '기록된 시간'}</span>`;
+    }
+  };
+  const select = t => {
+    if (ring.dataset.sel === t) { ring.dataset.sel = ''; return idle(); }
+    ring.dataset.sel = t; ring.classList.add('has-sel');
+    device.querySelectorAll('.arc, .row').forEach(e => e.classList.toggle('sel', e.dataset.tag === t));
+    const v = list.find(x => x[0] === t)[1];
+    center.innerHTML = `<span class="k"><i class="${TAG[t] === 'none' ? 'none-sw' : ''}" style="${swCss(t)}"></i>${t}</span><span class="v">${period === 'day' ? dur(v) : Math.round(v / sum * 100) + '%'}</span><span class="s">${period === 'day' ? DAY.filter(x => x[0] === t).map(x => `${hm(x[1])}–${hm(x[2])}`).join(', ') : `${Math.round(v)}시간`}</span>`;
+  };
+  ring.dataset.sel = '';
+  device.querySelectorAll('.arc, .row').forEach(e => e.addEventListener('click', () => select(e.dataset.tag)));
+  idle();
 }
 
 const ICONS = {
-  today: '<path d="M12 2v20"/><circle cx="12" cy="7" r="3" fill="#FFFFFF"/><circle cx="12" cy="17" r="3" fill="#FFFFFF"/>',
-  summary: '<circle cx="12" cy="12" r="8"/><path d="M12 4v8l6 4"/>',
+  today: '<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 8 8h-8z" fill="currentColor"/>',
   trips: '<path d="M5 18c4 0 3-12 7-12s3 12 7 12"/><circle cx="5" cy="18" r="2.2"/><circle cx="19" cy="18" r="2.2"/>',
   ask: '<path d="M4 5h16v11H10l-4 3v-3H4z"/><path d="M8 10.5h8"/>'
 };
-const NAV = [['today', '오늘', 'haru-app-design.html#Main'], ['summary', '기록', '#day'], ['trips', '여행', 'haru-app-design.html#Trips'], ['ask', '물어보기', '#ask']];
-
-function nav(el) {
+const NAV = [['today', '오늘', '#day'], ['trips', '여행', 'haru-app-design.html#Trips'], ['ask', '물어보기', '#ask']];
+document.querySelectorAll('nav.bottom').forEach(el => {
   el.setAttribute('aria-label', '주요 화면');
-  el.innerHTML = NAV.map(([k, label, href]) =>
-    `<a href="${href}" ${el.dataset.current === k ? 'aria-current="page"' : ''}><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">${ICONS[k]}</svg>${label}</a>`).join('');
-}
+  el.innerHTML = NAV.map(([k, label, href]) => `<a href="${href}" ${el.dataset.current === k ? 'aria-current="page"' : ''}><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">${ICONS[k]}</svg>${label}</a>`).join('');
+});
 
-// 요약 화면 두 개 만들기
-const tpl = document.getElementById('summary-tpl');
+const tpl = document.getElementById('main-tpl');
 document.querySelectorAll('.screen[data-period]').forEach(sec => {
   const device = sec.querySelector('.device');
   device.appendChild(tpl.content.cloneNode(true));
-  // 날짜 스트립
-  const dows = ['일','월','화','수','목','금','토'];
-  device.querySelector('[data-f="dates"]').innerHTML = Array.from({ length: 7 }, (_, i) => {
-    const day = 8 + i; const dow = dows[(day - 1) % 7];
-    return `<div class="date" ${day === 14 ? 'aria-current="date"' : ''}>${dow}<b>${day}</b></div>`;
-  }).join('');
+  device.querySelector('nav.bottom').dataset.current = 'today';
+  const nav = device.querySelector('nav.bottom');
+  nav.setAttribute('aria-label', '주요 화면');
+  nav.innerHTML = NAV.map(([k, label, href]) => `<a href="${href}" ${k === 'today' ? 'aria-current="page"' : ''}><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">${ICONS[k]}</svg>${label}</a>`).join('');
   device.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => render(device, t.dataset.p)));
   render(device, sec.dataset.period);
 });
-document.querySelectorAll('nav.bottom').forEach(nav);
 
 // 근거 카드
 const TRIPS = [
@@ -394,20 +443,18 @@ const TRIPS = [
   ['09.06', '원주 · 뮤지엄 산', '당일', 'M8 36 C 22 34, 34 24, 54 18'],
   ['08.09 – 08.10', '고성 · 송지호 해변', '1박 2일', 'M6 44 C 26 34, 40 12, 56 6']
 ];
-const EXTRA_TRIPS = [['06.28', '홍천'], ['05.24', '양양'], ['04.12', '강릉'], ['02.21', '춘천'], ['01.17', '평창']];
+const MORE = [['06.28', '홍천'], ['05.24', '양양'], ['04.12', '강릉'], ['02.21', '춘천'], ['01.17', '평창']];
 const evidence = document.getElementById('evidence');
-const card = ([date, place, meta, path]) => `<div class="ev">
-  <div class="map"><svg width="64" height="52" viewBox="0 0 64 52" aria-hidden="true"><path d="M0 30 L64 22 M20 0 L26 52" stroke="#F4F5F2" stroke-width="3"/><path d="${path}" stroke="#1F4FD1" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="${path.split(' ').slice(-2)[0]}" cy="${path.split(' ').slice(-1)[0]}" r="4" fill="#E86A10" stroke="#FFFFFF" stroke-width="1.5"/></svg></div>
+const card = ([date, place, meta, path]) => { const pts = path.split(' '); return `<div class="ev">
+  <div class="map"><svg width="64" height="52" viewBox="0 0 64 52" aria-hidden="true"><path d="M0 30 L64 22 M20 0 L26 52" stroke="#F4F5F2" stroke-width="3"/><path d="${path}" stroke="#1F4FD1" stroke-width="2.5" fill="none" stroke-linecap="round"/><circle cx="${pts[pts.length - 2]}" cy="${pts[pts.length - 1]}" r="4" fill="#E86A10" stroke="#FFFFFF" stroke-width="1.5"/></svg></div>
   <div><b>${place}</b><span>${date} · ${meta}</span></div>
-  <button type="button"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1l7 4-7 4z" fill="currentColor"/></svg>재생</button>
-</div>`;
+  <button type="button"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1l7 4-7 4z" fill="currentColor"/></svg>재생</button></div>`; };
 evidence.innerHTML = TRIPS.map(card).join('');
 document.getElementById('more').addEventListener('click', e => {
-  evidence.insertAdjacentHTML('beforeend', EXTRA_TRIPS.map(([d, p]) => card([d, p, '당일', 'M8 40 C 24 30, 36 20, 54 14'])).join(''));
+  evidence.insertAdjacentHTML('beforeend', MORE.map(([d, p]) => card([d, p, '당일', 'M8 40 C 24 30, 36 20, 54 14'])).join(''));
   e.target.remove();
 });
 
-// 캡처 모드
 const shot = new URLSearchParams(location.search).get('screen');
 if (shot) { document.body.classList.add('shot'); document.getElementById(shot)?.classList.add('on'); }
 </script>
