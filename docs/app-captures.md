@@ -18,8 +18,7 @@
 | `04-today-year.png` | 4 1년 | 가장 긴 기간(1년 또는 한 달) 탭 |
 | `05-timeline.png` | 5 타임라인 | 타임라인 탭 (장소마다 사진 · 영상) |
 | `06-timeline-media.png` | 6 영상 | 사진 또는 영상을 크게 본 상태 |
-| `07-timeline-trip.png` | 7 여행 | 여행 묶음 또는 지도 재생 화면 |
-| `08-ask.png` | 8 물어보기 | 질문과 답이 나온 물어보기 화면 |
-| `09-ask-cards.png` | 9 근거 카드 | 근거 카드가 보이는 상태 |
+| `07-ask.png` | 7 물어보기 | 질문과 답이 나온 물어보기 화면 |
+| `08-ask-cards.png` | 8 근거 카드 | 근거 카드가 보이는 상태 |
 
 넣은 뒤에는 `site/media/app/`의 PNG를 배포 저장소 `haru-demo`의 `media/app/`에도 복사해 push하면 배포 사이트에 반영된다.
