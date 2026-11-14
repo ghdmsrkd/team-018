@@ -11,7 +11,8 @@
 | **SQLite DDL** | `packages/schema/src/ddl.ts` | `RAW_DDL` → `raw.db`, `MEMORY_DDL` + `AGENT_VIEWS_DDL` → `memory.db`에 `execAsync`로 실행 |
 | **타입** | `packages/schema/src/types.ts`, `api.ts` | `Place`, `Stay`, `Trip`, `Day`, `ChatRequest`, `AgentAnswer` 등 |
 | **태그 목록** | `TAGS` (`types.ts`) | `집 회사 밥집 커피 운동 쇼핑 관광`. 이 7개 외에는 쓰지 않는다 |
-| **Lambda API** | `backend/lambda/index.mjs`, 계약은 `api.ts` | `POST {API_URL}/chat`, `GET {API_URL}/health` |
+| **Lambda API** | `backend/lambda/index.mjs`, 계약은 `api.ts` | `GET /health`, `POST /chat`, `POST /geocode`, `POST /places/nearby` |
+| **데모 SQLite** | `artifacts/memory.db` | 생성 데이터로 만든 스키마 v1의 화면 및 로컬 도구 검증용 DB |
 
 ### 시작하기
 1. 저장소 루트에서 `pnpm install`.
@@ -27,9 +28,7 @@
 ## 아직 없는 것 (백엔드 담당이 만드는 중)
 | 항목 | 상태 | 그동안 앱에서 할 일 |
 |---|---|---|
-| **더미 `memory.db` (12개월 치)** | 미완 | 화면은 `MEMORY_DDL`로 빈 DB를 만들고 직접 몇 행을 넣어 개발한다 |
 | **에이전트 패키지** (SQL 가드, 도구 루프, 카드 조립) | 미완 | 챗 화면은 `AgentAnswer` 타입의 고정 응답으로 목업한다 |
-| `/geocode` | 키 미설정 (501) | 데모는 호출하지 않는다 |
 
 ### `/chat` 모델
 개발 중에는 **Claude Haiku 4.5**(`global.anthropic.claude-haiku-4-5-20251001-v1:0`)로 배포되어 있고, 도구 호출까지 동작한다. 데모용 `gpt-6-luna`는 계약은 맺었지만 아직 호출이 거부되어 보류 중이다. 모델은 Lambda 환경변수 `MODEL_ID` 하나로 바뀌므로 앱 코드는 바꿀 필요가 없다.
@@ -37,17 +36,17 @@
 연결 확인:
 ```bash
 curl -s $EXPO_PUBLIC_API_URL/health
-# {"ok":true,"model":"global.anthropic.claude-haiku-4-5-20251001-v1:0"}
+# {"ok":true,"model":"global.anthropic.claude-haiku-4-5-20251001-v1:0","placesProvider":"kakao"}
 ```
 `/chat` 요청은 `packages/schema/src/api.ts`의 `ChatRequest`, 응답은 `ChatResponse`다. 응답의 `stopReason`이 `tool_use`면 `toolUse` 블록을 실행하고 `toolResult`를 붙여 다시 보내는 것을 반복한다 (최대 6회).
 오류 응답: 400 잘못된 요청, 413 본문이 200KB 초과, 429 호출 과다, 502 Bedrock 오류.
 
-## 이어서 진행하는 순서 (앱)
-1. 앱 골격(Expo) + `expo-sqlite`로 `raw.db`, `memory.db` 열기, DDL 실행
-2. 더미 `memory.db`가 나오기 전까지 샘플 행으로 **오늘 타임라인**(US-09) 화면
-3. 태그 달기/정리 화면(US-11, 29): `places.tag`, `tag_source='human'`으로 UPDATE
-4. 더미 `memory.db`가 오면 앱 번들에 넣고 교체. 지도 재생(US-12, 13)은 `moves.path`(JSON)를 쓴다
-5. 에이전트 패키지가 오면 챗 화면 연결
+## 데모 DB와 실기기 연동
+
+- `artifacts/memory.db`는 2025-11-15~2026-11-14의 365일, 장소 48개, 체류 1,982건, 여행 10건, 이동 1,617건을 담는다. `PRAGMA quick_check`와 `PRAGMA foreign_key_check`를 통과했다. `artifacts/memory.groundtruth.db`는 생성기의 정답 데이터이며 앱 검증용 산출물은 `memory.db`다.
+- 데모를 연결할 때는 별도 번들 DB로 열 수 있다. 실사용 시에는 기존 `visits.sqlite`의 CLVisit에서 방문→장소→체류를 변환해 기기의 별도 `memory.db`를 채워야 한다. 출발 시각이 아직 없는 방문과 늦게 도착하는 방문을 변환 과정에서 처리한다. 지도 재생의 `moves.path`는 JSON이고 CLVisit 사이 실제 경로는 별도 데이터가 필요하다.
+- `packages/agent/src/index.ts`는 빈 모듈이다. `/chat`은 Bedrock 도구 요청을 중계한다. 앱 연결에는 허용 뷰와 출력 행 수를 제한하는 로컬 읽기 전용 SQL 실행기, `toolUseId`로 결과를 돌려주는 도구 루프, 실제 행으로 `CardRef`를 확인하는 코드가 필요하다. 허용 뷰는 `v_days`, `v_places`, `v_stays`, `v_stay_places`, `v_trips`다. SQL 실행기는 뷰 밖의 테이블과 원본 좌표 접근을 차단해야 한다.
+- 현재 Node용 SQLite 구현은 `node:sqlite`를 사용한다. bare React Native iOS에서는 Swift 쪽 SQLite 실행기나 RN 호환 어댑터를 연결한다. 시간대와 태그 매핑 차이는 아래 실기기 연동 항목을 따른다.
 
 ## 변경이 생기면
 스키마나 API를 바꾸면 `packages/schema`의 타입과 이 문서를 같이 고치고 팀 채팅에 알린다. 백엔드는 `backend/*`, `packages/*`만 수정한다.
@@ -78,8 +77,8 @@ curl -s $EXPO_PUBLIC_API_URL/health
 - 위가 갖춰지면 `CHAT_SEND_ENABLED`를 켜고 `/chat`을 실기기에서 검증한다.
 
 ### 앱 담당 코멘트: 주변 장소 후보 (`POST /places/nearby`, 2026-11-14)
-- 백엔드: Lambda `/places/nearby`가 Google Places API (New) Nearby Search 또는 Kakao Local 카테고리 검색 중 **설정된 한 공급자**만 호출한다(Google 키 우선, 없으면 `KAKAO_REST_KEY`). 둘 다 없으면 501이고 외부 호출이 없다. `/health`가 `placesProvider`를 알려 준다. 세부는 `backend/README.md`, 타입은 `api.ts`(`PlacesProvider`, `PlaceCandidate`, `PlacesNearbyResponse`, `HealthResponse`). **배포·키 발급·실제 호출은 안 했다.** `deploy.sh`는 이제 넘기지 않은 키를 기존 함수 설정에서 보존한다.
+- 백엔드: Lambda `/places/nearby`가 Google Places API (New) Nearby Search 또는 Kakao Local 카테고리 검색 중 **설정된 한 공급자**만 호출한다(Google 키 우선, 없으면 `KAKAO_REST_KEY`). 둘 다 없으면 501이고 외부 호출이 없다. `/health`가 `placesProvider`를 알려 준다. 세부는 `backend/README.md`, 타입은 `api.ts`(`PlacesProvider`, `PlaceCandidate`, `PlacesNearbyResponse`, `HealthResponse`). **팀 서울 리전에서 배포 및 확인했다.** `/health`는 `kakao`를 반환했고 경복궁 좌표로 `/geocode`와 `/places/nearby`가 성공했다. `deploy.sh`는 넘기지 않은 키를 기존 함수 설정에서 보존한다.
 - 앱: 태그 시트(미분류 방문의 "태그 달기", 기존 방문의 "변경" 둘 다)에 "주변 장소 찾기"가 있다. 버튼을 누를 때만 해당 방문의 `lat/lng/horizontalAccuracy` 세 값을 보낸다. 검색 전에 "AWS Lambda를 거쳐 {Google|카카오} 한 곳으로 전달"을 안내하고(시트를 열 때 위치 없이 `/health`만 확인), 결과 아래에 공급자 표기("Google Maps" / "© Kakao")와 후보별 제3자 출처를 보여 준다. 자동·백그라운드 전송은 없다.
 - 저장: 후보를 고르면 앱 SQLite에 **장소 ID만** 저장한다(스키마 v2, 별도 테이블 `visit_places(visit_id, google_place_id, chosen_at)`, 기존 행 변경 없음). 컬럼 이름은 처음 구현 그대로 두었고, 값은 Google ID 그대로(이전 저장분과 호환) 또는 `kakao:<id>`다. 이름·주소·좌표는 화면 상태에만 있고 시트를 닫으면 사라진다. 이름을 다시 보여 주려면 저장된 ID로 공급자별 상세 조회가 추후 필요하다. 방문 태그(25+ 사용자 태그)와 50m 자동 매칭은 이것과 독립이다.
 - 미구현: 선행 "장소 제안" 계약(자동 추정 결과 unknown/failed)은 없다. 앱의 검색 UI(`app/mobile/src/NearbyPlaceSearch.tsx`)는 `reason='unknown'|'failed'`를 받아 같은 화면으로 재사용할 수 있게 해 두었다.
-- 실기기 확인은 배포 URL과 키가 생긴 뒤 필요하다. 지금 빌드는 URL이 없어 "중계 서버 주소가 설정되지 않음"으로 끝난다.
+- 실기기 확인은 팀 Function URL을 로컬 빌드 설정에 넣은 뒤 진행한다.

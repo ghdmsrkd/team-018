@@ -4,9 +4,9 @@
 
 | 경로 | 내용 |
 |---|---|
-| `lambda/index.mjs` | `/chat` Bedrock Converse 중계, `/geocode` Kakao 중계, `/health` |
+| `lambda/index.mjs` | `/chat` Bedrock Converse 중계, `/geocode` Kakao 중계, `/places/nearby` 주변 장소 조회, `/health` |
 | `scripts/deploy.sh` | 실행 역할, 함수, Function URL, 동시성 상한을 만든다. 여러 번 실행해도 안전 |
-| `scripts/smoke.sh` | 배포 확인. `/health` 와 도구 호출 한 번 |
+| `scripts/smoke.sh` | 공개 좌표와 가상 질문으로 네 경로 확인 (Python 3 필요) |
 | `scripts/teardown.sh` | 모두 삭제 (비용 차단용) |
 
 ```bash
@@ -20,6 +20,10 @@ MODEL_ID=global.openai.gpt-6-luna ./backend/scripts/deploy.sh   # 모델 지정
 - 모델 ID와 `maxTokens`는 Lambda 환경변수로 고정된다. 앱이 보낸 값은 무시한다.
 - 요청 본문은 로그에 남기지 않는다 (위치 데이터가 들어 있을 수 있다).
 - API 계약 타입은 `packages/schema/src/api.ts`.
+
+기존 팀 함수의 코드만 교체할 때는 `lambda/index.mjs`를 ZIP 루트에 넣고, 계정·리전·함수 ARN을 확인한 뒤 `aws lambda update-function-code`와 `aws lambda wait function-updated-v2`를 실행한다. 확인한 함수의 `RevisionId`를 `--revision-id`로 전달하면 그 사이 변경된 함수에 덮어쓰는 것을 막을 수 있다. `deploy.sh`는 새 인프라 구성에도 쓰이므로 실행 역할, 모델 설정, 동시성, URL 권한까지 관리한다.
+
+`API_URL`을 넘기면 별도 배포 상태 파일 없이 `backend/scripts/smoke.sh`를 실행할 수 있다. 이 스크립트는 `/health` 계약, 경복궁 좌표의 `/geocode` 및 `/places/nearby`, 가상 질문에 대한 Bedrock `query_sql` 요청을 확인한다. HTTP 또는 응답 계약 검증이 실패하면 종료 코드가 0이 아니다.
 
 ## `POST /places/nearby` (주변 장소 후보: Google Places API (New) 또는 Kakao Local)
 
@@ -35,5 +39,5 @@ MODEL_ID=global.openai.gpt-6-luna ./backend/scripts/deploy.sh   # 모델 지정
 - 앱 저장 형식: 장소 ID만 저장한다. Google ID는 그대로(이전에 저장한 ID와 호환), Kakao id는 `kakao:<id>`.
 - 키: Lambda 환경변수 `GOOGLE_PLACES_API_KEY` / `KAKAO_REST_KEY`에만 둔다. 저장소·앱에 두지 않는다.
 - 배포: `deploy.sh`는 키를 넘기면(`KAKAO_REST_KEY=... ./backend/scripts/deploy.sh`) 그 값으로, 넘기지 않으면 이미 배포된 함수의 값을 보존한다. 환경변수는 권한 600 임시 JSON 파일로 넘기고, 키 값은 출력하지 않는다(설정 여부 set/unset과 선택된 공급자만 출력). 키를 지우려면 콘솔이나 `aws lambda update-function-configuration`으로 직접 지운다.
-- 이번 작업에서는 배포·키 발급·실제 공급자 호출을 하지 않았다. 로컬에서 가짜 fetch로 공급자 선택, 400/501/200(정렬·중복 제거·빈 배열·부분 실패)/502 경로만 확인했다.
+- 2026-11-14 서울 리전 팀 `haru-api`의 코드 갱신 후 네 경로를 확인했다. `/health`의 공급자는 Kakao였고 경복궁 좌표에서 후보 1개가 돌아왔다. `/chat`은 Haiku 4.5의 `query_sql` 도구 요청까지 확인했다.
 - 선행 "장소 제안" 계약(방문 → 장소 자동 추정 결과 unknown/failed 등)은 아직 백엔드에도 앱에도 없다. 지금은 앱에서 사용자가 버튼을 누를 때만 이 후보 조회를 호출한다.
