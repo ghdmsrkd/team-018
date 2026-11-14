@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>하루 · 시스템 설계 v0.1</title>
+<style>
+:root{--bg:#EEF0EC;--ink:#16191D;--mute:#5A6168;--line:#D5D9D3;--card:#fff;--blue:#1F4FD1;--orange:#E86A10;--green:#1E7B4B;--red:#B3261E}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 "IBM Plex Sans KR","Apple SD Gothic Neo",sans-serif}
+main{max-width:1040px;margin:0 auto;padding:40px 24px 80px}
+h1{font-size:30px;margin:0 0 6px}
+h2{font-size:20px;margin:44px 0 12px;padding-top:20px;border-top:2px solid var(--ink)}
+h3{font-size:15px;margin:22px 0 6px}
+p{margin:6px 0}
+.eyebrow{font:500 11px "IBM Plex Mono",monospace;letter-spacing:.08em;color:var(--mute)}
+.lead{color:var(--mute);margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px}
+.tag{display:inline-block;font-size:11px;font-weight:600;border:1px solid var(--line);border-radius:5px;padding:0 6px;background:#fff}
+.ok{color:var(--green)}.warn{color:var(--orange)}.bad{color:var(--red)}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:13.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:#F6F7F4;font-weight:600}
+pre{background:#16191D;color:#E8EBE6;border-radius:12px;padding:14px 16px;overflow:auto;font:12.5px/1.6 "IBM Plex Mono",monospace;margin:8px 0}
+code{font-family:"IBM Plex Mono",monospace;font-size:12.5px;background:#E2E6DF;border-radius:4px;padding:1px 5px}
+pre code{background:none;padding:0}
+ol.steps{counter-reset:s;list-style:none;padding:0;margin:8px 0}
+ol.steps li{counter-increment:s;position:relative;padding:6px 0 6px 38px}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:6px;width:26px;height:26px;border-radius:13px;background:var(--ink);color:#fff;display:grid;place-items:center;font:600 12px "IBM Plex Mono",monospace}
+.diagram{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px;overflow:auto}
+svg text{font-family:"IBM Plex Sans KR",sans-serif}
+.note{border-left:4px solid var(--orange);background:#FFF6EC;padding:10px 14px;border-radius:0 10px 10px 0;margin:12px 0}
+.decide{border-left:4px solid var(--blue);background:#EEF3FF;padding:10px 14px;border-radius:0 10px 10px 0;margin:12px 0}
+</style>
+</head>
+<body>
+<main>
+
+<div class="eyebrow">키로톤 · 팀 018 · 시스템 설계 v0.1 · 2026-11-14</div>
+<h1>하루 · 사용자 앱부터 인프라까지</h1>
+<p class="lead">서버(Lambda, API Gateway)도 서버 DB도 두지 않는다. 데이터는 전부 폰의 SQLite에 있고, 앱이 Cognito에서 받은 임시 자격 증명으로 Bedrock을 직접 호출한다. 코드에는 API 키가 없다.</p>
+
+<div class="grid">
+  <div class="card"><b>구성 요소 4개</b><p>Expo 앱 · 폰 SQLite 2개 · Cognito Identity Pool · Bedrock</p></div>
+  <div class="card"><b>LLM</b><p><code>global.openai.gpt-6-luna</code> 추론 프로파일. 서울 리전(<code>ap-northeast-2</code>)에서 호출 가능한 것을 직접 확인했다.</p></div>
+  <div class="card"><b>서버에 보내는 것</b><p>스키마(뷰 정의)와 SQL 결과 행. 원시 좌표와 집·회사 좌표는 보내지 않는다.</p></div>
+</div>
+
+<h2>1. 전체 구성도</h2>
+<div class="diagram">
+<svg viewBox="0 0 1000 560" width="100%" role="img" aria-label="시스템 구성도">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#16191D"/></marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1F4FD1"/></marker>
+  </defs>
+
+  <!-- device -->
+  <rect x="10" y="10" width="640" height="540" rx="20" fill="#F6F7F4" stroke="#16191D" stroke-width="2"/>
+  <text x="30" y="40" font-size="14" font-weight="700">사용자 폰 · Expo(React Native) 앱</text>
+
+  <rect x="30" y="58" width="180" height="70" rx="10" fill="#fff" stroke="#16191D"/>
+  <text x="42" y="82" font-size="13" font-weight="600">① 수집기</text>
+  <text x="42" y="102" font-size="11.5" fill="#5A6168">expo-location + TaskManager</text>
+  <text x="42" y="118" font-size="11.5" fill="#5A6168">백그라운드 위치 → raw.db</text>
+
+  <rect x="250" y="58" width="180" height="70" rx="10" fill="#fff" stroke="#16191D"/>
+  <text x="262" y="82" font-size="13" font-weight="600">② 의미화 엔진 (TS)</text>
+  <text x="262" y="102" font-size="11.5" fill="#5A6168">Stay · Trip · 집/회사 규칙</text>
+  <text x="262" y="118" font-size="11.5" fill="#5A6168">장소 태그(규칙 + AI)</text>
+
+  <rect x="470" y="58" width="160" height="70" rx="10" fill="#fff" stroke="#16191D"/>
+  <text x="482" y="82" font-size="13" font-weight="600">③ 더미 데이터 생성기</text>
+  <text x="482" y="102" font-size="11.5" fill="#5A6168">12개월 Point → raw.db</text>
+  <text x="482" y="118" font-size="11.5" fill="#5A6168">+ 정답지 JSON</text>
+
+  <!-- DBs -->
+  <rect x="30" y="170" width="180" height="96" rx="10" fill="#E2E6DF" stroke="#16191D" stroke-width="2"/>
+  <text x="42" y="194" font-size="13" font-weight="700">raw.db (SQLite)</text>
+  <text x="42" y="214" font-size="11.5">points</text>
+  <text x="42" y="232" font-size="11.5" fill="#B3261E">에이전트는 열 수 없음</text>
+  <text x="42" y="250" font-size="11.5" fill="#5A6168">원시 좌표는 여기에만 둔다</text>
+
+  <rect x="250" y="170" width="380" height="96" rx="10" fill="#E2E6DF" stroke="#16191D" stroke-width="2"/>
+  <text x="262" y="194" font-size="13" font-weight="700">memory.db (SQLite)</text>
+  <text x="262" y="214" font-size="11.5">places · stays · moves · trips · days · tag_log</text>
+  <text x="262" y="234" font-size="11.5" fill="#1E7B4B">에이전트용 읽기 전용 뷰: v_stays · v_trips · v_places · v_days</text>
+  <text x="262" y="252" font-size="11.5" fill="#5A6168">뷰에는 좌표 컬럼이 없다 (ID만)</text>
+
+  <!-- agent -->
+  <rect x="250" y="310" width="380" height="110" rx="10" fill="#fff" stroke="#1F4FD1" stroke-width="2"/>
+  <text x="262" y="334" font-size="13" font-weight="700" fill="#1F4FD1">④ 에이전트 런타임</text>
+  <text x="262" y="354" font-size="11.5">시스템 프롬프트 + 뷰 스키마 → Converse 호출</text>
+  <text x="262" y="372" font-size="11.5">tool: <tspan font-family="IBM Plex Mono" font-size="11">query_sql</tspan> → SQL 가드 → 읽기 전용 실행 → 결과 반환</text>
+  <text x="262" y="390" font-size="11.5">tool: <tspan font-family="IBM Plex Mono" font-size="11">final_answer</tspan> {text, cards[ID]} → 카드는 앱이 DB에서 조립</text>
+  <text x="262" y="408" font-size="11.5" fill="#5A6168">최대 6회 반복, 결과 50행 제한</text>
+
+  <rect x="30" y="310" width="180" height="110" rx="10" fill="#fff" stroke="#16191D"/>
+  <text x="42" y="334" font-size="13" font-weight="600">⑤ 화면 (디자인 8장)</text>
+  <text x="42" y="354" font-size="11.5" fill="#5A6168">오늘 · 여행 · 재생 · 챗</text>
+  <text x="42" y="372" font-size="11.5" fill="#5A6168">태그 달기/정리 · 온보딩</text>
+  <text x="42" y="390" font-size="11.5" fill="#5A6168">지도 · 재생은 로컬 데이터로</text>
+
+  <rect x="30" y="460" width="600" height="70" rx="10" fill="#fff" stroke="#16191D" stroke-dasharray="4 3"/>
+  <text x="42" y="484" font-size="13" font-weight="600">⑥ 자격 증명 매니저</text>
+  <text x="42" y="504" font-size="11.5" fill="#5A6168">첫 실행: 게스트 ID 발급 → 임시 자격 증명(1시간) 캐시 → 만료 5분 전 갱신 → SigV4 서명은 AWS SDK가 처리</text>
+  <text x="42" y="520" font-size="11.5" fill="#5A6168">키체인(expo-secure-store)에는 Cognito identityId만 저장. 장기 키는 없다.</text>
+
+  <!-- arrows inside -->
+  <path d="M120 128 V170" stroke="#16191D" stroke-width="2" marker-end="url(#a)"/>
+  <path d="M470 100 H430" stroke="#16191D" stroke-width="2" marker-end="url(#a)" transform="translate(0,0)"/>
+  <path d="M340 128 V170" stroke="#16191D" stroke-width="2" marker-end="url(#a)"/>
+  <path d="M210 215 H250" stroke="#16191D" stroke-width="2" marker-start="url(#a)" marker-end="url(#a)"/>
+  <path d="M440 266 V310" stroke="#1F4FD1" stroke-width="2" marker-end="url(#b)"/>
+  <path d="M250 365 H210" stroke="#16191D" stroke-width="2" marker-end="url(#a)"/>
+  <path d="M440 420 V460" stroke="#1F4FD1" stroke-width="2" marker-start="url(#b)"/>
+
+  <!-- AWS -->
+  <rect x="690" y="10" width="300" height="540" rx="20" fill="#fff" stroke="#16191D" stroke-width="2"/>
+  <text x="710" y="40" font-size="14" font-weight="700">AWS · ap-northeast-2</text>
+
+  <rect x="710" y="62" width="260" height="104" rx="10" fill="#F6F7F4" stroke="#16191D"/>
+  <text x="722" y="86" font-size="13" font-weight="700">Cognito Identity Pool</text>
+  <text x="722" y="106" font-size="11.5" fill="#5A6168">게스트(비인증) 접근 허용</text>
+  <text x="722" y="124" font-size="11.5" fill="#5A6168">→ STS 임시 자격 증명 발급</text>
+  <text x="722" y="142" font-size="11.5" fill="#5A6168">역할: HaruGuestRole (최소 권한)</text>
+
+  <rect x="710" y="206" width="260" height="130" rx="10" fill="#EEF3FF" stroke="#1F4FD1" stroke-width="2"/>
+  <text x="722" y="230" font-size="13" font-weight="700" fill="#1F4FD1">Amazon Bedrock Runtime</text>
+  <text x="722" y="250" font-size="11.5">Converse API (tool use)</text>
+  <text x="722" y="268" font-size="11.5" font-family="IBM Plex Mono">global.openai.gpt-6-luna</text>
+  <text x="722" y="288" font-size="11.5" fill="#5A6168">IAM: 이 모델 InvokeModel만 허용</text>
+  <text x="722" y="306" font-size="11.5" fill="#5A6168">Guardrails(선택) · CloudWatch 로그</text>
+
+  <rect x="710" y="376" width="260" height="76" rx="10" fill="#F6F7F4" stroke="#16191D"/>
+  <text x="722" y="400" font-size="13" font-weight="700">비용 방어선</text>
+  <text x="722" y="420" font-size="11.5" fill="#5A6168">AWS Budgets 알림 + 자동 차단 액션</text>
+  <text x="722" y="438" font-size="11.5" fill="#5A6168">Bedrock 서비스 쿼터, CloudWatch 경보</text>
+
+  <rect x="710" y="470" width="260" height="62" rx="10" fill="#fff" stroke="#16191D" stroke-dasharray="4 3"/>
+  <text x="722" y="494" font-size="13" font-weight="600">지오코딩 (결정 필요)</text>
+  <text x="722" y="512" font-size="11.5" fill="#5A6168">Amazon Location(키 없음) vs Kakao(키 필요)</text>
+
+  <!-- arrows to AWS -->
+  <path d="M630 495 H710 " stroke="#16191D" stroke-width="2" marker-end="url(#a)"/>
+  <text x="640" y="486" font-size="10.5" fill="#5A6168">① 자격 증명</text>
+  <path d="M630 375 H710 V300" stroke="#1F4FD1" stroke-width="2" fill="none" marker-end="url(#b)" stroke-dasharray="0"/>
+  <text x="636" y="366" font-size="10.5" fill="#1F4FD1">② Converse (SigV4)</text>
+  <path d="M840 166 V206" stroke="#16191D" stroke-width="1.5" stroke-dasharray="3 3" marker-end="url(#a)"/>
+  <text x="848" y="190" font-size="10.5" fill="#5A6168">역할 권한</text>
+</svg>
+</div>
+
+<h2>2. API 키 없이 Bedrock을 부르는 방법</h2>
+<div class="card">
+<p><b>방식:</b> Cognito Identity Pool의 게스트 ID로 임시 자격 증명(AccessKey, SecretKey, SessionToken, 유효 1시간)을 받고, 그 자격 증명으로 SigV4 서명한 요청을 Bedrock에 직접 보낸다. 앱 번들에는 Identity Pool ID(비밀이 아닌 식별자)만 들어간다.</p>
+<ol class="steps">
+  <li>앱 첫 실행: <code>GetId</code>로 게스트 <code>identityId</code> 발급, 기기 키체인에 저장한다.</li>
+  <li>챗을 쓸 때: <code>GetCredentialsForIdentity</code>로 임시 자격 증명을 받아 메모리에 둔다. 디스크에는 쓰지 않는다.</li>
+  <li><code>@aws-sdk/client-bedrock-runtime</code>의 <code>ConverseCommand</code>를 호출한다. 서명은 SDK가 한다.</li>
+  <li>만료 5분 전에 자동 갱신한다. 실패하면 챗만 "지금은 물어볼 수 없어요"로 막고 나머지 기능은 그대로 쓴다.</li>
+</ol>
+<p><span class="tag">대안</span> Bedrock API 키는 키 자체를 앱에 넣는 방식이라 요구사항에 맞지 않는다. 임시 자격 증명이 유일한 선택지다.</p>
+</div>
+
+<h3>게스트 역할(HaruGuestRole) 권한 정책</h3>
+<pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": ["bedrock:InvokeModel"],
+    "Resource": [
+      "arn:aws:bedrock:ap-northeast-2:&lt;ACCOUNT_ID&gt;:inference-profile/global.openai.gpt-6-luna",
+      "arn:aws:bedrock:::foundation-model/openai.gpt-6-luna"
+    ]
+  }]
+}</code></pre>
+<p>신뢰 정책은 <code>cognito-identity.amazonaws.com</code>, <code>aud</code> = 우리 Identity Pool ID, <code>amr</code> = <code>unauthenticated</code> 조건으로 건다. Converse도 <code>bedrock:InvokeModel</code> 권한으로 동작한다. 그 외 권한은 하나도 주지 않는다.</p>
+
+<h2>3. 챗 한 번의 흐름 (에이전트 루프)</h2>
+<div class="card">
+<p><b>예: "나 저번에 강원도 갔던 게 며칠이었지?"</b></p>
+<ol class="steps">
+  <li>앱이 Converse를 호출한다. 입력은 시스템 프롬프트, 오늘 날짜, 뷰 스키마, 사용자 질문, 도구 2개 정의다.</li>
+  <li>모델이 <code>query_sql</code>을 호출한다. 예: <code>SELECT id,name,start_date,end_date,nights,regions FROM v_trips WHERE regions LIKE '%강원%' ORDER BY start_date DESC LIMIT 5</code></li>
+  <li>앱이 SQL 가드(4장)를 거쳐 <code>memory.db</code>에 읽기 전용으로 실행하고 행을 돌려준다.</li>
+  <li>모델이 결과를 보고 더 필요하면 쿼리를 반복한다. 최대 6회다.</li>
+  <li>모델이 <code>final_answer</code>를 호출한다. 예: <code>{"text":"10월 3일(금)~5일(일), 2박 3일이에요. 강릉 → 속초를 다녀왔어요.","cards":[{"type":"trip","id":"trip_2025_10_03"}]}</code></li>
+  <li>앱이 <code>cards</code>의 ID를 로컬 DB에서 다시 조회해 미니맵, 날짜, [재생] 버튼이 있는 근거 카드를 만든다. DB에 없는 ID는 버린다.</li>
+</ol>
+<p>근거 카드의 내용은 모델이 쓴 글자가 아니라 DB 조회 결과다. 모델이 날짜를 지어내도 카드는 틀리지 않는다. PLAN.md 4장의 "도구 결과만 근거로 답한다" 원칙을 구조로 강제한 것이다.</p>
+</div>
+
+<h2>4. 안전장치</h2>
+<table>
+<tr><th>위험</th><th>대응</th></tr>
+<tr><td>모델이 위험한 SQL을 생성</td><td>① 에이전트는 <code>memory.db</code>를 <code>PRAGMA query_only=ON</code>인 별도 읽기 전용 연결로 연다. ② 한 문장, <code>SELECT</code>/<code>WITH</code>로 시작, <code>;</code>·<code>ATTACH</code>·<code>PRAGMA</code>·<code>load_extension</code> 거부. ③ 뷰 이름 허용 목록 밖 테이블 참조 거부. ④ 바깥을 <code>LIMIT 50</code>으로 감싼다. ⑤ 실행 시간 2초 제한.</td></tr>
+<tr><td>원시 좌표 유출</td><td><code>points</code>는 <code>raw.db</code>에 따로 둔다. 에이전트 연결은 이 파일을 열지 않는다. 뷰에는 lat/lng 컬럼이 없다.</td></tr>
+<tr><td>집·회사 위치 노출</td><td>집·회사 장소는 뷰에서 이름이 "집", "회사"로만 나온다. 주소와 좌표는 없다.</td></tr>
+<tr><td>프롬프트 주입 (장소 이름 등 외부 문자열)</td><td>모델이 할 수 있는 일이 읽기 전용 SQL과 답변 출력뿐이라 피해가 없다. 도구 결과 안의 문장은 지시가 아니라 데이터라고 시스템 프롬프트에 명시한다.</td></tr>
+<tr><td>환각</td><td>카드는 ID로 DB에서 재조립한다. 결과가 0행이면 "기록이 없어요"와 기록이 있는 기간(<code>SELECT min/max</code>)을 답하게 한다.</td></tr>
+<tr><td>태그 정책 위반 (AI 태그)</td><td>태그 호출은 별도 요청에서 JSON 스키마 <code>enum + null</code>로 강제한다. 앱이 <code>tag_source='human'</code> 행은 UPDATE하지 않는다.</td></tr>
+</table>
+
+<h2>5. SQLite 스키마</h2>
+<pre><code>-- raw.db : 에이전트가 열지 않는다
+CREATE TABLE points (
+  id INTEGER PRIMARY KEY, t INTEGER NOT NULL,        -- unix 초
+  lat REAL NOT NULL, lng REAL NOT NULL,
+  accuracy REAL, speed REAL, source TEXT DEFAULT 'live' -- live | dummy
+);
+CREATE INDEX idx_points_t ON points(t);
+
+-- memory.db
+CREATE TABLE places (
+  id TEXT PRIMARY KEY, name TEXT, lat REAL, lng REAL,   -- 좌표는 앱 전용
+  poi_category TEXT, sido TEXT, sigungu TEXT, dong TEXT,
+  tag TEXT CHECK (tag IN ('집','회사','밥집','커피','운동','쇼핑','관광') OR tag IS NULL),
+  tag_source TEXT CHECK (tag_source IN ('human','ai') OR tag_source IS NULL),
+  ai_reason TEXT
+);
+CREATE TABLE stays (
+  id TEXT PRIMARY KEY, place_id TEXT NOT NULL REFERENCES places(id),
+  start_t INTEGER NOT NULL, end_t INTEGER NOT NULL, day TEXT NOT NULL, trip_id TEXT
+);
+CREATE TABLE moves (
+  id TEXT PRIMARY KEY, from_stay TEXT, to_stay TEXT,
+  start_t INTEGER, end_t INTEGER, mode TEXT, distance_m INTEGER, path TEXT  -- path: 인코딩된 폴리라인
+);
+CREATE TABLE trips (
+  id TEXT PRIMARY KEY, name TEXT, start_t INTEGER, end_t INTEGER,
+  nights INTEGER, regions TEXT
+);
+CREATE TABLE days (day TEXT PRIMARY KEY, stay_count INTEGER, distance_m INTEGER, highlight_stay TEXT);
+
+-- 에이전트가 보는 것은 뷰뿐 (좌표 없음, 집/회사 주소 없음)
+CREATE VIEW v_places AS SELECT id, CASE WHEN tag IN ('집','회사') THEN tag ELSE name END AS name,
+  poi_category, sido, sigungu, CASE WHEN tag IN ('집','회사') THEN NULL ELSE dong END AS dong, tag, tag_source FROM places;
+CREATE VIEW v_stays AS SELECT s.id, s.day, datetime(s.start_t,'unixepoch','localtime') AS start_at,
+  (s.end_t - s.start_t)/60 AS minutes, s.place_id, s.trip_id FROM stays s;
+CREATE VIEW v_trips AS SELECT id, name, date(start_t,'unixepoch','localtime') AS start_date,
+  date(end_t,'unixepoch','localtime') AS end_date, nights, regions FROM trips;
+CREATE VIEW v_days AS SELECT day, stay_count, distance_m FROM days;</code></pre>
+<p>태그는 <code>places</code>에 있으므로 한 번 달면 그 장소의 과거·미래 방문 전체에 적용된다. 이 스키마는 PLAN.md 2장의 데이터 모델과 같다. 엔진 담당(B)이 첫날 이 DDL을 확정하면 앱(A)과 챗(C)이 목업 데이터로 병렬 작업할 수 있다.</p>
+
+<h2>6. 인프라 목록 (AWS 리소스 전부)</h2>
+<table>
+<tr><th>리소스</th><th>용도</th><th>비고</th></tr>
+<tr><td>Cognito Identity Pool 1개</td><td>게스트 임시 자격 증명</td><td>비인증 ID 허용, 역할 1개 연결</td></tr>
+<tr><td>IAM Role <code>HaruGuestRole</code></td><td>Bedrock 호출 권한</td><td>2장의 정책 그대로</td></tr>
+<tr><td>Bedrock 모델 접근</td><td><code>openai.gpt-6-luna</code></td><td>콘솔에서 모델 접근 활성화 필요</td></tr>
+<tr><td>AWS Budgets + 경보</td><td>비용 상한</td><td>임계치 도달 시 역할에 거부 정책을 붙이는 액션</td></tr>
+<tr><td>CloudWatch 모델 호출 로깅</td><td>사용량 확인</td><td>프롬프트 본문 로깅은 끄는 편이 프라이버시에 맞다</td></tr>
+</table>
+<p>Lambda, API Gateway, DynamoDB, RDS, S3는 쓰지 않는다. IaC는 CDK나 CLI 스크립트 한 파일이면 된다. 개인 프로필 <code>me-private-m1-mac-pro</code>로 배포한다.</p>
+
+<h2>7. 서버가 없어서 생기는 한계</h2>
+<div class="note">
+<b>남용 위험:</b> Identity Pool ID는 앱을 풀면 나온다. 게스트 ID는 누구나 받을 수 있으므로, 이 ID로 임시 자격 증명을 받아 <code>gpt-6-luna</code>를 직접 호출하는 것을 막을 수 없다. IAM은 호출 횟수와 <code>max_tokens</code>를 제한하지 못한다. 서버가 없으면 사용자별 한도도 둘 수 없다.
+<br>해커톤 데모에서는 허용 모델 1개, Budgets 자동 차단, 서비스 쿼터로 피해를 한정하는 것으로 충분하다. 출시한다면 로그인(Sign in with Apple을 Cognito에 연결)을 붙이고, 그래도 사용자별 한도가 필요하면 그때 Lambda 한 개를 추가한다.
+</div>
+<div class="note">
+<b>RN 스트리밍:</b> React Native의 <code>fetch</code>는 응답 스트리밍을 기본 지원하지 않는다. 1차는 스트리밍 없이 <code>Converse</code>를 쓰고, 대기 중에는 "찾는 중…" 상태와 진행 단계(조회 중, 정리 중)를 보여준다.
+</div>
+<div class="note">
+<b>미확인 항목:</b> <code>gpt-6-luna</code>가 Converse의 <code>toolConfig</code>(도구 호출)를 지원하는지 아직 호출해 보지 않았다. 구현 첫날 이것부터 확인한다. 지원하지 않으면 JSON 출력 모드로 같은 루프를 만든다.
+</div>
+
+<h2>8. 팀이 정해야 할 것</h2>
+<div class="decide">
+<b>① 지오코딩/POI:</b> 같은 구조(키 없음)를 유지하려면 Amazon Location Service를 같은 Cognito 역할에 권한 추가로 쓴다. 다만 한국 POI 정확도는 Kakao Local API가 더 낫다. Kakao를 쓰면 REST 키를 앱에 넣어야 해서 "키를 박지 않는다"는 원칙과 충돌한다.
+<br>선택지: (a) Amazon Location, (b) 더미 데이터는 생성기가 장소명을 이미 갖고 있으므로 데모에서는 지오코딩을 건너뛰고 실사용 기록만 Amazon Location을 쓴다. <b>(b)를 권한다.</b> 데모에 필요한 정확도를 확보하면서 키가 없다.
+<br><br>
+<b>② 데이터 저장 위치:</b> 이 설계는 "기기에만 저장"으로 확정한다. 이 결정으로 PLAN.md의 미결 항목 하나가 닫히고, US-26 화면의 문구도 "내 데이터는 내 폰에만 있고, 질문할 때 필요한 결과만 AI에 전달돼요"로 정해진다. 단점은 폰을 바꾸거나 앱을 지우면 기록이 사라지는 것이다. 백업은 이번 범위에서 뺀다.
+<br><br>
+<b>③ 가입 없는 게스트로 갈지:</b> 해커톤은 게스트로 간다.
+</div>
+
+<h2>9. 구현 순서</h2>
+<table>
+<tr><th>순서</th><th>할 일</th><th>담당</th><th>끝났다고 보는 기준</th></tr>
+<tr><td>0</td><td>Cognito + 역할 + Bedrock 접근 설정, <code>gpt-6-luna</code> Converse 도구 호출 확인</td><td>C</td><td>앱 없이 스크립트로 임시 자격 증명 → 호출 성공</td></tr>
+<tr><td>1</td><td>SQLite DDL 확정, 더미 생성기가 raw.db를 채움</td><td>B</td><td>생성된 Point가 엔진을 거쳐 정답지의 Stay/Trip으로 복원</td></tr>
+<tr><td>2</td><td>Expo 앱 골격, 오늘 타임라인(US-09), 목업 memory.db 연결</td><td>A</td><td>더미 데이터로 하루 타임라인 표시</td></tr>
+<tr><td>3</td><td>에이전트 런타임: SQL 가드, 도구 루프, 카드 조립 (US-15, 18, 19)</td><td>C</td><td>데모 질문 5개에 정확히 답하고 카드 표시</td></tr>
+<tr><td>4</td><td>지도 재생(US-12, 13), 태그 달기/정리(US-11, 29)</td><td>A</td><td>강원도 2박 3일이 30초 안에 재생</td></tr>
+<tr><td>5</td><td>실시간 수집(F1)을 오늘 화면에 연결</td><td>A + B</td><td>폰에서 오늘 Stay가 실시간으로 쌓임</td></tr>
+</table>
+
+</main>
+</body>
+</html>
