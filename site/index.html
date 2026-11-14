@@ -177,7 +177,7 @@ h2 em { font-style: normal; color: var(--blue); }
   </section>
 
   <!-- 1-b. 칸 보여주기 -->
-  <section class="slide" data-act="1" id="grid" data-note="이번엔 똑같은 화면에 선만 그어 보겠습니다. 숫자 위치는 하나도 바뀌지 않았습니다. 그런데 이제 보이시죠? 1, 2, 3은 첫 번째 칸, 4, 5, 6은 두 번째 칸. 칸만 생겨도 바로 찾을 수 있습니다. 정보가 아무리 많아도 나뉘어 있으면 찾을 수 있고, 나뉘어 있지 않으면 못 찾습니다. 우리의 하루도 똑같습니다.">
+  <section class="slide" data-act="1" id="grid" data-note="이번엔 똑같은 화면에 선만 그어 보겠습니다. 숫자 위치는 하나도 바뀌지 않았습니다. 그런데 이제 보이시죠? 1은 첫 번째 칸, 2는 두 번째 칸, 3은 세 번째 칸. 칸을 차례로 한 바퀴 돌면 9까지, 다시 돌면 10부터 18까지. 칸만 생겨도 바로 찾을 수 있습니다. 정보가 아무리 많아도 나뉘어 있으면 찾을 수 있고, 나뉘어 있지 않으면 못 찾습니다. 우리의 하루도 똑같습니다.">
     <div><div class="act"><b>01</b> 동기부여</div><h2>숫자는 그대로, <em>칸만</em> 그었습니다</h2></div>
     <div class="board grid"><svg id="board-b" viewBox="0 0 1200 640" preserveAspectRatio="xMidYMid meet" aria-label="같은 숫자를 9칸으로 나눈 화면"></svg></div>
     <div class="reveal">정보가 같아도, <span>나뉘어 있으면 찾을 수 있습니다.</span> 우리의 하루도 마찬가지입니다.</div>
@@ -405,7 +405,7 @@ vid.addEventListener('error', () => vbox.classList.add('missing'));
 fetch(vid.getAttribute('src'), { method: 'HEAD' }).then(r => { if (!r.ok) vbox.classList.add('missing'); }).catch(() => vbox.classList.add('missing'));
 
 
-// 숫자 찾기: 1–3은 1번 칸, 4–6은 2번 칸 … 칸 안에서 위치 · 크기 · 기울기는 제각각
+// 숫자 찾기: 칸마다 하나씩 차례로 넣는다. 1번 칸 = 1 · 10 · 19, 2번 칸 = 2 · 11 · 20 … 칸 안에서 위치 · 크기 · 기울기는 제각각
 (function boards() {
   let seed = 11;
   const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
@@ -418,7 +418,7 @@ fetch(vid.getAttribute('src'), { method: 'HEAD' }).then(r => { if (!r.ok) vbox.c
     // 칸 하나에 숫자 3개: 칸을 3구역으로 나눠 겹치지 않게 흩뿌린다
     const slots = [0.18, 0.5, 0.82].sort(() => rnd() - .5);
     for (let k = 0; k < 3; k++) {
-      const n = ci * 3 + k + 1;
+      const n = ci + 1 + k * 9;
       const size = 34 + Math.round(rnd() * 86);
       const x = cx + W * Math.min(.86, Math.max(.14, slots[k] + (rnd() - .5) * .2));
       const y = cy + Math.min(H - 12, Math.max(34 + size * .72, H * (.1 + rnd() * .85) + size * .35));
@@ -434,7 +434,7 @@ fetch(vid.getAttribute('src'), { method: 'HEAD' }).then(r => { if (!r.ok) vbox.c
     `<line class="gl" x1="400" y1="8" x2="400" y2="632"/>`, `<line class="gl" x1="800" y1="8" x2="800" y2="632"/>`,
     `<line class="gl" x1="8" y1="213.3" x2="1192" y2="213.3"/>`, `<line class="gl" x1="8" y1="426.6" x2="1192" y2="426.6"/>`
   ].join('');
-  const labels = cells.map(([x, y], i) => `<text class="cl" x="${x + 16}" y="${y + 28}">${i * 3 + 1}–${i * 3 + 3}</text>`).join('');
+  const labels = cells.map(([x, y], i) => `<text class="cl" x="${x + 16}" y="${y + 28}">${i + 1} · ${i + 10} · ${i + 19}</text>`).join('');
   document.getElementById('board-b').innerHTML = tint + nums + lines + labels;
 })();
 
