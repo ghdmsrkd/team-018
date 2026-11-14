@@ -1,21 +1,89 @@
-import type { ApiError, ChatRequest, ChatResponse } from './contract';
+// Contract types come straight from the shared package (packages/schema/src/api.ts) through
+// the tsconfig path alias. Imports here must stay `import type`: they are erased at build
+// time, so Metro never has to resolve the package from outside app/mobile.
+import type {
+  ApiError,
+  ChatRequest,
+  ChatResponse,
+} from '@haru/schema';
+import { NativeModules, Platform } from 'react-native';
+
+type ConfigNative = { getApiConfig(): Promise<{ apiUrl: string | null }> };
+
+const native: ConfigNative | undefined =
+  Platform.OS === 'ios' && NativeModules.VisitMonitorModule?.getApiConfig
+    ? NativeModules.VisitMonitorModule
+    : undefined;
+
+let cached: Promise<string | null> | null = null;
 
 /**
- * Lambda Function URL for /chat. Deliberately not configured in this build: the URL lives in
- * an untracked env file per backend/README.md and is not set up here.
+ * Lambda Function URL injected at build time from an untracked .env (see
+ * ios/scripts/inject-api-url.sh). Never hard-coded. null when not configured.
  */
-export const API_URL: string | null = null;
+export function getApiUrl(): Promise<string | null> {
+  if (!cached) {
+    cached = native
+      ? native
+          .getApiConfig()
+          .then(c => c.apiUrl ?? null)
+          .catch(() => null)
+      : Promise.resolve(null);
+  }
+  return cached;
+}
 
 /**
- * The agent loop needs a local read-only `query_sql` tool over memory.db (system design
- * ch. 3–4), which the app does not have yet. Without it the model would answer without the
- * user's data, so asking stays disabled even if a URL is set.
+ * Sending questions stays off until both blockers in docs/app-handoff.md are cleared:
+ * Bedrock AccessDenied on /chat, and the local read-only query tool / agent package.
+ * Without the tool the model would answer without the user's records.
  */
-export const LOCAL_QUERY_TOOL_READY = false;
+export const CHAT_SEND_ENABLED = false;
 
-export const askAvailable = () => API_URL != null && LOCAL_QUERY_TOOL_READY;
+export type Health =
+  | { state: 'unconfigured' }
+  | { state: 'ok'; model: string | null }
+  | { state: 'error'; detail: string };
 
-/** Only the contract fields; never model ids, maxTokens or raw coordinates. */
+const join = (base: string, path: string) => `${base.replace(/\/+$/, '')}${path}`;
+
+async function withTimeout<T>(p: (signal: AbortSignal) => Promise<T>, ms: number): Promise<T> {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await p(ctrl.signal);
+  } finally {
+    clearTimeout(t);
+  }
+}
+
+/** GET /health. Sends nothing but the request itself. */
+export async function checkHealth(
+  url?: string | null,
+  fetchImpl: typeof fetch = fetch,
+): Promise<Health> {
+  const base = url === undefined ? await getApiUrl() : url;
+  if (!base) {
+    return { state: 'unconfigured' };
+  }
+  try {
+    const res = await withTimeout(
+      signal => fetchImpl(join(base, '/health'), { method: 'GET', signal }),
+      8000,
+    );
+    const body = (await res.json().catch(() => ({}))) as {
+      ok?: boolean;
+      model?: string;
+    };
+    return res.ok && body.ok
+      ? { state: 'ok', model: body.model ?? null }
+      : { state: 'error', detail: `HTTP ${res.status}` };
+  } catch (e: any) {
+    return { state: 'error', detail: String(e?.name === 'AbortError' ? '시간 초과' : e?.message ?? e) };
+  }
+}
+
+/** Only contract fields; never model ids, maxTokens, raw coordinates or raw.db rows. */
 export function buildChatRequest(
   system: string,
   messages: ChatRequest['messages'],
@@ -28,26 +96,31 @@ export function buildChatRequest(
   return req;
 }
 
+/** POST /chat. Callers must check CHAT_SEND_ENABLED first. */
 export async function postChat(
   req: ChatRequest,
-  url: string | null = API_URL,
+  url?: string | null,
   fetchImpl: typeof fetch = fetch,
 ): Promise<ChatResponse> {
-  if (!url) {
+  const base = url === undefined ? await getApiUrl() : url;
+  if (!base) {
     throw new Error('물어보기 서버 주소가 설정되지 않았어요.');
   }
-  const res = await fetchImpl(`${url.replace(/\/$/, '')}/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(req),
-  });
-  const body = await res.json();
+  const res = await withTimeout(
+    signal =>
+      fetchImpl(join(base, '/chat'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(req),
+        signal,
+      }),
+    60000,
+  );
+  const body = await res.json().catch(() => ({}));
   if (!res.ok) {
     const err = body as ApiError;
     throw new Error(
-      err.detail
-        ? `${err.error}: ${err.detail}`
-        : err.error ?? `HTTP ${res.status}`,
+      err.detail ? `${err.error}: ${err.detail}` : err.error ?? `HTTP ${res.status}`,
     );
   }
   return body as ChatResponse;

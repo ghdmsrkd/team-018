@@ -53,6 +53,9 @@ export function TimelineScreen({
   );
 
   const live = source.kind === 'live';
+  // "Now" is fixed per data load. Reading source.now() on every render made `stays` a new
+  // array each render, which re-ran the photo effect and its setAssets in a loop.
+  const [now, setNow] = useState(() => source.now());
 
   useEffect(() => {
     let alive = true;
@@ -60,6 +63,7 @@ export function TimelineScreen({
       .visitsInRange(0, ALL_TIME_END)
       .then(v => {
         if (alive) {
+          setNow(source.now());
           setVisits(v);
           setLoaded(true);
           setError(null);
@@ -82,7 +86,6 @@ export function TimelineScreen({
       .catch(() => setAuth('unknown'));
   }, [live, refreshToken]);
 
-  const now = source.now();
   const stays = useMemo(() => normalizeVisits(visits, now), [visits, now]);
   const usingSamples = live && loaded && visits.length === 0;
   const shownStays = useMemo(
@@ -92,7 +95,7 @@ export function TimelineScreen({
 
   useEffect(() => {
     if (!live || !canReadPhotos(auth) || stays.length === 0) {
-      setAssets([]);
+      setAssets(prev => (prev.length === 0 ? prev : []));
       return;
     }
     const from = Math.min(

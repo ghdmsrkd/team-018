@@ -201,7 +201,7 @@ function MainShell({
             notice={notice}
           />
         ) : (
-          <AskScreen />
+          <AskScreen source={source} />
         )}
       </View>
       <BottomNav tab={tab} onChange={setTab} />

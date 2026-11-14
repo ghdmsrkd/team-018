@@ -170,6 +170,20 @@ final class VisitMonitorModule: RCTEventEmitter {
     }
   }
 
+  /// Lambda Function URL injected at build time into Info.plist (HaruApiUrl) from an
+  /// untracked env file by ios/scripts/inject-api-url.sh. null when not configured.
+  @objc func getApiConfig(
+    _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
+    let raw = Bundle.main.object(forInfoDictionaryKey: "HaruApiUrl") as? String
+    let url = raw.flatMap { s -> String? in
+      let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
+      guard t.hasPrefix("https://"), URL(string: t)?.host != nil else { return nil }
+      return t
+    }
+    resolve(["apiUrl": url.map { $0 as Any } ?? NSNull()])
+  }
+
   /// The key window's real safe-area insets (Dynamic Island / status bar, home indicator).
   /// Used by JS for fixed, non-scrolling content such as the onboarding button footer.
   @objc func getSafeAreaInsets(
