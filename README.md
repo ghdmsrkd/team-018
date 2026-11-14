@@ -267,7 +267,12 @@ mkdir -p site/app && cp design/haru-mockup.html site/app/ && python3 -m http.ser
 
 → `http://localhost:8765/site/`. 목업 원본은 `design/haru-mockup.html` 하나이고, `site/app/`은 복사본이라 커밋하지 않는다.
 
-**배포 (AWS Amplify Hosting)**: 저장소 루트의 [`amplify.yml`](amplify.yml)이 목업을 `site/app/`에 복사한 뒤 `site/`만 배포한다.
+**배포 (현재: Vercel)**: https://haru-demo-tawny.vercel.app
+
+- 배포용 저장소는 따로 있다: `DDooTTaa/haru-demo` (비공개). `site/index.html`과 `design/haru-mockup.html`(→ `app/haru-mockup.html`)을 복사해 둔 것이다
+- 그 저장소 `main`에 push하면 Vercel이 자동으로 다시 배포한다. 이 저장소에서 발표 사이트를 고치면 두 파일을 그쪽에도 복사해 push해야 한다
+
+**배포 (대안: AWS Amplify Hosting)**: 저장소 루트의 [`amplify.yml`](amplify.yml)이 목업을 `site/app/`에 복사한 뒤 `site/`만 배포한다.
 
 1. AWS 콘솔(개인 프로필 계정, 리전 `ap-northeast-2`) → Amplify → **Deploy an app** → GitHub → `ghdmsrkd/team-018`, 브랜치 `main`
 2. 빌드 설정은 `amplify.yml`을 자동으로 읽는다. 그대로 저장하고 배포
