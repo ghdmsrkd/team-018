@@ -1,0 +1,15 @@
+{
+  "gtStays": 1986,
+  "detectedStays": 1982,
+  "stayRecall": 1,
+  "stayPrecision": 1,
+  "medianStartErrorMin": 0.3,
+  "medianEndErrorMin": 0.3,
+  "gtTrips": 10,
+  "detectedTrips": 10,
+  "tripRecall": 1,
+  "tripPrecision": 1,
+  "tripNightsCorrect": 1,
+  "homeCorrect": true,
+  "workCorrect": true
+}

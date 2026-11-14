@@ -8,3 +8,6 @@ backend/.deploy-state.json
 # 빌드 때 design/에서 복사된다 (amplify.yml)
 site/app/
 backend/.secrets.env
+artifacts/raw.db
+artifacts/*.db-wal
+artifacts/*.db-shm
