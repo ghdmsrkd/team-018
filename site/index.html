@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>하루 · Kiro비컴휴먼</title>
+<title>HARU · Kiro비컴휴먼</title>
 <meta name="description" content="기록하지 않아도 기억되는 하루. 위치·사진·시간으로 하루를 자동 기록하고, 물어보면 찾아 주는 개인 라이프로그 앱.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
 <style>
@@ -73,6 +73,16 @@ h2 em { font-style: normal; color: var(--blue); }
 .next-n { font-size: 14px; color: var(--muted); text-align: right; margin-top: 6px; }
 .next-n b { font-family: var(--num); font-size: 26px; color: var(--blue); margin-left: 4px; }
 .hunt-done .timer { color: #2F8A5B; }
+
+/* 삶 분류 */
+.life { position: relative; flex: 1; min-height: 0; margin-top: 2vh; }
+.life .cellbox { position: absolute; border-radius: 18px; border: 2px solid transparent; opacity: 0; transition: opacity .5s .3s, border-color .5s .3s; }
+.life .cellbox b { position: absolute; left: 16px; top: 12px; font-size: clamp(14px, 1.3vw, 18px); display: flex; align-items: center; gap: 8px; }
+.life .cellbox b i { width: 12px; height: 12px; border-radius: 4px; }
+.life.sorted .cellbox { opacity: 1; border-color: var(--line); background: rgba(255,255,255,.45); }
+.chip { position: absolute; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: var(--card); border: 1px solid var(--line); font-size: clamp(13px, 1.15vw, 17px); font-weight: 600; white-space: nowrap; box-shadow: 0 4px 12px rgba(22,25,29,.06); transition: left .8s cubic-bezier(.2,.8,.2,1), top .8s cubic-bezier(.2,.8,.2,1), transform .8s cubic-bezier(.2,.8,.2,1); }
+.chip i { width: 10px; height: 10px; border-radius: 5px; flex: none; }
+.slide.sorted-done .life-msg { animation: fade .6s ease-out .6s forwards; }
 
 /* 2막 비교 */
 .compare { margin-top: 30px; border-radius: 22px; overflow: hidden; border: 1px solid var(--line); background: var(--card); }
@@ -170,9 +180,9 @@ h2 em { font-style: normal; color: var(--blue); }
 <main class="deck" id="deck">
 
   <!-- 0. 표지 -->
-  <section class="slide cover" data-act="0" data-note="안녕하세요, 키로톤에 참가한 Kiro비컴휴먼 팀입니다. 저희가 만든 앱은 '하루'입니다. 한 줄로 말하면, 기록하지 않아도 기억되는 하루. 지금부터 왜 이 앱이 필요한지, 무엇이 다른지, 그리고 실제로 어떻게 동작하는지 보여드리겠습니다.">
+  <section class="slide cover" data-act="0" data-note="안녕하세요, 키로톤에 참가한 Kiro비컴휴먼 팀입니다. 저희가 만든 앱은 'HARU'입니다. 한 줄로 말하면, 기록하지 않아도 기억되는 하루. 지금부터 왜 이 앱이 필요한지, 무엇이 다른지, 그리고 실제로 어떻게 동작하는지 보여드리겠습니다.">
     <span class="brand">KIROTHON · Kiro비컴휴먼</span>
-    <h1>하루<span>.</span></h1>
+    <h1>HARU<span>.</span></h1>
     <div class="sub">기록하지 않아도 <b>기억되는</b> 하루</div>
     <div class="meta"><span>위치 · 사진 · 시간 자동 기록</span><span>AI가 "무엇을 했나" 정리</span><span>물어보면 찾아 주는 내 삶의 검색엔진</span></div>
     <svg class="orbit" viewBox="0 0 400 400" aria-hidden="true" id="cover-ring"></svg>
@@ -194,21 +204,16 @@ h2 em { font-style: normal; color: var(--blue); }
     <div class="reveal">정보가 같아도, <span>나뉘어 있으면 찾을 수 있습니다.</span> 우리의 하루도 마찬가지입니다.</div>
   </section>
 
-  <!-- 1. 동기부여 -->
-  <section class="slide" data-act="1" data-note="우리의 기억이 바로 칸 없는 숫자판입니다. 여러분, 작년 크리스마스에 뭐 하셨는지 바로 기억나세요? 저번에 강원도 갔던 게 며칠이었는지는요? 성수동에서 맛있게 먹었던 그 파스타집 이름은요? 답은 분명히 어딘가에 있습니다. 내 폰은 그날 어디 있었는지 알고, 사진도 찍었죠. 그런데 그걸 꺼내려면 사진첩을 한참 스크롤하고, 지도 앱을 뒤지고, 그래도 못 찾습니다. 일기를 쓰면 되지만, 우리는 쓰지 않습니다. 그래서 생각했습니다. 쓰지 않아도 쓰이는 일기, 내 삶을 검색할 수 있는 앱을 만들자.">
+  <!-- 1-c. 삶도 분류하면 선명해진다 -->
+  <section class="slide" data-act="1" id="life" data-note="우리의 하루도 이 숫자판과 같습니다. 카페에 간 것, 야근한 것, 속초 바다를 본 것. 기억은 다 남아 있지만 이렇게 흩어져 있으면 아무것도 보이지 않습니다. (→ 키) 그런데 칸을 나누면 어떨까요. 집, 회사, 밥집, 커피, 운동, 여행. 같은 기억인데, 나뉘는 순간 내가 어디에 시간을 쓰는지 선명하게 보입니다. 삶도 분류하면 더 명확하게 살 수 있습니다. HARU는 이 칸을 대신 나눠 주는 앱입니다.">
     <div class="act"><b>01</b> 동기부여</div>
-    <h2>그때 나는 <em>어디서 뭘 했지?</em></h2>
-    <p class="lead">하루는 칸 없이 흩어진 숫자와 같습니다. 답은 이미 폰 안에 있습니다. 폰은 내가 어디에 있었는지 알고, 그날 사진도 찍었습니다. 그런데 꺼낼 방법이 없습니다.</p>
-    <div class="qs">
-      <div class="q"><span class="bubble">"작년 크리스마스에 뭐 했더라?"</span><span class="then">사진첩을 12월까지 스크롤 → 사진이 없는 시간은 <b>공백</b></span></div>
-      <div class="q"><span class="bubble">"저번에 강원도 간 게 며칠이었지?"</span><span class="then">카톡 대화, 카드 내역, 지도 앱을 뒤진다 → <b>10분째 검색 중</b></span></div>
-      <div class="q"><span class="bubble">"성수동 그 파스타집 어디였지?"</span><span class="then">이름도 기억 안 나고 검색어도 없다 → <b>못 찾음</b></span></div>
-    </div>
-    <div class="punch">일기를 쓰면 되지만, 우리는 쓰지 않습니다. → <span>쓰지 않아도 쓰이는 일기</span>가 필요합니다.</div>
+    <h2 id="life-title">우리의 하루도 <em>흩어져</em> 있습니다</h2>
+    <div class="life" id="life-board"></div>
+    <div class="reveal life-msg">삶도 나뉘어 있으면, <span>더 선명하게 보입니다.</span> HARU는 그 칸을 대신 나눠 줍니다.</div>
   </section>
 
   <!-- 2. 한계와 차별점 -->
-  <section class="slide" data-act="2" data-note="이미 비슷한 서비스는 있습니다. 위치 기록 서비스는 내가 간 곳을 남기지만 거기서 뭘 했는지는 모릅니다. 사진 앱은 사진이 있는 순간만 기억합니다. 일기나 라이프로그 앱은 결국 내가 직접 써야 해서 오래가지 않습니다. 시간 기록 앱은 시간 비중은 잘 보여주지만, 나중에 질문해서 찾을 수는 없습니다. 하루는 이 네 가지를 한 번에 해결합니다. 입력은 0, 장소에 의미를 붙이고, 사진과 영상을 그 장소에 자동으로 묶고, 무엇보다 자연어로 물어보면 근거와 함께 답합니다.">
+  <section class="slide" data-act="2" data-note="이미 비슷한 서비스는 있습니다. 위치 기록 서비스는 내가 간 곳을 남기지만 거기서 뭘 했는지는 모릅니다. 사진 앱은 사진이 있는 순간만 기억합니다. 일기나 라이프로그 앱은 결국 내가 직접 써야 해서 오래가지 않습니다. 시간 기록 앱은 시간 비중은 잘 보여주지만, 나중에 질문해서 찾을 수는 없습니다. HARU는 이 네 가지를 한 번에 해결합니다. 입력은 0, 장소에 의미를 붙이고, 사진과 영상을 그 장소에 자동으로 묶고, 무엇보다 자연어로 물어보면 근거와 함께 답합니다.">
     <div class="act"><b>02</b> 관련 서비스의 한계 · 우리의 차별점</div>
     <h2>기록은 흩어져 있고, <em>아무도 답해 주지 않는다</em></h2>
     <div class="compare">
@@ -219,7 +224,7 @@ h2 em { font-style: normal; color: var(--blue); }
           <tr><th>사진 앱</th><td><span class="mark half">△</span></td><td><span class="mark no">✕</span></td><td><span class="mark yes">●</span></td><td><span class="mark half">△</span></td><td class="lim">사진을 찍은 순간만 기억한다. 사진 없는 하루는 비어 있다</td></tr>
           <tr><th>일기 · 라이프로그 앱</th><td><span class="mark no">✕</span></td><td><span class="mark yes">●</span></td><td><span class="mark half">△</span></td><td><span class="mark no">✕</span></td><td class="lim">직접 써야 한다. 대부분 며칠 만에 멈춘다</td></tr>
           <tr><th>시간 기록 앱</th><td><span class="mark yes">●</span></td><td><span class="mark half">△</span></td><td><span class="mark no">✕</span></td><td><span class="mark no">✕</span></td><td class="lim">시간 비중은 보이지만, 지난 기억을 꺼내 쓸 수는 없다</td></tr>
-          <tr class="us"><th>하루</th><td><span class="mark yes">●</span></td><td><span class="mark yes">●</span></td><td><span class="mark yes">●</span></td><td><span class="mark yes">●</span></td><td>입력 0 · 장소에 의미 · 사진 자동 연결 · 근거 있는 답</td></tr>
+          <tr class="us"><th>HARU</th><td><span class="mark yes">●</span></td><td><span class="mark yes">●</span></td><td><span class="mark yes">●</span></td><td><span class="mark yes">●</span></td><td>입력 0 · 장소에 의미 · 사진 자동 연결 · 근거 있는 답</td></tr>
         </tbody>
       </table>
     </div>
@@ -233,7 +238,7 @@ h2 em { font-style: normal; color: var(--blue); }
 
   <!-- 3. 시현 -->
   <section class="slide demo" data-act="3" id="demo">
-    <div class="phone"><div class="frame" id="frame"><div class="notch"></div><div class="screen" id="screen"><iframe id="app" title="하루 앱 시현" src="app/haru-mockup.html?screen=day"></iframe></div></div></div>
+    <div class="phone"><div class="frame" id="frame"><div class="notch"></div><div class="screen" id="screen"><iframe id="app" title="HARU 앱 시현" src="app/haru-mockup.html?screen=day"></iframe></div></div></div>
     <div class="explain">
       <div class="act"><b>03</b> 시현</div>
       <div class="steps" id="steps"></div>
@@ -246,7 +251,7 @@ h2 em { font-style: normal; color: var(--blue); }
   </section>
 
   <!-- 4. 마무리 -->
-  <section class="slide" data-act="4" id="close" data-note="정리하겠습니다. 하루는 입력 없이 하루를 기록하고, 머문 곳에 의미를 붙이고, 사진과 영상을 그 장소에 묶고, 물어보면 근거와 함께 답합니다. 위치는 가장 민감한 데이터이기 때문에, 데이터는 전부 폰에만 저장하고 AI에는 질문에 필요한 조회 결과만 보냅니다. 오른쪽은 실제 시연 영상입니다. 기록하지 않아도 기억되는 하루. 하루였습니다. 감사합니다.">
+  <section class="slide" data-act="4" id="close" data-note="정리하겠습니다. HARU는 입력 없이 하루를 기록하고, 머문 곳에 의미를 붙이고, 사진과 영상을 그 장소에 묶고, 물어보면 근거와 함께 답합니다. 위치는 가장 민감한 데이터이기 때문에, 데이터는 전부 폰에만 저장하고 AI에는 질문에 필요한 조회 결과만 보냅니다. 오른쪽은 실제 시연 영상입니다. 기록하지 않아도 기억되는 하루. HARU였습니다. 감사합니다.">
     <div class="act"><b>04</b> 마무리</div>
     <h2>적지 않아도 쓰이는 일기, <em>내 삶의 검색엔진</em></h2>
     <div class="close-grid">
@@ -261,7 +266,7 @@ h2 em { font-style: normal; color: var(--blue); }
       </div>
       <div>
         <div class="video" id="video"><video controls preload="metadata" playsinline src="media/demo.mp4"></video><div class="ph"><b>시연 영상</b><span>녹화한 영상을 아래 경로에 넣으면 여기서 재생됩니다</span><code>site/media/demo.mp4</code></div></div>
-        <div class="final">기록하지 않아도 기억되는 <span>하루</span>.</div>
+        <div class="final">기록하지 않아도 기억되는 하루, <span>HARU</span>.</div>
       </div>
     </div>
   </section>
@@ -323,7 +328,7 @@ const STEPS = [
     msg: { screen: 'ask' },
     points: ['AI는 데이터를 읽지 않고 <b>조회</b>합니다 (query_sql)', '"8번, 마지막은 10월 3일 속초 해변"', '아래 카드는 AI가 쓴 글이 아니라 <b>실제 DB에서 만든 근거</b>. 날짜를 지어낼 수 없습니다'],
     tech: ['Bedrock Converse', 'tool use', 'SQL 가드 · 읽기 전용 뷰'],
-    note: '마지막은 물어보기입니다. 올해 강원도 몇 번 갔지? 하루는 AI가 데이터를 직접 읽지 않고, 데이터베이스를 조회해서 답합니다. 8번, 마지막은 10월 3일 속초 해변. 그리고 아래 카드들은 AI가 쓴 문장이 아니라 실제 기록에서 만든 근거입니다. 그래서 틀린 날짜를 지어낼 수 없습니다.' },
+    note: '마지막은 물어보기입니다. 올해 강원도 몇 번 갔지? HARU는 AI가 데이터를 직접 읽지 않고, 데이터베이스를 조회해서 답합니다. 8번, 마지막은 10월 3일 속초 해변. 그리고 아래 카드들은 AI가 쓴 문장이 아니라 실제 기록에서 만든 근거입니다. 그래서 틀린 날짜를 지어낼 수 없습니다.' },
   { page: '물어보기 · 근거 카드', title: '카드를 누르면 그 여행으로', tap: '"5번 더 보기"를 누릅니다',
     msg: { screen: 'ask', more: true },
     points: ['8번의 방문이 모두 카드로', '카드 [재생] → 그 날 · 그 여행을 지도에서 재생', '데이터는 <b>폰에만</b>. AI에는 조회 결과 행만 전달됩니다'],
@@ -358,18 +363,21 @@ function go(i) {
   if (slides[cur].id === 'demo') sendStep(); else setNote(slides[cur].dataset.note);
   if (slides[cur].id === 'hunt') { if (typeof resetHunt === 'function') resetHunt(); startTimer(); } else stopTimer();
   if (typeof resetGrid === 'function') resetGrid();
+  if (typeof placeLife === 'function' && window.LIFE_CHIPS) placeLife(false);
   const total = slides.length - 1 + STEPS.length - 1;
   const pos = cur < DEMO ? cur : cur === DEMO ? DEMO + step : total;
   document.getElementById('prog').style.width = (pos / total * 100) + '%';
   try { history.replaceState(null, '', '#' + cur); } catch (e) {}
 }
 function next() {
+  if (slides[cur].id === 'life' && lifeStep === 0) return placeLife(true);
   if (slides[cur].id === 'grid' && gridStep === 0) return playGrid();
   if (slides[cur].id === 'grid' && gridStep === 1) return finishGrid();
   if (slides[cur].id === 'demo' && step < STEPS.length - 1) { step++; return go(cur); }
   go(cur + 1);
 }
 function prev() {
+  if (slides[cur].id === 'life' && lifeStep === 1) return placeLife(false);
   if (slides[cur].id === 'grid' && gridStep > 0) return resetGrid();
   if (slides[cur].id === 'demo' && step > 0) { step--; return go(cur); }
   if (slides[cur - 1] && slides[cur - 1].id === 'demo') step = STEPS.length - 1;
@@ -515,6 +523,54 @@ document.getElementById('board-a').addEventListener('click', e => {
     document.getElementById('next-n').innerHTML = `다음 숫자<b>${want}</b>`;
   }
 });
+
+// 삶 분류: 흩어진 기억 → → 키로 태그 칸에 정리
+const LIFE = [
+  ['집', '#2B3138', ['일요일 늦잠', '밤 11시 귀가', '집에서 영화']],
+  ['회사', '#1F4FD1', ['출근 08:52', '주간회의 2시간', '야근 21:40']],
+  ['밥집', '#E86A10', ['성수 파스타', '회사 앞 국밥', '망원 브런치']],
+  ['커피', '#9A6B47', ['카페 망원 45분', '아아 두 잔', '카페에서 공부']],
+  ['운동', '#2F8A5B', ['헬스 1시간 10분', '한강 러닝 5km', '토요일 요가']],
+  ['여행', '#D9A515', ['속초 해변', '강릉 커피거리', '부산 1박 2일']]
+];
+let lifeStep = 0;
+(function lifeBoard() {
+  const board = document.getElementById('life-board');
+  let seed = 23; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  let html = '';
+  LIFE.forEach(([tag, color], ci) => {
+    const col = ci % 3, row = Math.floor(ci / 3);
+    html += `<div class="cellbox" style="left:${col * 33.6}%;top:${row * 51}%;width:32.4%;height:48%"><b><i style="background:${color}"></i>${tag}</b></div>`;
+  });
+  const chips = [];
+  LIFE.forEach(([tag, color, items], ci) => items.forEach((label, k) => chips.push({ tag, color, label, ci, k })));
+  // 흩어진 위치: 격자 칸을 섞어서 겹치지 않게
+  const spots = []; for (let r = 0; r < 6; r++) for (let c = 0; c < 3; c++) spots.push([c, r]);
+  spots.sort(() => rnd() - .5);
+  chips.forEach((ch, i) => {
+    const [c, r] = spots[i];
+    ch.sx = 2 + c * 31 + rnd() * 12; ch.sy = 1 + r * 15.5 + rnd() * 5; ch.rot = Math.round((rnd() - .5) * 14);
+    const col = ch.ci % 3, row = Math.floor(ch.ci / 3);
+    ch.tx = col * 33.6 + 2 + (ch.k % 2) * 13.5; ch.ty = row * 51 + 13 + Math.floor(ch.k / 2) * 15 + (ch.k === 1 ? 0 : 0);
+    html += `<span class="chip" data-i="${i}"><i style="background:${ch.color}"></i>${ch.label}</span>`;
+  });
+  board.innerHTML = html;
+  window.LIFE_CHIPS = chips;
+  placeLife(false);
+})();
+function placeLife(sorted) {
+  const board = document.getElementById('life-board');
+  board.classList.toggle('sorted', sorted);
+  board.querySelectorAll('.chip').forEach(el => {
+    const ch = LIFE_CHIPS[+el.dataset.i];
+    el.style.left = (sorted ? ch.tx : ch.sx) + '%';
+    el.style.top = (sorted ? ch.ty : ch.sy) + '%';
+    el.style.transform = sorted ? 'none' : `rotate(${ch.rot}deg)`;
+  });
+  document.getElementById('life').classList.toggle('sorted-done', sorted);
+  document.getElementById('life-title').innerHTML = sorted ? '삶도 <em>칸</em>을 나누면 선명해집니다' : '우리의 하루도 <em>흩어져</em> 있습니다';
+  lifeStep = sorted ? 1 : 0;
+}
 
 const start = parseInt((location.hash || '#0').slice(1), 10);
 go(Number.isFinite(start) ? start : 0);
