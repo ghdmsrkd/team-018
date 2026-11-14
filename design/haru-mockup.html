@@ -128,6 +128,58 @@ nav.bottom a[aria-current="page"] { color: var(--blue); font-weight: 600; }
 .askbox span { flex: 1; }
 .askbox button { width: 38px; height: 38px; border-radius: 19px; border: 0; background: var(--ink); color: #FFFFFF; display: grid; place-items: center; }
 
+
+/* 타임라인 */
+.tl-top { padding: 58px 20px 10px; background: var(--paper); }
+.tl-top .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--muted); }
+.tl-top .title { font-size: 22px; font-weight: 700; display: block; margin-top: 2px; }
+.chips { display: flex; gap: 6px; margin-top: 12px; }
+.chips button { height: 30px; padding: 0 12px; border-radius: 15px; border: 1px solid var(--line); background: var(--card); font-size: 12px; font-weight: 500; color: var(--ink2); cursor: pointer; }
+.chips button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #FFFFFF; font-weight: 600; }
+.dayhead { position: sticky; top: 0; z-index: 2; background: rgba(238,240,236,.94); backdrop-filter: blur(6px); padding: 12px 20px 10px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--line); }
+.dayhead b { font-family: var(--num); font-size: 24px; font-weight: 700; line-height: 1; }
+.dayhead span { font-size: 13px; font-weight: 600; }
+.dayhead small { margin-left: auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; color: var(--muted); }
+.stays { padding: 14px 20px 6px; display: grid; grid-template-columns: 44px 14px minmax(0, 1fr); column-gap: 10px; }
+.stays .t { font-family: var(--num); font-size: 17px; font-weight: 600; line-height: 1; padding-top: 2px; }
+.stays .t small { display: block; font-size: 13px; color: var(--muted); font-weight: 500; margin-top: 3px; }
+.stays .rail { position: relative; }
+.stays .rail::before { content: ""; position: absolute; left: 5px; top: 0; bottom: 0; width: 4px; border-radius: 2px; background: var(--c, var(--ink)); }
+.stays .rail.none::before { background: repeating-linear-gradient(180deg, #B9C0B7 0 4px, transparent 4px 7px); }
+.stays .rail.move::before { width: 0; border-left: 3px dotted #8A939B; background: none; left: 6px; }
+.stays .gap { font-size: 12px; color: var(--muted); padding: 4px 0 14px; display: flex; align-items: center; gap: 6px; }
+.stay { padding-bottom: 16px; display: flex; flex-direction: column; gap: 8px; }
+.stay .head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.stay .head b { font-size: 15px; font-weight: 600; }
+.stay .head span { font-size: 12px; color: var(--muted); }
+.media { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; border-radius: 14px; overflow: hidden; }
+.media.one { grid-template-columns: 1fr; }
+.media.two { grid-template-columns: 2fr 1fr; }
+.ph { position: relative; aspect-ratio: 1; border: 0; padding: 0; cursor: pointer; display: block; }
+.media.one .ph { aspect-ratio: 16 / 9; }
+.media.two .ph { aspect-ratio: auto; height: 170px; }
+.ph .vid { position: absolute; left: 6px; bottom: 6px; display: flex; align-items: center; gap: 4px; background: rgba(22,25,29,.7); color: #FFFFFF; font-family: var(--mono); font-size: 10px; padding: 2px 6px; border-radius: 6px; }
+.ph .plus { position: absolute; inset: 0; background: rgba(22,25,29,.45); color: #FFFFFF; display: grid; place-items: center; font-family: var(--num); font-size: 22px; font-weight: 600; }
+.nomedia { display: none; }
+.trip { margin: 6px 20px 18px; border-radius: 18px; overflow: hidden; background: var(--card); border: 1px solid var(--line); }
+.trip .cover { height: 120px; position: relative; }
+.trip .cover span { position: absolute; left: 12px; top: 10px; font-family: var(--mono); font-size: 10px; letter-spacing: .06em; color: #FFFFFF; background: rgba(22,25,29,.5); padding: 2px 6px; border-radius: 5px; }
+.trip .info { padding: 12px 14px; display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; align-items: center; }
+.trip .info b { font-size: 16px; font-weight: 700; }
+.trip .info small { font-size: 12px; color: var(--muted); grid-column: 1; }
+.trip .info button { grid-row: 1 / 3; grid-column: 2; height: 34px; padding: 0 14px; border-radius: 17px; border: 0; background: var(--blue); color: #FFFFFF; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+.trip .strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; padding: 0 14px 14px; }
+.trip .strip .ph { border-radius: 8px; }
+.viewer { position: absolute; inset: 0; z-index: 5; background: #0C0E10; display: none; flex-direction: column; color: #FFFFFF; }
+.viewer.on { display: flex; }
+.viewer .vtop { padding: 58px 20px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+.viewer .vtop button { width: 36px; height: 36px; border-radius: 18px; border: 0; background: rgba(255,255,255,.14); color: #FFFFFF; font-size: 18px; cursor: pointer; }
+.viewer .vimg { flex: 1; margin: 0 0; position: relative; display: grid; place-items: center; }
+.viewer .vimg > div { width: 100%; aspect-ratio: 3 / 4; }
+.viewer .vimg .play { position: absolute; width: 64px; height: 64px; border-radius: 32px; background: rgba(255,255,255,.9); display: grid; place-items: center; }
+.viewer .vcap { padding: 16px 20px 40px; font-size: 13px; color: #C9CEC6; line-height: 1.5; }
+.viewer .vcap b { color: #FFFFFF; font-size: 15px; display: block; }
+
 /* 캡처 모드: ?screen=day|week|year|ask */
 body.shot { background: var(--paper); }
 body.shot header { display: none; }
@@ -140,14 +192,34 @@ body.shot .device { border-radius: 0; box-shadow: none; }
 </head>
 <body>
 <header>
-  <h1>하루 · 메인 화면 목업 v0.3</h1>
-  <p>메인(오늘) 화면을 <b>24시간 도넛</b>으로 바꿨습니다. 하루는 시계처럼 0시가 맨 위이고, 머문 곳이 실제 시간 위치에 태그 색으로 칠해집니다. 도넛 조각이나 아래 목록을 누르면 가운데에 그 태그의 시간이 나옵니다. 한 주 / 한 달 / 1년 탭은 태그별 비중 도넛으로 바뀝니다. 색과 글꼴은 <a href="haru-app-design.html">앱 전체 디자인 v0.1</a>을 따르고, 데이터는 더미 페르소나 기준입니다.</p>
+  <h1>하루 · 메인 화면 목업 v0.4</h1>
+  <p>메인(오늘) 화면을 <b>24시간 도넛</b>으로 바꿨습니다. 하루는 시계처럼 0시가 맨 위이고, 머문 곳이 실제 시간 위치에 태그 색으로 칠해집니다. 도넛 조각이나 아래 목록을 누르면 가운데에 그 태그의 시간이 나옵니다. 한 주 / 한 달 / 1년 탭은 태그별 비중 도넛으로 바뀝니다. 두 번째 탭은 <b>타임라인</b>입니다. 장소마다 사진과 영상이 붙고(눌러서 크게 보기), 여행은 타임라인 안에 묶음으로 나옵니다. 색과 글꼴은 <a href="haru-app-design.html">앱 전체 디자인 v0.1</a>을 따르고, 데이터는 더미 페르소나 기준입니다.</p>
 </header>
 
 <main class="board">
   <section class="screen" id="day" data-period="day">
     <h2 class="label">오늘 · 하루<small>24시간 도넛 · 시간 위치 그대로</small></h2>
     <div class="device"></div>
+  </section>
+  <section class="screen" id="timeline">
+    <h2 class="label">타임라인<small>장소마다 사진 · 영상 · 여행은 묶음으로</small></h2>
+    <div class="device">
+      <div class="tl-top">
+        <span class="eyebrow">TIMELINE</span><span class="title">타임라인</span>
+        <div class="chips" id="tl-chips">
+          <button type="button" aria-pressed="true" data-f="all">전체</button>
+          <button type="button" aria-pressed="false" data-f="media">사진 · 영상 있는 곳</button>
+          <button type="button" aria-pressed="false" data-f="trip">여행</button>
+        </div>
+      </div>
+      <div class="body" id="tl-body"></div>
+      <nav class="bottom" data-current="timeline"></nav>
+      <div class="viewer" id="viewer">
+        <div class="vtop"><span id="v-when"></span><button type="button" id="v-close" aria-label="닫기">×</button></div>
+        <div class="vimg"><div id="v-img"></div><div class="play" id="v-play"><svg width="22" height="22" viewBox="0 0 10 10" aria-hidden="true"><path d="M2.5 1l6 4-6 4z" fill="#16191D"/></svg></div></div>
+        <div class="vcap" id="v-cap"></div>
+      </div>
+    </div>
   </section>
   <section class="screen" id="week" data-period="week">
     <h2 class="label">오늘 · 한 주<small>비중 도넛 + 요일별 링</small></h2>
@@ -416,10 +488,10 @@ function render(device, period) {
 
 const ICONS = {
   today: '<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 8 8h-8z" fill="currentColor"/>',
-  trips: '<path d="M5 18c4 0 3-12 7-12s3 12 7 12"/><circle cx="5" cy="18" r="2.2"/><circle cx="19" cy="18" r="2.2"/>',
+  timeline: '<path d="M6 3v18"/><circle cx="6" cy="7" r="2.2" fill="#FFFFFF"/><circle cx="6" cy="16" r="2.2" fill="#FFFFFF"/><rect x="11" y="4.5" width="9" height="6" rx="1.5"/><rect x="11" y="13.5" width="9" height="6" rx="1.5"/>',
   ask: '<path d="M4 5h16v11H10l-4 3v-3H4z"/><path d="M8 10.5h8"/>'
 };
-const NAV = [['today', '오늘', '#day'], ['trips', '여행', 'haru-app-design.html#Trips'], ['ask', '물어보기', '#ask']];
+const NAV = [['today', '오늘', '#day'], ['timeline', '타임라인', '#timeline'], ['ask', '물어보기', '#ask']];
 document.querySelectorAll('nav.bottom').forEach(el => {
   el.setAttribute('aria-label', '주요 화면');
   el.innerHTML = NAV.map(([k, label, href]) => `<a href="${href}" ${el.dataset.current === k ? 'aria-current="page"' : ''}><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">${ICONS[k]}</svg>${label}</a>`).join('');
@@ -454,6 +526,86 @@ document.getElementById('more').addEventListener('click', e => {
   evidence.insertAdjacentHTML('beforeend', MORE.map(([d, p]) => card([d, p, '당일', 'M8 40 C 24 30, 36 20, 54 14'])).join(''));
   e.target.remove();
 });
+
+
+// 타임라인
+const P = {
+  bed:   'linear-gradient(160deg, #E8E1D6 0%, #CDBFAE 55%, #8F7F6E 100%)',
+  latte: 'radial-gradient(circle at 50% 45%, #F3E6D3 0 22%, #B98A5E 23% 34%, #6E4A30 35% 60%, #3A2A20 61%)',
+  cafe:  'linear-gradient(170deg, #DCCDB8 0%, #A57D58 50%, #5A4231 100%)',
+  subway:'linear-gradient(180deg, #B9C4CE 0%, #6F7D8A 60%, #2F3943 100%)',
+  hall:  'linear-gradient(160deg, #D7DEF5 0%, #7E92D8 45%, #2B3A7A 100%)',
+  screen:'linear-gradient(180deg, #1B1F2A 0%, #1B1F2A 30%, #3E64E0 31%, #9DB2F2 70%, #1B1F2A 71%)',
+  team:  'linear-gradient(150deg, #F2D6B8 0%, #D79C6A 40%, #47546B 100%)',
+  pasta: 'radial-gradient(circle at 50% 50%, #F4D58C 0 30%, #D2603A 31% 40%, #F7F4EE 41% 62%, #C9C2B5 63%)',
+  sea:   'linear-gradient(180deg, #A8CBEA 0%, #6FA3D6 45%, #2E6CA8 46%, #4A86C5 70%, #E9D9B8 71%)',
+  sunset:'linear-gradient(180deg, #F6C987 0%, #E9844A 45%, #8C4B5E 70%, #2C3247 71%)',
+  pine:  'linear-gradient(180deg, #DDE6D6 0%, #92B07F 45%, #4C6B43 100%)',
+  market:'linear-gradient(160deg, #F2E4C9 0%, #E0A458 40%, #B5452E 100%)',
+  road:  'linear-gradient(180deg, #CFE0EE 0%, #9FB9CF 50%, #5A6168 51%, #3D444B 100%)'
+};
+const TL = [
+  { day: '11.14', dow: '토', label: '오늘', sum: '3곳 · 9.4km · 사진 6 · 영상 1', items: [
+    { t: '집', a: '00:00', b: '09:50', place: '집 · 망원동', d: '9시간 50분', media: [] },
+    { move: '도보 6분 · 450m' },
+    { t: '커피', a: '10:20', b: '11:05', place: '카페 망원 · 망원동', d: '45분', ai: '커피 92%', media: [['latte'], ['cafe']] },
+    { move: '지하철 41분 · 8.9km' },
+    { t: '태그 없음', a: '11:40', b: '지금', place: '키로톤 행사장 · 성수동', d: '4시간 40분째', media: [['hall', '0:24'], ['screen'], ['team'], ['hall'], ['team']] }
+  ]},
+  { day: '11.13', dow: '금', label: '어제', sum: '4곳 · 18.2km · 사진 3', items: [
+    { t: '회사', a: '09:12', b: '18:40', place: '회사 · 성수동', d: '9시간 28분', media: [] },
+    { t: '밥집', a: '12:10', b: '13:00', place: '파스타 바 · 성수동', d: '50분', ai: '밥집 88%', media: [['pasta'], ['pasta'], ['cafe']] },
+    { move: '지하철 38분 · 8.6km' },
+    { t: '운동', a: '19:30', b: '20:40', place: '망원 피트니스', d: '1시간 10분', media: [] }
+  ]},
+  { trip: true, day: '10.03 – 10.05', name: '강릉 → 속초', sub: '2박 3일 · 9곳 · 412km · 사진 23 · 영상 4', cover: 'sea', strip: [['sea', '0:31'], ['sunset'], ['pine'], ['market'], ['road', '0:12']] }
+];
+const tagOf = t => ({ c: TAG[t] === 'none' ? '' : TAG[t], none: TAG[t] === 'none' });
+function mediaHTML(media, place, when) {
+  if (!media.length) return '<div class="nomedia">사진 · 영상 없음</div>';
+  const shown = media.slice(0, 3), rest = media.length - 3;
+  const cls = media.length === 1 ? 'one' : media.length === 2 ? 'two' : '';
+  return `<div class="media ${cls}">${shown.map(([k, v], i) => `<button class="ph" type="button" style="background:${P[k]}" data-k="${k}" data-v="${v || ''}" data-place="${place}" data-when="${when}" aria-label="${v ? '영상' : '사진'} 보기">${v ? `<span class="vid">▶ ${v}</span>` : ''}${i === 2 && rest > 0 ? `<span class="plus">+${rest}</span>` : ''}</button>`).join('')}</div>`;
+}
+function renderTL(filter) {
+  const body = document.getElementById('tl-body');
+  body.innerHTML = TL.map(g => {
+    if (g.trip) {
+      if (filter === 'media' && !g.strip.length) return '';
+      return `<div class="dayhead"><b>${g.day}</b><span>여행</span><small>2026</small></div>
+        <div class="trip"><div class="cover" style="background:${P[g.cover]}"><span>TRIP</span></div>
+        <div class="info"><b>${g.name}</b><small>${g.sub}</small><button type="button"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1l7 4-7 4z" fill="currentColor"/></svg>재생</button></div>
+        <div class="strip">${g.strip.map(([k, v]) => `<button class="ph" type="button" style="background:${P[k]}" data-k="${k}" data-v="${v || ''}" data-place="${g.name}" data-when="${g.day}">${v ? `<span class="vid">▶ ${v}</span>` : ''}</button>`).join('')}</div></div>`;
+    }
+    if (filter === 'trip') return '';
+    const items = g.items.filter(it => filter !== 'media' || (it.media && it.media.length));
+    return `<div class="dayhead"><b>${g.day}</b><span>${g.dow} · ${g.label}</span><small>${g.sum}</small></div>
+      <div class="stays">${items.map(it => {
+        if (it.move) return `<div></div><div class="rail move"></div><div class="gap">${it.move}</div>`;
+        const tg = tagOf(it.t);
+        const chip = it.t === '태그 없음' ? '<span class="chip-none" style="font-size:11px;font-weight:500;color:var(--blue);border:1px dashed #8A939B;border-radius:5px;padding:0 6px;line-height:18px">태그 없음 · 달기</span>'
+          : it.ai ? `<span style="font-size:11px;font-weight:500;color:var(--blue);border:1px solid var(--blue);background:#F2F5FD;border-radius:5px;padding:0 6px;line-height:18px">AI · ${it.ai}</span>`
+          : `<span style="font-size:11px;font-weight:600;border:1.5px solid ${tg.c};color:${tg.c};border-radius:5px;padding:0 6px;line-height:18px">${it.t}</span>`;
+        return `<div class="t">${it.a}<small style="${it.b === '지금' ? 'color:var(--orange-ink)' : ''}">${it.b}</small></div>
+          <div class="rail ${tg.none ? 'none' : ''}" style="--c:${tg.c}"></div>
+          <div class="stay"><div class="head"><b>${it.place}</b></div><div class="head">${chip}<span>${it.d}</span></div>${mediaHTML(it.media, it.place, `${g.day} ${it.a}`)}</div>`;
+      }).join('')}</div>`;
+  }).join('');
+  body.querySelectorAll('.ph').forEach(b => b.addEventListener('click', () => openViewer(b.dataset)));
+}
+function openViewer(d) {
+  document.getElementById('v-when').textContent = d.when;
+  document.getElementById('v-img').style.background = P[d.k];
+  document.getElementById('v-play').style.display = d.v ? 'grid' : 'none';
+  document.getElementById('v-cap').innerHTML = `<b>${d.place}</b>${d.v ? `영상 ${d.v}` : '사진'} · 촬영 위치와 시각으로 이 방문에 자동 연결됨`;
+  document.getElementById('viewer').classList.add('on');
+}
+document.getElementById('v-close').addEventListener('click', () => document.getElementById('viewer').classList.remove('on'));
+document.querySelectorAll('#tl-chips button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#tl-chips button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  renderTL(b.dataset.f);
+}));
+renderTL('all');
 
 const shot = new URLSearchParams(location.search).get('screen');
 if (shot) { document.body.classList.add('shot'); document.getElementById(shot)?.classList.add('on'); }
