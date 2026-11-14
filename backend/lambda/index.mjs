@@ -59,7 +59,7 @@ async function chat(body) {
     return json(200, { output: out.output, stopReason: out.stopReason, usage: out.usage });
   } catch (e) {
     // 본문은 로그에 남기지 않고, 오류 종류만 남긴다.
-    console.error("bedrock_error", e?.name, e?.$metadata?.httpStatusCode);
+    console.error("bedrock_error", e?.name, e?.$metadata?.httpStatusCode, String(e?.message ?? "").slice(0, 400));
     const status = e?.name === "ThrottlingException" ? 429 : e?.name === "ValidationException" ? 400 : 502;
     return json(status, { error: "bedrock_error", detail: e?.name ?? "unknown" });
   }
