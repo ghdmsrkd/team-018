@@ -174,7 +174,7 @@ body.shot .device { border-radius: 0; box-shadow: none; }
       <div class="body">
         <div class="chat">
           <div class="bubble-me">나 올해에 강원도를 몇 번 갔지?</div>
-          <div class="tool">stats(region="강원도", range="2026") → 8</div>
+          <div class="tool">query_sql · v_trips WHERE regions LIKE '%강원%' → 8행</div>
           <div class="bubble-ai">강원도는 올해 <span class="big">8</span>번 방문했어요.<br>마지막 방문은 <b>10월 3일 · 속초 해변</b>이에요. 강릉에서 시작한 2박 3일 여행이었어요.</div>
           <div class="evidence" id="evidence"></div>
           <button class="more" type="button" id="more">5번 더 보기</button>
@@ -209,7 +209,7 @@ body.shot .device { border-radius: 0; box-shadow: none; }
       </div>
     </div>
     <div class="card ai">
-      <h3>AI 요약 <span>BEDROCK · CLAUDE</span></h3>
+      <h3>AI 요약 <span>BEDROCK</span></h3>
       <p data-f="summary"></p>
       <div class="meta">
         <div class="conf">확신도 <div class="bar"><i data-f="confBar"></i></div><b data-f="conf" style="color: var(--blue)"></b></div>

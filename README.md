@@ -11,6 +11,7 @@
 | [design/haru-mockup.html](design/haru-mockup.html) | 기록 요약 화면 목업 (도넛 차트 · AI 요약 · 1년 뷰 · 질문) |
 | [design/haru-app-design.html](design/haru-app-design.html) | 앱 전체 디자인 v0.1 (온보딩 · 오늘 · 물어보기 · 재생 · 여행 · 태그) |
 | [docs/PLAN.md](docs/PLAN.md) | 기능 기획 상세 (데이터 모델, 기억 챗, 더미 데이터 설계) |
+| [docs/system-design.html](docs/system-design.html) | 시스템 설계 (기기 SQLite, Cognito 게스트 자격 증명, Bedrock 에이전트) |
 | [docs/user-stories.html](docs/user-stories.html) | 유저 스토리 맵 |
 | [docs/하루_기획서_v0.1.md](docs/하루_기획서_v0.1.md) | `feat/haru-planning` 브랜치 원본 기획서 |
 
@@ -70,16 +71,18 @@
 
 ### 2-5. 자연어 질문 (기억 챗)
 - 예: "올해 강원도 몇 번 갔지?" → "8번이에요. 마지막: 2026-10-03 · 속초 해변" + 근거 카드
-- 흐름: 질문 → 백엔드 → **Amazon Bedrock (Claude) tool use** → 방문 DB 조회 → 근거 카드와 함께 답변
+- 흐름: 질문 → 앱이 **Bedrock Converse** 직접 호출 (서버 없음) → 모델이 `query_sql`로 폰의 `memory.db` 읽기 전용 뷰를 조회 (최대 6회) → `final_answer {text, cards[ID]}` → 앱이 카드 ID를 로컬 DB에서 다시 조회해 근거 카드를 만든다
+- 카드 내용은 모델이 쓴 글자가 아니라 DB 조회 결과다. 모델이 날짜를 지어내도 카드는 틀리지 않는다
 - 근거 카드를 누르면 그 날 / 그 여행을 재생한다
+- 자세한 루프와 SQL 가드: [시스템 설계 3–4장](docs/system-design.html)
 
-| 질문 예시 | 유형 | 도구 |
+| 질문 예시 | 유형 | 조회하는 뷰 |
 |---|---|---|
-| "저번에 강원도 갔던 게 며칠이었지?" | 여행 회상 | `find_trips(region)` |
-| "작년 크리스마스에 뭐 했어?" | 특정 날 | `get_day_summary(date)` |
-| "성수동에서 갔던 그 파스타집 어디였지?" | 장소 찾기 | `search_places(area, tag)` |
-| "지난달 커피 몇 번 마셨어?" | 집계 | `stats(tag, range)` |
-| "올해 강원도 몇 번 갔지?" | 집계 | `stats(region, range)` |
+| "저번에 강원도 갔던 게 며칠이었지?" | 여행 회상 | `v_trips` |
+| "작년 크리스마스에 뭐 했어?" | 특정 날 | `v_days` · `v_stays` |
+| "성수동에서 갔던 그 파스타집 어디였지?" | 장소 찾기 | `v_places` · `v_stays` |
+| "지난달 커피 몇 번 마셨어?" | 집계 | `v_stays` ⨝ `v_places` (tag) |
+| "올해 강원도 몇 번 갔지?" | 집계 | `v_trips` (regions) |
 
 ---
 
@@ -137,6 +140,8 @@ Day     { date, visits, distance_km, first_activity_at, summary }
 Trip    { start, end, regions, visits }  ← 집 기준 생활권을 벗어난 구간
 ```
 
+- 위는 개념 모델이다. 실제 SQLite DDL(`raw.db`의 points, `memory.db`의 places · stays · moves · trips · days, 에이전트용 뷰)은 [시스템 설계 5장](docs/system-design.html)이 기준이다
+- 에이전트용 뷰에는 좌표가 없고, 집·회사는 이름이 "집", "회사"로만 나온다
 - `horizontal_accuracy`가 35~80m로 크다. 장소 매칭 반경(약 100m)에 반영한다
 - 방문 사이 이동 경로는 원본에 없다. 지도 재생 경로는 별도 수집하거나 보간한다
 
@@ -146,21 +151,26 @@ Trip    { start, end, regions, visits }  ← 집 기준 생활권을 벗어난 �
 
 | 영역 | 기술 |
 |---|---|
+**서버도 서버 DB도 두지 않는다.** 데이터는 전부 폰의 SQLite에 있고, 앱이 Cognito 게스트 임시 자격 증명으로 Bedrock을 직접 호출한다. 코드에 API 키가 없다. ([시스템 설계](docs/system-design.html))
+
+| 영역 | 기술 |
+|---|---|
 | 앱 | React Native (Expo) · iOS + Android |
-| 위치 수집 | `expo-location` + `expo-task-manager` (또는 `react-native-background-geolocation`) |
+| 위치 수집 | `expo-location` + `expo-task-manager` |
 | 사진 | `expo-media-library` (EXIF) |
 | 차트 | `react-native-svg` + `d3-shape` |
-| 상태 · 로컬 저장 | Zustand · MMKV + SQLite |
-| 내비게이션 | React Navigation v7 |
-| API 서버 | Node.js (Fastify) 또는 Python (FastAPI) |
-| 장소 · 행정구역 | Kakao Local API (한국 POI 정확도) |
-| 지도 | Kakao Map / Mapbox / Amazon Location Service |
-| LLM | Amazon Bedrock (Claude) · 태그 추론 + 기억 챗 |
-| 저장 | PostgreSQL + PostGIS |
+| 상태 · 내비게이션 | Zustand · React Navigation v7 |
+| 저장 | 기기 SQLite 2개: `raw.db` (원시 좌표, 에이전트 접근 불가) · `memory.db` (장소·방문·여행·하루) |
+| 인증 | Cognito Identity Pool 게스트 ID → STS 임시 자격 증명 (1시간) · 역할 `HaruGuestRole` |
+| LLM | Amazon Bedrock Converse · `global.openai.gpt-6-luna` (ap-northeast-2) · 태그 추론 + 기억 챗 |
+| 장소 · 행정구역 | 데모는 더미 생성기의 장소명 사용, 실사용 기록만 Amazon Location Service (키 없음) |
+| 비용 방어 | AWS Budgets 자동 차단 · 서비스 쿼터 · CloudWatch 경보 |
+
+쓰지 않는 것: Lambda, API Gateway, DynamoDB, RDS, S3
 
 **권한**: iOS `NSLocationAlwaysAndWhenInUseUsageDescription`, Android `ACCESS_BACKGROUND_LOCATION`
 
-**프라이버시**: 위치는 기기 내 처리 우선 · 클라우드 업로드 시 암호화 · LLM에 개인 식별 정보 미전송 · 집/회사 마스킹 · 기간 삭제 · 기록 일시정지
+**프라이버시**: 데이터는 기기에만 저장 · AI에는 뷰 스키마와 SQL 결과 행만 전달 (원시 좌표, 집·회사 위치는 보내지 않음) · 기간 삭제 · 기록 일시정지
 
 ---
 
@@ -197,21 +207,27 @@ Trip    { start, end, regions, visits }  ← 집 기준 생활권을 벗어난 �
 |---|---|
 | A · 앱 | 수집, 타임라인, 기록 요약 차트, 지도 재생 |
 | B · 엔진 | 더미 데이터 생성기, 방문/여행 감지, 역지오코딩, 태그 추론 |
-| C · 챗 | Bedrock 에이전트, 도구 정의, 근거 카드 응답 포맷 |
+| C · 챗 | Cognito · Bedrock 설정, 에이전트 런타임 (SQL 가드, 도구 루프, 카드 조립) |
 
-B가 4장 스키마를 먼저 고정하면 A와 C는 목업 데이터로 병렬 개발할 수 있다.
+B가 SQLite DDL을 먼저 고정하면 A와 C는 목업 데이터로 병렬 개발할 수 있다. 구현 순서는 [시스템 설계 9장](docs/system-design.html)에 있다.
 
 ---
 
-## 9. 팀이 정해야 할 것
+## 9. 결정 사항과 남은 질문
 
-두 기획서(`docs/PLAN.md`, `feat/haru-planning`)를 합치면서 서로 달랐던 부분이다. 위 본문은 앞쪽 안을 기준으로 썼다.
+세 문서(`docs/PLAN.md`, `feat/haru-planning` 기획서, `docs/system-design.html`)를 합치면서 서로 달랐던 부분이다.
 
-- [ ] **LLM 하나로 통일?** 원본 브랜치는 태그 추론에 GPT-4o mini, 챗에 Bedrock을 썼다 → 본문은 Bedrock(Claude) 하나로 통일
-- [ ] **분류 체계**: `HOME/CAFE/GYM/TRANSIT/OTHER` vs 닫힌 태그 7개(`기타` 없음, 모르면 비움) → 본문은 태그 7개
+**정해진 것**
+- [x] **LLM**: Bedrock `gpt-6-luna` 하나로 통일 (원본 브랜치의 GPT-4o mini 직접 호출은 쓰지 않음)
+- [x] **데이터 저장 위치**: 기기에만 저장. 백업은 이번 범위에서 뺀다
+- [x] **가입**: 해커톤은 게스트로 간다
+- [x] **분류 체계**: 닫힌 태그 7개 (`기타` 없음, 모르면 비움). 원본 브랜치의 `HOME/CAFE/GYM/TRANSIT/OTHER`는 쓰지 않음
+
+**남은 것**
+- [ ] **`gpt-6-luna` 도구 호출 지원 여부**: 구현 첫날 확인. 안 되면 JSON 출력 모드로 같은 루프를 만든다
 - [ ] **방문 기준**: 15분 vs 10분 이상 머무름 (iOS Visit 원본을 쓰면 OS 기준을 따른다)
 - [ ] **사진 연동 시점**: MVP 포함 vs 이후 → 본문은 "여유 있으면"
-- [ ] **데이터 저장 위치**: 서버 vs 기기 (프라이버시 메시지와 직결)
+- [ ] **지오코딩**: 시스템 설계는 (b) 데모는 생략 + 실사용만 Amazon Location을 권한다
 - [ ] **1차 타깃**: 여행 기록 vs 일상 회고
 
 ---
