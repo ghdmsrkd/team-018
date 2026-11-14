@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>하루 · 키로톤 팀 018</title>
+<title>하루 · Kiro비컴휴먼</title>
 <meta name="description" content="기록하지 않아도 기억되는 하루. 위치·사진·시간으로 하루를 자동 기록하고, 물어보면 찾아 주는 개인 라이프로그 앱.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
 <style>
@@ -43,6 +43,25 @@ h2 em { font-style: normal; color: var(--blue); }
 .q .then b { color: var(--orange-ink); font-weight: 600; }
 .punch { margin-top: auto; padding-top: 28px; font-size: clamp(20px, 2.2vw, 30px); font-weight: 700; }
 .punch span { color: var(--blue); }
+
+
+/* 숫자 찾기 */
+.hunt-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
+.timer { font-family: var(--num); font-weight: 700; font-size: clamp(40px, 5vw, 72px); line-height: 1; color: var(--orange-ink); font-variant-numeric: tabular-nums; }
+.timer small { display: block; font-family: 'IBM Plex Sans KR', sans-serif; font-size: 13px; font-weight: 500; color: var(--muted); text-align: right; margin-bottom: 4px; }
+.board { flex: 1; min-height: 0; margin-top: 2vh; display: flex; }
+.board svg { width: 100%; height: 100%; display: block; }
+.board .gl { stroke: var(--blue); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1200; stroke-dashoffset: 1200; }
+.board .cl { opacity: 0; font-family: 'IBM Plex Mono', monospace; font-size: 16px; fill: var(--blue); }
+.slide.on .board.grid .gl { animation: draw 1s ease-out .5s forwards; }
+.slide.on .board.grid .cl { animation: fade .5s ease-out 1.4s forwards; }
+.slide.on .board.grid .cell { animation: fade .6s ease-out 1.2s forwards; }
+.board .cell { opacity: 0; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes fade { to { opacity: 1; } }
+.reveal { margin-top: 1.5vh; font-size: clamp(18px, 2vw, 28px); font-weight: 700; opacity: 0; }
+.slide.on .reveal { animation: fade .6s ease-out 1.8s forwards; }
+.reveal span { color: var(--blue); }
 
 /* 2막 비교 */
 .compare { margin-top: 30px; border-radius: 22px; overflow: hidden; border: 1px solid var(--line); background: var(--card); }
@@ -140,19 +159,35 @@ h2 em { font-style: normal; color: var(--blue); }
 <main class="deck" id="deck">
 
   <!-- 0. 표지 -->
-  <section class="slide cover" data-act="0" data-note="안녕하세요, 키로톤 팀 018입니다. 저희가 만든 앱은 '하루'입니다. 한 줄로 말하면, 기록하지 않아도 기억되는 하루. 지금부터 왜 이 앱이 필요한지, 무엇이 다른지, 그리고 실제로 어떻게 동작하는지 보여드리겠습니다.">
-    <span class="brand">KIROTHON · TEAM 018</span>
+  <section class="slide cover" data-act="0" data-note="안녕하세요, 키로톤에 참가한 Kiro비컴휴먼 팀입니다. 저희가 만든 앱은 '하루'입니다. 한 줄로 말하면, 기록하지 않아도 기억되는 하루. 지금부터 왜 이 앱이 필요한지, 무엇이 다른지, 그리고 실제로 어떻게 동작하는지 보여드리겠습니다.">
+    <span class="brand">KIROTHON · Kiro비컴휴먼</span>
     <h1>하루<span>.</span></h1>
     <div class="sub">기록하지 않아도 <b>기억되는</b> 하루</div>
     <div class="meta"><span>위치 · 사진 · 시간 자동 기록</span><span>AI가 "무엇을 했나" 정리</span><span>물어보면 찾아 주는 내 삶의 검색엔진</span></div>
     <svg class="orbit" viewBox="0 0 400 400" aria-hidden="true" id="cover-ring"></svg>
   </section>
 
+  <!-- 1-a. 숫자 찾기 (칸 없음) -->
+  <section class="slide" data-act="1" id="hunt" data-note="시작하기 전에 하나만 해 보겠습니다. 화면에 1부터 27까지 숫자가 흩어져 있습니다. 1부터 차례대로 찾아보세요. 1, 2, 3… 생각보다 오래 걸리죠? 숫자는 다 있는데, 어디에 있는지 모르니까 하나하나 훑어봐야 합니다.">
+    <div class="hunt-head">
+      <div><div class="act"><b>01</b> 동기부여</div><h2>1부터 27까지, <em>순서대로</em> 찾아보세요</h2></div>
+      <div class="timer" id="timer"><small>걸린 시간</small><span>0.0</span>초</div>
+    </div>
+    <div class="board"><svg id="board-a" viewBox="0 0 1200 640" preserveAspectRatio="xMidYMid meet" aria-label="1부터 27까지 흩어진 숫자"></svg></div>
+  </section>
+
+  <!-- 1-b. 칸 보여주기 -->
+  <section class="slide" data-act="1" id="grid" data-note="이번엔 똑같은 화면에 선만 그어 보겠습니다. 숫자 위치는 하나도 바뀌지 않았습니다. 그런데 이제 보이시죠? 1, 2, 3은 첫 번째 칸, 4, 5, 6은 두 번째 칸. 칸만 생겨도 바로 찾을 수 있습니다. 정보가 아무리 많아도 나뉘어 있으면 찾을 수 있고, 나뉘어 있지 않으면 못 찾습니다. 우리의 하루도 똑같습니다.">
+    <div><div class="act"><b>01</b> 동기부여</div><h2>숫자는 그대로, <em>칸만</em> 그었습니다</h2></div>
+    <div class="board grid"><svg id="board-b" viewBox="0 0 1200 640" preserveAspectRatio="xMidYMid meet" aria-label="같은 숫자를 9칸으로 나눈 화면"></svg></div>
+    <div class="reveal">정보가 같아도, <span>나뉘어 있으면 찾을 수 있습니다.</span> 우리의 하루도 마찬가지입니다.</div>
+  </section>
+
   <!-- 1. 동기부여 -->
-  <section class="slide" data-act="1" data-note="여러분, 작년 크리스마스에 뭐 하셨는지 바로 기억나세요? 저번에 강원도 갔던 게 며칠이었는지는요? 성수동에서 맛있게 먹었던 그 파스타집 이름은요? 답은 분명히 어딘가에 있습니다. 내 폰은 그날 어디 있었는지 알고, 사진도 찍었죠. 그런데 그걸 꺼내려면 사진첩을 한참 스크롤하고, 지도 앱을 뒤지고, 그래도 못 찾습니다. 일기를 쓰면 되지만, 우리는 쓰지 않습니다. 그래서 생각했습니다. 쓰지 않아도 쓰이는 일기, 내 삶을 검색할 수 있는 앱을 만들자.">
+  <section class="slide" data-act="1" data-note="우리의 기억이 바로 칸 없는 숫자판입니다. 여러분, 작년 크리스마스에 뭐 하셨는지 바로 기억나세요? 저번에 강원도 갔던 게 며칠이었는지는요? 성수동에서 맛있게 먹었던 그 파스타집 이름은요? 답은 분명히 어딘가에 있습니다. 내 폰은 그날 어디 있었는지 알고, 사진도 찍었죠. 그런데 그걸 꺼내려면 사진첩을 한참 스크롤하고, 지도 앱을 뒤지고, 그래도 못 찾습니다. 일기를 쓰면 되지만, 우리는 쓰지 않습니다. 그래서 생각했습니다. 쓰지 않아도 쓰이는 일기, 내 삶을 검색할 수 있는 앱을 만들자.">
     <div class="act"><b>01</b> 동기부여</div>
     <h2>그때 나는 <em>어디서 뭘 했지?</em></h2>
-    <p class="lead">답은 이미 폰 안에 있습니다. 폰은 내가 어디에 있었는지 알고, 그날 사진도 찍었습니다. 그런데 꺼낼 방법이 없습니다.</p>
+    <p class="lead">하루는 칸 없이 흩어진 숫자와 같습니다. 답은 이미 폰 안에 있습니다. 폰은 내가 어디에 있었는지 알고, 그날 사진도 찍었습니다. 그런데 꺼낼 방법이 없습니다.</p>
     <div class="qs">
       <div class="q"><span class="bubble">"작년 크리스마스에 뭐 했더라?"</span><span class="then">사진첩을 12월까지 스크롤 → 사진이 없는 시간은 <b>공백</b></span></div>
       <div class="q"><span class="bubble">"저번에 강원도 간 게 며칠이었지?"</span><span class="then">카톡 대화, 카드 내역, 지도 앱을 뒤진다 → <b>10분째 검색 중</b></span></div>
@@ -200,7 +235,7 @@ h2 em { font-style: normal; color: var(--blue); }
   </section>
 
   <!-- 4. 마무리 -->
-  <section class="slide" data-act="4" data-note="정리하겠습니다. 하루는 입력 없이 하루를 기록하고, 머문 곳에 의미를 붙이고, 사진과 영상을 그 장소에 묶고, 물어보면 근거와 함께 답합니다. 위치는 가장 민감한 데이터이기 때문에, 데이터는 전부 폰에만 저장하고 AI에는 질문에 필요한 조회 결과만 보냅니다. 오른쪽은 실제 시연 영상입니다. 기록하지 않아도 기억되는 하루. 하루였습니다. 감사합니다.">
+  <section class="slide" data-act="4" id="close" data-note="정리하겠습니다. 하루는 입력 없이 하루를 기록하고, 머문 곳에 의미를 붙이고, 사진과 영상을 그 장소에 묶고, 물어보면 근거와 함께 답합니다. 위치는 가장 민감한 데이터이기 때문에, 데이터는 전부 폰에만 저장하고 AI에는 질문에 필요한 조회 결과만 보냅니다. 오른쪽은 실제 시연 영상입니다. 기록하지 않아도 기억되는 하루. 하루였습니다. 감사합니다.">
     <div class="act"><b>04</b> 마무리</div>
     <h2>적지 않아도 쓰이는 일기, <em>내 삶의 검색엔진</em></h2>
     <div class="close-grid">
@@ -224,7 +259,7 @@ h2 em { font-style: normal; color: var(--blue); }
 
 <div class="bar">
   <div class="acts" id="acts">
-    <button type="button" data-go="0">표지</button><button type="button" data-go="1">1 동기</button><button type="button" data-go="2">2 차별점</button><button type="button" data-go="3">3 시현</button><button type="button" data-go="4">4 마무리</button>
+    <button type="button" data-go="0">표지</button><button type="button" data-go="1">1 동기</button><button type="button" data-go="4">2 차별점</button><button type="button" data-go="5">3 시현</button><button type="button" data-go="6">4 마무리</button>
   </div>
   <div class="prog"><i id="prog"></i></div>
   <span class="keys">← → 넘기기 · N 대본</span>
@@ -288,6 +323,7 @@ const STEPS = [
 const slides = [...document.querySelectorAll('.slide')];
 const app = document.getElementById('app');
 let cur = 0, step = 0;
+const DEMO = slides.findIndex(s => s.id === 'demo');
 
 function sendStep() {
   const s = STEPS[step];
@@ -306,10 +342,12 @@ function setNote(t) { document.getElementById('notes-text').textContent = t || '
 function go(i) {
   cur = Math.max(0, Math.min(slides.length - 1, i));
   slides.forEach((s, k) => s.classList.toggle('on', k === cur));
-  document.querySelectorAll('#acts button').forEach(b => b.setAttribute('aria-current', +b.dataset.go === cur));
+  const act = +slides[cur].dataset.act;
+  document.querySelectorAll('#acts button').forEach(b => b.setAttribute('aria-current', +slides[+b.dataset.go].dataset.act === act));
   if (slides[cur].id === 'demo') sendStep(); else setNote(slides[cur].dataset.note);
+  slides[cur].id === 'hunt' ? startTimer() : stopTimer();
   const total = slides.length - 1 + STEPS.length - 1;
-  const pos = cur < 3 ? cur : cur === 3 ? 3 + step : total;
+  const pos = cur < DEMO ? cur : cur === DEMO ? DEMO + step : total;
   document.getElementById('prog').style.width = (pos / total * 100) + '%';
   try { history.replaceState(null, '', '#' + cur); } catch (e) {}
 }
@@ -319,13 +357,13 @@ function next() {
 }
 function prev() {
   if (slides[cur].id === 'demo' && step > 0) { step--; return go(cur); }
-  if (cur === 4) step = STEPS.length - 1;
+  if (slides[cur - 1] && slides[cur - 1].id === 'demo') step = STEPS.length - 1;
   go(cur - 1);
 }
 
 document.getElementById('steps').innerHTML = STEPS.map((s, i) => `<button type="button" data-i="${i}"><b>${i + 1}</b>${s.page.split(' · ').pop()}</button>`).join('');
-document.querySelectorAll('#steps button').forEach(b => b.addEventListener('click', () => { step = +b.dataset.i; go(3); }));
-document.querySelectorAll('#acts button').forEach(b => b.addEventListener('click', () => { if (+b.dataset.go === 3) step = 0; go(+b.dataset.go); }));
+document.querySelectorAll('#steps button').forEach(b => b.addEventListener('click', () => { step = +b.dataset.i; go(DEMO); }));
+document.querySelectorAll('#acts button').forEach(b => b.addEventListener('click', () => { if (+b.dataset.go === DEMO) step = 0; go(+b.dataset.go); }));
 document.getElementById('next').addEventListener('click', next);
 document.getElementById('prev').addEventListener('click', prev);
 document.addEventListener('keydown', e => {
@@ -365,6 +403,45 @@ window.addEventListener('resize', fit); fit();
 const vbox = document.getElementById('video'), vid = vbox.querySelector('video');
 vid.addEventListener('error', () => vbox.classList.add('missing'));
 fetch(vid.getAttribute('src'), { method: 'HEAD' }).then(r => { if (!r.ok) vbox.classList.add('missing'); }).catch(() => vbox.classList.add('missing'));
+
+
+// 숫자 찾기: 1–3은 1번 칸, 4–6은 2번 칸 … 칸 안에서 위치 · 크기 · 기울기는 제각각
+(function boards() {
+  let seed = 11;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const W = 400, H = 213.3, cells = [];
+  const order = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+  let nums = '';
+  order.forEach(ci => {
+    const cx = (ci % 3) * W, cy = Math.floor(ci / 3) * H;
+    cells.push([cx, cy]);
+    // 칸 하나에 숫자 3개: 칸을 3구역으로 나눠 겹치지 않게 흩뿌린다
+    const slots = [0.18, 0.5, 0.82].sort(() => rnd() - .5);
+    for (let k = 0; k < 3; k++) {
+      const n = ci * 3 + k + 1;
+      const size = 34 + Math.round(rnd() * 86);
+      const x = cx + W * Math.min(.86, Math.max(.14, slots[k] + (rnd() - .5) * .2));
+      const y = cy + Math.min(H - 12, Math.max(34 + size * .72, H * (.1 + rnd() * .85) + size * .35));
+      const rot = Math.round((rnd() - .5) * 30);
+      const shade = ['#16191D', '#3D444B', '#5A6168', '#2B3138'][Math.floor(rnd() * 4)];
+      const weight = rnd() > .5 ? 700 : 500;
+      nums += `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" font-family="Barlow Condensed, sans-serif" font-weight="${weight}" font-size="${size}" fill="${shade}" transform="rotate(${rot} ${x.toFixed(1)} ${(y - size * .35).toFixed(1)})">${n}</text>`;
+    }
+  });
+  document.getElementById('board-a').innerHTML = nums;
+  const tint = cells.map(([x, y], i) => `<rect class="cell" x="${x + 6}" y="${y + 6}" width="${W - 12}" height="${H - 12}" rx="14" fill="${i % 2 ? '#E4EAFB' : '#EEF2FD'}"/>`).join('');
+  const lines = [
+    `<line class="gl" x1="400" y1="8" x2="400" y2="632"/>`, `<line class="gl" x1="800" y1="8" x2="800" y2="632"/>`,
+    `<line class="gl" x1="8" y1="213.3" x2="1192" y2="213.3"/>`, `<line class="gl" x1="8" y1="426.6" x2="1192" y2="426.6"/>`
+  ].join('');
+  const labels = cells.map(([x, y], i) => `<text class="cl" x="${x + 16}" y="${y + 28}">${i * 3 + 1}–${i * 3 + 3}</text>`).join('');
+  document.getElementById('board-b').innerHTML = tint + nums + lines + labels;
+})();
+
+// 타이머
+let t0 = 0, tid = 0;
+function startTimer() { stopTimer(); t0 = performance.now(); const el = document.querySelector('#timer span'); tid = setInterval(() => el.textContent = ((performance.now() - t0) / 1000).toFixed(1), 100); }
+function stopTimer() { clearInterval(tid); }
 
 const start = parseInt((location.hash || '#0').slice(1), 10);
 go(Number.isFinite(start) ? start : 0);
