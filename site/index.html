@@ -117,13 +117,15 @@ body.static .bar, body.static .keys { display: none; }
 .tap i { width: 10px; height: 10px; border-radius: 5px; background: var(--orange); box-shadow: 0 0 0 5px rgba(232,106,16,.18); }
 
 /* 4막 마무리 */
-.close-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 4vw; margin-top: 26px; flex: 1; min-height: 0; }
+.close-grid { display: grid; grid-template-columns: 1fr auto; gap: 4vw; margin-top: 26px; flex: 1; min-height: 0; align-items: start; }
 .recap { display: flex; flex-direction: column; gap: 14px; }
 .recap div { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px; display: grid; grid-template-columns: 54px 1fr; gap: 14px; align-items: center; }
 .recap b { font-family: var(--num); font-size: 34px; color: var(--blue); line-height: 1; }
 .recap p { margin: 0; font-size: 16px; line-height: 1.55; color: var(--ink2); }
 .recap p strong { color: var(--ink); display: block; font-size: 18px; }
-.video { border-radius: 22px; overflow: hidden; background: #0F1114; position: relative; aspect-ratio: 16 / 9; align-self: start; width: 100%; }
+/* 시연 영상은 세로형 (9:16) */
+.video { border-radius: 26px; overflow: hidden; background: #0F1114; position: relative; aspect-ratio: 9 / 16; height: min(64vh, 640px); box-shadow: 0 0 0 10px #0F1114, 0 24px 48px rgba(22,25,29,.2); margin: 10px; }
+.video video { object-fit: contain; }
 .video video { width: 100%; height: 100%; display: block; background: #0F1114; }
 .video .ph { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: #C9CEC6; text-align: center; padding: 20px; }
 .video.missing .ph { display: flex; }
@@ -235,11 +237,11 @@ body.static .bar, body.static .keys { display: none; }
           <div><b>1:1</b><p><strong>장소마다 사진 · 영상</strong>타임라인에서 그날 그곳의 장면을 바로 다시 본다</p></div>
           <div><b>≡</b><p><strong>근거 카드가 붙는 답</strong>AI는 조회만 하고, 카드는 실제 DB에서 만든다. 지어낸 날짜가 나올 수 없다</p></div>
         </div>
+        <div class="final">물어보면 찾아 주는 내 삶의 검색엔진, <span>HARU</span>.</div>
         <div class="stack"><b>프라이버시</b> 데이터는 폰의 SQLite에만 저장 · AI에는 SQL 조회 결과만 전달 · 원시 좌표와 집 · 회사 위치는 보내지 않음<br><b>기술</b> Expo(React Native) · SQLite · AWS Lambda 중계 · Amazon Bedrock · Kakao Local</div>
       </div>
       <div>
-        <div class="video" id="video"><video controls preload="metadata" playsinline src="media/demo.mp4"></video><div class="ph"><b>시연 영상</b><span>녹화한 영상을 아래 경로에 넣으면 여기서 재생됩니다</span><code>site/media/demo.mp4</code></div></div>
-        <div class="final">물어보면 찾아 주는 내 삶의 검색엔진, <span>HARU</span>.</div>
+        <div class="video" id="video"><video controls preload="metadata" playsinline src="media/demo.mp4"></video><div class="ph"><b>시연 영상</b><span>세로 영상(9:16)을<br>아래 경로에 넣으면<br>여기서 재생됩니다</span><code>media/demo.mp4</code></div></div>
       </div>
     </div>
   </section>

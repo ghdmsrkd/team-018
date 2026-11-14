@@ -145,7 +145,7 @@ cp backend/secrets.env.example backend/.secrets.env
 | `backend/` | Lambda 중계와 AWS CLI 배포 스크립트 |
 | `packages/schema/` | SQLite DDL, 공용 타입, API 계약 |
 | `site/` | 발표 사이트 (Vercel 배포본의 원본) |
-| `design/` | 앱 디자인 v0.1, 메인 화면 목업 v0.4 |
+| `design/` | [앱 디자인 v0.2 시안](design/haru-app-design-v0.2.html) (v0.1 기준, 최신), [앱 디자인 v0.1](design/haru-app-design.html), 메인 화면 목업 v0.4 |
 | `docs/` | [기획서 v0.2](docs/기획서_v0.2.md), [기능 기획](docs/PLAN.md), [시스템 설계](docs/system-design.html), [유저 스토리](docs/user-stories.html), [앱 인수 안내](docs/app-handoff.md) |
 | `.kiro/` | Kiro steering |
 

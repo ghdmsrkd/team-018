@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HARU 앱 디자인 v0.2</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --bg: #D9DDD6; --paper: #EEF0EC; --card: #FFFFFF; --ink: #16191D; --ink2: #3D444B; --muted: #5A6168; --faint: #8A939B;
+  --line: #D5D9D3; --map: #E2E6DF; --river: #C6D5E0; --road: #F4F5F2; --blue: #1F4FD1; --blue-soft: #F2F5FD; --blue-line: #CBD7F5;
+  --orange: #E86A10; --orange-ink: #A8480A; --dark: #16191D;
+  --num: 'Barlow Condensed', sans-serif; --mono: 'IBM Plex Mono', monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); font-family: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', sans-serif; color: var(--ink); }
+button { font: inherit; color: inherit; }
+a { color: inherit; }
+header.page { padding: 40px 40px 8px; }
+header.page h1 { margin: 0; font-size: 28px; }
+header.page p { margin: 6px 0 0; color: #4A5157; font-size: 14px; line-height: 1.55; max-width: 900px; }
+.changes { margin: 18px 40px 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; max-width: 1240px; }
+.changes div { background: rgba(255,255,255,.55); border: 1px solid #C9CEC6; border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.5; }
+.changes b { display: block; font-size: 13px; margin-bottom: 2px; }
+.changes i { font-style: normal; font-family: var(--mono); font-size: 10px; letter-spacing: .06em; color: var(--blue); }
+.board { display: flex; flex-wrap: wrap; gap: 48px 40px; padding: 36px 40px 80px; }
+.screen { display: flex; flex-direction: column; gap: 12px; scroll-margin-top: 24px; }
+.label { margin: 0; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.label a { text-decoration: none; }
+.label small { font-weight: 400; color: var(--muted); }
+.label .new { font-family: var(--mono); font-size: 10px; letter-spacing: .06em; color: #FFFFFF; background: var(--blue); border-radius: 4px; padding: 1px 5px; }
+.label .upd { font-family: var(--mono); font-size: 10px; letter-spacing: .06em; color: var(--blue); border: 1px solid var(--blue); border-radius: 4px; padding: 0 5px; }
+.device { width: 390px; height: 844px; border-radius: 28px; overflow: hidden; background: var(--paper); box-shadow: 0 0 0 1px rgba(22,25,29,.12), 0 12px 32px rgba(22,25,29,.12); display: flex; flex-direction: column; position: relative; }
+.screen:target .device { box-shadow: 0 0 0 3px var(--blue), 0 12px 32px rgba(22,25,29,.18); }
+.scroll { flex: 1; overflow-y: auto; scrollbar-width: none; }
+.scroll::-webkit-scrollbar { display: none; }
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--muted); }
+.n { font-family: var(--num); }
+.chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; border: 1.5px solid var(--ink); border-radius: 5px; padding: 0 6px; line-height: 18px; white-space: nowrap; }
+.chip.ai { border: 1px solid var(--line); font-weight: 600; }
+.chip.ai em { font-style: normal; font-family: var(--mono); font-size: 9px; color: var(--blue); }
+.chip.none { border: 1px dashed var(--faint); color: var(--blue); font-weight: 500; text-decoration: none; }
+.dot { width: 8px; height: 8px; border-radius: 3px; display: inline-block; flex: none; }
+.btn { height: 50px; border-radius: 14px; border: 0; background: var(--ink); color: #FFFFFF; font-size: 16px; font-weight: 700; width: 100%; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+.btn.ghost { background: var(--card); color: var(--ink); border: 1px solid var(--line); font-weight: 600; }
+.btn.blue { background: var(--blue); }
+.btn:disabled { background: #E2E6DF; color: var(--faint); cursor: default; }
+.round { width: 44px; height: 44px; border-radius: 22px; border: 1px solid var(--line); background: var(--card); display: grid; place-items: center; cursor: pointer; text-decoration: none; }
+
+/* 탭바 (v0.1과 같은 3탭, 두 번째가 타임라인으로) */
+nav.tabs { height: 84px; padding: 8px 28px 24px; background: #FFFFFF; border-top: 1px solid var(--line); display: flex; justify-content: space-between; flex-shrink: 0; }
+nav.tabs a { width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: var(--muted); font-size: 11px; font-weight: 500; }
+nav.tabs a[aria-current="page"] { color: var(--blue); font-weight: 600; }
+
+/* 오늘 */
+.periods { margin: 14px 20px 0; padding: 3px; border-radius: 11px; background: var(--map); display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; }
+.periods button { height: 30px; border: 0; border-radius: 8px; background: transparent; font-size: 12px; font-weight: 500; color: var(--muted); cursor: pointer; }
+.periods button[aria-pressed="true"] { background: var(--card); color: var(--ink); font-weight: 700; box-shadow: 0 1px 2px rgba(22,25,29,.12); }
+.ringbox { position: relative; width: 290px; height: 290px; margin: 12px auto 0; }
+.ringbox svg { display: block; overflow: visible; }
+.ringbox .mid { position: absolute; inset: 70px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; pointer-events: none; }
+.mid .k { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.mid .v { font-family: var(--num); font-weight: 700; font-size: 44px; line-height: 1; margin-top: 4px; }
+.mid .s { font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.35; }
+.taglist { margin: 6px 20px 0; border-radius: 16px; background: var(--card); border: 1px solid var(--line); }
+.taglist .row { display: grid; grid-template-columns: 10px 1fr auto; gap: 10px; align-items: center; padding: 11px 14px; border-top: 1px solid #ECEEEA; font-size: 14px; font-weight: 600; }
+.taglist .row:first-child { border-top: 0; }
+.taglist .row b { font-family: var(--num); font-size: 19px; font-weight: 600; }
+.taglist .row small { font-size: 11px; font-weight: 600; margin-left: 6px; }
+.up { color: #2F8A5B; } .down { color: #B5452E; }
+.aicard { margin: 10px 20px 20px; padding: 14px; border-radius: 16px; background: var(--blue-soft); border: 1px solid var(--blue-line); font-size: 14px; line-height: 1.6; }
+.aicard .eyebrow { color: var(--blue); display: flex; justify-content: space-between; margin-bottom: 6px; }
+
+/* 타임라인 (v0.1 오늘 타임라인 문법 그대로) */
+.tl { display: grid; grid-template-columns: 52px 24px minmax(0, 1fr); column-gap: 8px; padding: 0 20px; }
+.tl .t { display: flex; flex-direction: column; padding-top: 1px; }
+.tl .t b { font-family: var(--num); font-weight: 600; font-size: 21px; line-height: 1; }
+.tl .t span { font-family: var(--num); font-size: 15px; color: var(--muted); }
+.tl .rail { position: relative; }
+.tl .rail::before { content: ""; position: absolute; left: 11px; top: 10px; bottom: 0; width: 3px; background: var(--ink); }
+.tl .rail.go::before { top: 0; border-left: 3px dotted var(--ink); width: 0; background: none; }
+.tl .rail.sub::before { top: 0; background: var(--blue); }
+.tl .rail.end::before { height: 8px; bottom: auto; top: 0; background: var(--blue); }
+.tl .stop { position: absolute; left: 3px; top: 2px; width: 13px; height: 13px; border-radius: 9px; border: 3px solid var(--ink); background: #FFFFFF; }
+.tl .stop.now { left: 5px; top: 3px; width: 11px; height: 11px; border: 3px solid #FFFFFF; background: var(--orange); box-shadow: 0 0 0 6px rgba(232,106,16,.2); }
+.tl .what { padding-bottom: 16px; display: flex; flex-direction: column; gap: 6px; }
+.tl .what > b { font-size: 15px; font-weight: 600; }
+.tl .meta { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.tl .gap { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; padding: 4px 0 14px; }
+.tl .gap.sub { color: var(--blue); font-weight: 500; }
+.media { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; border-radius: 12px; overflow: hidden; }
+.media.two { grid-template-columns: 1.6fr 1fr; }
+.ph { position: relative; aspect-ratio: 1; display: block; text-decoration: none; }
+.media.two .ph { aspect-ratio: auto; height: 132px; }
+.ph .vid { position: absolute; left: 6px; bottom: 6px; background: rgba(22,25,29,.72); color: #FFFFFF; font-family: var(--mono); font-size: 10px; padding: 2px 6px; border-radius: 5px; }
+.ph .more { position: absolute; inset: 0; background: rgba(22,25,29,.45); color: #FFFFFF; display: grid; place-items: center; font-family: var(--num); font-size: 22px; font-weight: 600; }
+.dayhead { position: sticky; top: 0; z-index: 2; background: rgba(238,240,236,.95); backdrop-filter: blur(6px); padding: 12px 20px 10px; margin-bottom: 14px; display: flex; align-items: baseline; gap: 8px; border-bottom: 1px solid var(--line); }
+.dayhead b { font-family: var(--num); font-weight: 700; font-size: 26px; line-height: 1; }
+.dayhead span { font-size: 13px; font-weight: 600; }
+.dayhead small { margin-left: auto; font-size: 12px; color: var(--muted); }
+.filters { display: flex; gap: 6px; padding: 12px 20px 0; }
+.filters button { height: 30px; padding: 0 12px; border-radius: 15px; border: 1px solid var(--line); background: var(--card); font-size: 12px; font-weight: 500; cursor: pointer; }
+.filters button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #FFFFFF; font-weight: 600; }
+
+/* 여행 노선 카드 (v0.1 여행 카드 문법) */
+.trip { margin: 0 20px 18px; border-radius: 16px; background: var(--card); border: 1px solid var(--line); overflow: hidden; }
+.trip .cover { height: 104px; position: relative; }
+.trip .cover span { position: absolute; left: 12px; top: 10px; font-family: var(--mono); font-size: 10px; letter-spacing: .06em; color: #FFFFFF; background: rgba(22,25,29,.5); padding: 2px 6px; border-radius: 4px; }
+.trip .body { padding: 12px 14px 14px; }
+.trip .hd { display: flex; justify-content: space-between; align-items: baseline; }
+.trip .hd b { font-size: 16px; font-weight: 700; }
+.trip .hd span { font-family: var(--num); font-size: 16px; color: var(--muted); }
+.line { position: relative; height: 44px; margin: 10px 4px 0; }
+.line::before { content: ""; position: absolute; left: 6px; right: 6px; top: 6px; height: 4px; background: var(--blue); }
+.line .st { position: absolute; top: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); white-space: nowrap; }
+.line .st i { width: 16px; height: 16px; border-radius: 9px; border: 3px solid var(--blue); background: #FFFFFF; }
+.line .st.end i { border-color: var(--ink); }
+.line .st b { color: var(--ink); font-weight: 600; }
+.trip .ft { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); margin-top: 4px; }
+.trip .ft a { color: var(--blue); font-weight: 600; text-decoration: none; }
+.strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; margin-top: 10px; }
+.strip .ph { border-radius: 6px; }
+
+/* 물어보기 (v0.1 문법) */
+.me { align-self: flex-end; max-width: 80%; background: var(--ink); color: #FFFFFF; padding: 10px 14px; border-radius: 16px 16px 4px 16px; font-size: 15px; line-height: 1.45; }
+.ans { font-size: 15px; line-height: 1.6; }
+.ans .big { font-family: var(--num); font-size: 30px; font-weight: 700; color: var(--blue); line-height: 0; margin: 0 2px; }
+.ev { border-radius: 14px; background: var(--card); border: 1px solid var(--line); padding: 12px 14px; }
+.ev .eyebrow { display: flex; justify-content: space-between; font-size: 10px; }
+.evrow { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 9px 0; border-top: 1px solid #ECEEEA; font-size: 13px; }
+.evrow:first-of-type { border-top: 0; }
+.evrow b { font-weight: 600; }
+.evrow span { color: var(--muted); font-size: 12px; }
+.evrow a { font-size: 12px; color: var(--blue); font-weight: 600; text-decoration: none; }
+.sugg { display: flex; gap: 6px; padding: 0 20px 10px; flex-wrap: wrap; }
+.sugg span { font-size: 12px; border: 1px solid var(--line); background: var(--card); border-radius: 15px; padding: 7px 11px; }
+.askbar { display: flex; gap: 8px; padding: 0 20px 14px; }
+.askbar div { flex: 1; height: 46px; border-radius: 23px; background: var(--card); border: 1px solid var(--line); display: flex; align-items: center; padding: 0 16px; font-size: 14px; color: var(--faint); }
+.askbar span { width: 46px; height: 46px; border-radius: 23px; background: var(--ink); color: #FFFFFF; display: grid; place-items: center; }
+
+/* 태그 */
+.tagset { display: flex; flex-wrap: wrap; gap: 6px; }
+.pick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.pick button { height: 46px; border-radius: 12px; border: 1px solid var(--line); background: var(--card); font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.pick button[aria-pressed="true"] { border: 2px solid var(--ink); background: #F4F6F2; }
+.inbox-item { padding: 12px 14px; border-top: 1px solid #ECEEEA; display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; }
+.inbox-item:first-child { border-top: 0; }
+.inbox-item b { font-size: 15px; }
+.inbox-item p { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.45; grid-column: 1; }
+.inbox-item .act { grid-row: 1 / 4; grid-column: 2; }
+.pill { height: 34px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; text-decoration: none; display: inline-flex; align-items: center; }
+.pill.dark { background: var(--ink); color: #FFFFFF; border-color: var(--ink); }
+
+/* 다크 하루 카드 */
+.dark { background: var(--dark); color: #FFFFFF; }
+.dark .eyebrow { color: #8A939B; }
+
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<header class="page">
+  <h1>HARU 앱 디자인 v0.2</h1>
+  <p>victor의 <a href="haru-app-design.html">앱 디자인 v0.1</a>을 기준으로 한 시안입니다. 색 · 글꼴 · 노선도 문법(파란 이동선, 동그라미 정류장, 주황 "지금")은 그대로 두고, 그 뒤에 정해진 것을 반영했습니다. 화면 안의 탭 · 링크 · 버튼으로 화면을 오갈 수 있고, 오늘의 기간 탭, 도넛 조각, 타임라인 필터, 재생 배속, 태그 고르기는 실제로 동작합니다. 데이터는 더미 페르소나 기준입니다.</p>
+</header>
+<section class="changes" aria-label="v0.1에서 바뀐 점">
+  <div><i>NAME</i><b>하루 → HARU</b>"물어보면 찾아 주는 내 삶의 검색엔진"</div>
+  <div><i>오늘</i><b>지도 → 24시간 도넛</b>머문 곳이 실제 시간 위치에 태그 색으로. 하루 · 한 주 · 한 달 · 1년</div>
+  <div><i>TAB 2</i><b>여행 → 타임라인</b>머문 곳마다 사진 · 영상, 여행은 노선 카드로 묶음</div>
+  <div><i>NEW</i><b>사진 · 영상 보기</b>촬영 시각 · 위치로 방문에 자동 연결</div>
+  <div><i>물어보기</i><b>근거 카드 목록</b>횟수 질문에 방문 전부를 카드로, 카드 → 재생</div>
+  <div><i>하루 카드 · 재생</i><b>미니 도넛 · 정류장 사진</b>시간 막대를 도넛으로, 재생 중 멈춘 곳에 사진</div>
+</section>
+
+<main class="board">
+
+<!-- 1. 온보딩 -->
+<section class="screen" id="Onboarding">
+  <h2 class="label"><a href="#Onboarding">온보딩</a><span class="upd">UPDATED</span><small>US-01, US-03</small></h2>
+  <div class="device">
+    <div style="padding: 64px 24px 36px; display: flex; flex-direction: column; height: 100%">
+      <span class="eyebrow">HARU</span>
+      <div style="margin-top: 34px; height: 140px; position: relative">
+        <div style="position: absolute; left: 6px; right: 6px; top: 56px; height: 4px; background: var(--ink)"></div>
+        <div style="position: absolute; left: 196px; right: 6px; top: 56px; height: 4px; background: var(--blue)"></div>
+        <div style="position: absolute; left: 0; top: 46px; width: 18px; height: 18px; border-radius: 12px; border: 4px solid var(--ink); background: #FFFFFF"></div>
+        <span class="n" style="position: absolute; left: 0; top: 14px; font-size: 22px; font-weight: 600">08:10</span>
+        <span style="position: absolute; left: 0; top: 84px; font-size: 13px; font-weight: 600">집</span>
+        <div style="position: absolute; left: 94px; top: 50px; width: 10px; height: 10px; border-radius: 8px; border: 4px solid var(--ink); background: #FFFFFF"></div>
+        <span class="n" style="position: absolute; left: 86px; top: 18px; font-size: 18px; color: var(--muted)">09:02</span>
+        <span style="position: absolute; left: 88px; top: 84px; font-size: 12px; color: var(--muted)">카페</span>
+        <div style="position: absolute; left: 82px; top: 108px; width: 34px; height: 26px; border-radius: 5px; background: linear-gradient(170deg, #DCCDB8, #A57D58 50%, #5A4231)"></div>
+        <div style="position: absolute; left: 186px; top: 46px; width: 18px; height: 18px; border-radius: 12px; border: 4px solid var(--ink); background: #FFFFFF"></div>
+        <span class="n" style="position: absolute; left: 180px; top: 14px; font-size: 22px; font-weight: 600">09:40</span>
+        <span style="position: absolute; left: 182px; top: 84px; font-size: 13px; font-weight: 600">회사</span>
+        <div style="position: absolute; right: 2px; top: 44px; width: 22px; height: 22px; border-radius: 12px; background: var(--orange); border: 4px solid #FFFFFF; box-shadow: 0 0 0 6px rgba(232,106,16,.2)"></div>
+        <span class="n" style="position: absolute; right: 0; top: 14px; font-size: 22px; font-weight: 600; color: var(--orange-ink)">19:30</span>
+        <span style="position: absolute; right: 0; top: 84px; font-size: 13px; font-weight: 600">저녁 약속</span>
+        <div style="position: absolute; right: 64px; top: 108px; width: 34px; height: 26px; border-radius: 5px; background: radial-gradient(circle at 50% 50%, #F4D58C 0 30%, #D2603A 31% 40%, #F7F4EE 41% 62%, #C9C2B5 63%)"></div>
+      </div>
+      <h3 style="margin: 30px 0 0; font-size: 30px; line-height: 1.3; letter-spacing: -.02em">물어보면 찾아 주는<br>내 삶의 검색엔진</h3>
+      <p style="margin: 12px 0 0; font-size: 15px; line-height: 1.6; color: var(--ink2)">휴대폰이 머문 곳과 그때 찍은 사진을 기억해 두면, 하루를 칸으로 나눠 보여주고 물어보면 찾아 줘요.</p>
+      <div style="margin-top: 22px; display: flex; flex-direction: column; gap: 14px; font-size: 14px; line-height: 1.5">
+        <div style="display: grid; grid-template-columns: 28px 1fr; gap: 8px"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M11 20s-6-5.6-6-10a6 6 0 0 1 12 0c0 4.4-6 10-6 10z"/><circle cx="11" cy="10" r="2.2"/></svg><span><b>머문 곳 단위로 기록해요.</b> 어디에 몇 시부터 몇 시까지 있었는지가 남아요.</span></div>
+        <div style="display: grid; grid-template-columns: 28px 1fr; gap: 8px"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="16" height="13" rx="2.5"/><circle cx="11" cy="11.5" r="3.2"/><path d="M8 5l1.2-2h3.6L14 5"/></svg><span><b>그때 찍은 사진 · 영상이 그 장소에 붙어요.</b> 사진은 폰 밖으로 나가지 않아요.</span></div>
+        <div style="display: grid; grid-template-columns: 28px 1fr; gap: 8px"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4.5" y="10" width="13" height="9" rx="2"/><path d="M7.5 10V7a3.5 3.5 0 0 1 7 0v3"/></svg><span><b>질문에 답할 때 필요한 기록만 써요.</b> 위치 좌표를 통째로 AI에 넘기지 않아요.</span></div>
+      </div>
+      <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
+        <span style="font-size: 12px; color: var(--muted)">다음 화면에서 <b>'항상 허용'</b>과 <b>사진 접근</b>을 고르면 앱을 닫아도 기록돼요.</span>
+        <a class="btn" href="#Today">위치 · 사진 권한 허용하고 시작하기</a>
+        <a class="btn ghost" href="#Today">샘플 하루로 먼저 둘러보기</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. 오늘 -->
+<section class="screen" id="Today">
+  <h2 class="label"><a href="#Today">오늘</a><span class="upd">UPDATED</span><small>US-09, US-11 · 지도 → 24시간 도넛</small></h2>
+  <div class="device">
+    <div class="scroll">
+      <div style="padding: 58px 20px 0; display: flex; justify-content: space-between; align-items: flex-end">
+        <div style="display: flex; flex-direction: column; gap: 2px">
+          <span class="eyebrow" id="t-eyebrow">2026 · SAT</span>
+          <div style="display: flex; align-items: baseline; gap: 10px"><span class="n" id="t-big" style="font-weight: 700; font-size: 64px; line-height: .9; letter-spacing: -.01em">11.14</span><span id="t-sub" style="font-size: 17px; font-weight: 600">오늘</span></div>
+        </div>
+        <span class="round" aria-label="다른 날짜 보기"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4.5" width="14" height="12.5" rx="2"/><path d="M3 8.5h14M7 2.5v4M13 2.5v4"/></svg></span>
+      </div>
+      <div style="padding: 14px 20px 0; display: flex; gap: 18px; font-size: 13px; color: var(--muted)" id="t-stats"></div>
+      <div class="periods" id="t-periods">
+        <button type="button" data-p="day" aria-pressed="true">하루</button><button type="button" data-p="week" aria-pressed="false">한 주</button><button type="button" data-p="month" aria-pressed="false">한 달</button><button type="button" data-p="year" aria-pressed="false">1년</button>
+      </div>
+      <div class="ringbox"><svg id="t-ring" width="290" height="290" viewBox="0 0 290 290"></svg><div class="mid" id="t-mid"></div></div>
+      <div class="taglist" id="t-list"></div>
+      <div class="aicard"><div class="eyebrow"><span>AI 요약</span><span id="t-conf">확신 87%</span></div><span id="t-sum"></span></div>
+    </div>
+    <nav class="tabs" data-current="Today"></nav>
+  </div>
+</section>
+
+<!-- 3. 타임라인 -->
+<section class="screen" id="Timeline">
+  <h2 class="label"><a href="#Timeline">타임라인</a><span class="new">NEW</span><small>US-10, US-23 · 여행 탭을 대신함</small></h2>
+  <div class="device">
+    <div style="padding: 58px 20px 0">
+      <span class="eyebrow">TIMELINE</span>
+      <div style="font-size: 26px; font-weight: 700; margin-top: 2px">타임라인</div>
+    </div>
+    <div class="filters" id="tl-filters"><button type="button" data-f="all" aria-pressed="true">전체</button><button type="button" data-f="media" aria-pressed="false">사진 · 영상</button><button type="button" data-f="trip" aria-pressed="false">여행</button></div>
+    <div class="scroll" style="margin-top: 12px" id="tl-body">
+      <div data-g="day">
+        <div class="dayhead"><b>11.14</b><span>토 · 오늘</span><small>3곳 · 9.4km · 사진 6 · 영상 1</small></div>
+        <div class="tl">
+          <div class="t"><b>00:00</b><span>09:50</span></div><div class="rail"><i class="stop"></i></div>
+          <div class="what"><b>집 · 망원동</b><span class="meta"><span class="chip">집</span>9시간 50분</span></div>
+          <div></div><div class="rail go"></div><div class="gap">도보 6분 · 450m</div>
+          <div class="t" data-m><b>10:20</b><span>11:05</span></div><div class="rail" data-m><i class="stop"></i></div>
+          <div class="what" data-m><b>오전 커피 · 망원동</b><span class="meta"><span class="chip ai">커피 <em>AI</em></span>45분 · 사진 2</span>
+            <div class="media two"><a class="ph" href="#Media" style="background: radial-gradient(circle at 50% 45%, #F3E6D3 0 22%, #B98A5E 23% 34%, #6E4A30 35% 60%, #3A2A20 61%)"></a><a class="ph" href="#Media" style="background: linear-gradient(170deg, #DCCDB8, #A57D58 50%, #5A4231)"></a></div></div>
+          <div></div><div class="rail sub"></div><div class="gap sub"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="1.5" width="9" height="9" rx="2"/><path d="M4 12.5l1.5-2M10 12.5l-1.5-2M2.5 7h9"/></svg>지하철 · 41분 · 8.9km</div>
+          <div class="t" data-m><b>11:40</b><span style="color: var(--orange-ink)">지금</span></div><div class="rail end" data-m><i class="stop now"></i></div>
+          <div class="what" data-m><b>키로톤 행사장 · 성수동</b><span class="meta"><a class="chip none" href="#Tag">태그 없음 · 달기</a>머무는 중 · 사진 4 · 영상 1</span>
+            <div class="media"><a class="ph" href="#Media" style="background: linear-gradient(160deg, #D7DEF5, #7E92D8 45%, #2B3A7A)"><span class="vid">▶ 0:24</span></a><a class="ph" href="#Media" style="background: linear-gradient(180deg, #1B1F2A 30%, #3E64E0 31%, #9DB2F2 70%, #1B1F2A 71%)"></a><a class="ph" href="#Media" style="background: linear-gradient(150deg, #F2D6B8, #D79C6A 40%, #47546B)"><span class="more">+2</span></a></div></div>
+        </div>
+      </div>
+      <div data-g="day">
+        <div class="dayhead"><b>11.13</b><span>금 · 어제</span><small>4곳 · 18.2km · 사진 3</small></div>
+        <div class="tl">
+          <div class="t"><b>09:12</b><span>18:40</span></div><div class="rail"><i class="stop"></i></div>
+          <div class="what"><b>회사 · 성수동</b><span class="meta"><span class="chip">회사</span>9시간 28분</span></div>
+          <div class="t" data-m><b>12:10</b><span>13:00</span></div><div class="rail" data-m><i class="stop"></i></div>
+          <div class="what" data-m><b>파스타 바 · 성수동</b><span class="meta"><span class="chip ai">밥집 <em>AI</em></span>50분 · 사진 3</span>
+            <div class="media"><a class="ph" href="#Media" style="background: radial-gradient(circle at 50% 50%, #F4D58C 0 30%, #D2603A 31% 40%, #F7F4EE 41% 62%, #C9C2B5 63%)"></a><a class="ph" href="#Media" style="background: radial-gradient(circle at 40% 55%, #F0C27A 0 26%, #C4502E 27% 36%, #F7F4EE 37% 60%, #BDB5A8 61%)"></a><a class="ph" href="#Media" style="background: linear-gradient(170deg, #DCCDB8, #A57D58 50%, #5A4231)"></a></div></div>
+          <div></div><div class="rail sub"></div><div class="gap sub">지하철 · 38분 · 8.6km</div>
+          <div class="t"><b>19:30</b><span>20:40</span></div><div class="rail"><i class="stop"></i></div>
+          <div class="what"><b>망원 피트니스</b><span class="meta"><span class="chip">운동</span>1시간 10분</span></div>
+        </div>
+      </div>
+      <div data-g="trip">
+        <div class="dayhead"><b>10.03 – 10.05</b><span>여행</span><small>2박 3일</small></div>
+        <div class="trip">
+          <div class="cover" style="background: linear-gradient(180deg, #A8CBEA 0%, #6FA3D6 45%, #2E6CA8 46%, #4A86C5 70%, #E9D9B8 71%)"><span>TRIP</span></div>
+          <div class="body">
+            <div class="hd"><b>강릉 · 속초 2박 3일</b><span>412km</span></div>
+            <div class="line"><div class="st end" style="left: 3%"><i></i>서울</div><div class="st" style="left: 36%"><i></i><b>강릉</b></div><div class="st" style="left: 66%"><i></i><b>속초</b></div><div class="st end" style="left: 97%"><i></i>서울</div></div>
+            <div class="strip"><a class="ph" href="#Media" style="background: linear-gradient(180deg, #A8CBEA, #6FA3D6 45%, #2E6CA8 46%, #4A86C5 70%, #E9D9B8 71%)"><span class="vid">▶ 0:31</span></a><a class="ph" href="#Media" style="background: linear-gradient(180deg, #F6C987, #E9844A 45%, #8C4B5E 70%, #2C3247 71%)"></a><a class="ph" href="#Media" style="background: linear-gradient(180deg, #DDE6D6, #92B07F 45%, #4C6B43)"></a><a class="ph" href="#Media" style="background: linear-gradient(160deg, #F2E4C9, #E0A458 40%, #B5452E)"></a><a class="ph" href="#Media" style="background: linear-gradient(180deg, #CFE0EE, #9FB9CF 50%, #5A6168 51%, #3D444B)"><span class="more">+19</span></a></div>
+            <div class="ft"><span>머문 곳 14 · 사진 23 · 영상 4</span><a href="#Replay">▶ 재생</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <nav class="tabs" data-current="Timeline"></nav>
+  </div>
+</section>
+
+<!-- 4. 사진 · 영상 보기 -->
+<section class="screen" id="Media">
+  <h2 class="label"><a href="#Media">사진 · 영상 보기</a><span class="new">NEW</span><small>촬영 시각 · 위치로 방문에 연결</small></h2>
+  <div class="device dark">
+    <div style="padding: 58px 20px 12px; display: flex; justify-content: space-between; align-items: center">
+      <div style="display: flex; flex-direction: column; gap: 2px"><span class="eyebrow">11.14 · 11:58</span><b style="font-size: 16px">키로톤 행사장 · 성수동</b></div>
+      <a class="round" href="#Timeline" style="background: rgba(255,255,255,.12); border: 0; color: #FFFFFF" aria-label="닫기">✕</a>
+    </div>
+    <div style="flex: 1; position: relative; background: linear-gradient(160deg, #D7DEF5, #7E92D8 45%, #2B3A7A); display: grid; place-items: center">
+      <span style="width: 68px; height: 68px; border-radius: 34px; background: rgba(255,255,255,.92); display: grid; place-items: center"><svg width="24" height="24" viewBox="0 0 10 10"><path d="M2.5 1l6 4-6 4z" fill="#16191D"/></svg></span>
+      <span style="position: absolute; left: 16px; bottom: 16px; font-family: var(--mono); font-size: 11px; background: rgba(22,25,29,.7); padding: 3px 8px; border-radius: 6px">▶ 0:24</span>
+    </div>
+    <div style="padding: 14px 20px 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px">
+      <i style="aspect-ratio: 1; border-radius: 6px; background: linear-gradient(160deg, #D7DEF5, #7E92D8 45%, #2B3A7A); outline: 2px solid #FFFFFF"></i>
+      <i style="aspect-ratio: 1; border-radius: 6px; background: linear-gradient(180deg, #1B1F2A 30%, #3E64E0 31%, #9DB2F2 70%, #1B1F2A 71%)"></i>
+      <i style="aspect-ratio: 1; border-radius: 6px; background: linear-gradient(150deg, #F2D6B8, #D79C6A 40%, #47546B)"></i>
+      <i style="aspect-ratio: 1; border-radius: 6px; background: linear-gradient(170deg, #E7E2DA, #B9B0A2 60%, #6F665A)"></i>
+      <i style="aspect-ratio: 1; border-radius: 6px; background: linear-gradient(160deg, #CFE0EE, #8AA6C3 55%, #3D444B)"></i>
+    </div>
+    <div style="padding: 16px 20px 34px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: #C9CEC6"><svg width="16" height="16" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 20s-6-5.6-6-10a6 6 0 0 1 12 0c0 4.4-6 10-6 10z"/><circle cx="11" cy="10" r="2.2"/></svg>촬영 시각 · 위치로 이 방문(11:40–지금)에 자동 연결됐어요</div>
+      <div style="display: flex; gap: 8px"><a class="btn" href="#Timeline" style="background: #FFFFFF; color: var(--ink); height: 46px; font-size: 14px">타임라인에서 보기</a><a class="btn" href="#Replay" style="background: rgba(255,255,255,.12); height: 46px; font-size: 14px">이날 재생</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. 물어보기 -->
+<section class="screen" id="Ask">
+  <h2 class="label"><a href="#Ask">물어보기</a><span class="upd">UPDATED</span><small>US-15, US-18, US-19</small></h2>
+  <div class="device">
+    <div style="padding: 58px 20px 14px; border-bottom: 1px solid var(--line)">
+      <div style="font-size: 26px; font-weight: 700">물어보기</div>
+      <div style="font-size: 12px; color: var(--muted); margin-top: 2px">기록이 있는 기간 · <b class="n" style="font-size: 14px; color: var(--ink)">2025.11.14 – 오늘</b></div>
+    </div>
+    <div class="scroll" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 14px">
+      <div class="me">나 올해에 강원도를 몇 번 갔지?</div>
+      <div class="ans">강원도는 올해 <span class="big">8</span>번 다녀왔어요. 마지막은 <b>10월 3일(금)</b>, 강릉에서 시작해 속초까지 2박 3일이었어요.</div>
+      <div class="ev">
+        <div class="eyebrow"><span>근거 · 여행 8건</span><span>최근 순</span></div>
+        <div class="line" style="margin-top: 12px"><div class="st end" style="left: 3%"><i></i>서울</div><div class="st" style="left: 36%"><i></i><b>강릉</b></div><div class="st" style="left: 66%"><i></i><b>속초</b></div><div class="st end" style="left: 97%"><i></i>서울</div></div>
+        <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin: 2px 0 10px"><span class="n" style="font-size: 13px">10.03 07:40</span><span class="n" style="font-size: 13px">10.05 21:15</span></div>
+        <a class="btn blue" href="#Replay" style="height: 42px; font-size: 14px">▶ 이 여행 지도에서 재생</a>
+        <div style="margin-top: 10px">
+          <div class="evrow"><div><b>원주 · 뮤지엄 산</b><br><span>09.06 · 당일</span></div><a href="#Replay">재생</a></div>
+          <div class="evrow"><div><b>고성 · 송지호 해변</b><br><span>08.09 – 08.10 · 1박 2일</span></div><a href="#Replay">재생</a></div>
+          <div class="evrow"><div><b>홍천 · 양양 · 강릉 · 춘천 · 평창</b><br><span>01.17 – 06.28 · 5번</span></div><a href="#Ask">펼치기</a></div>
+        </div>
+      </div>
+      <div class="me">재작년 여름엔 어디 갔었지?</div>
+      <div class="ans">2024년 여름은 <b>기록이 없어요.</b> 하루의 기록은 2025년 11월 14일부터 있어요.<div style="font-size: 12px; color: var(--muted); margin-top: 6px">지어내지 않아요. 기록에 없는 건 없다고 말해요.</div></div>
+    </div>
+    <div class="sugg"><span>지난달 커피 몇 번 마셨어?</span><span>성수 파스타집 어디였지?</span></div>
+    <div class="askbar"><div>언제, 어디, 무엇이든 물어보세요</div><span><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 15V3M4 8l5-5 5 5"/></svg></span></div>
+    <nav class="tabs" data-current="Ask"></nav>
+  </div>
+</section>
+
+<!-- 6. 여행 재생 -->
+<section class="screen" id="Replay">
+  <h2 class="label"><a href="#Replay">여행 재생</a><span class="upd">UPDATED</span><small>US-12, US-13 · 멈춘 곳에 사진</small></h2>
+  <div class="device">
+    <div style="position: relative; height: 470px; background: var(--map); overflow: hidden">
+      <svg width="390" height="470" viewBox="0 0 390 470" style="position: absolute; inset: 0">
+        <path d="M300 0 C 320 120, 350 260, 390 470 L 390 0 Z" fill="var(--river)"/>
+        <path d="M0 320 C 40 300, 80 330, 120 310" stroke="var(--river)" stroke-width="16" fill="none"/>
+        <path d="M60 0 L 90 470 M180 0 L 200 470 M0 140 L 300 120 M0 380 L 330 360" stroke="var(--road)" stroke-width="5" fill="none"/>
+        <path d="M60 300 L 290 145" stroke="#16191D" stroke-width="2.5" stroke-dasharray="4 5" fill="none" opacity=".55"/>
+        <path d="M60 300 C 140 300, 220 320, 296 330 C 300 260, 290 200, 292 170" stroke="var(--blue)" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <circle cx="60" cy="300" r="9" fill="#FFFFFF" stroke="#16191D" stroke-width="3.5"/>
+        <circle cx="296" cy="330" r="7" fill="#FFFFFF" stroke="var(--blue)" stroke-width="3.5"/>
+        <circle cx="292" cy="170" r="20" fill="var(--orange)" opacity=".2"/><circle cx="292" cy="170" r="9" fill="var(--orange)" stroke="#FFFFFF" stroke-width="3"/>
+        <text x="46" y="326" font-size="12" font-weight="700" fill="#16191D" font-family="IBM Plex Sans KR">서울</text>
+        <text x="304" y="350" font-size="12" font-weight="700" fill="#16191D" font-family="IBM Plex Sans KR">강릉</text>
+      </svg>
+      <div style="position: absolute; top: 54px; left: 16px; right: 16px; display: flex; justify-content: space-between; align-items: center">
+        <a class="round" href="#Timeline" aria-label="뒤로">‹</a><span style="background: var(--card); border-radius: 20px; padding: 8px 14px; font-size: 14px; font-weight: 700; box-shadow: 0 2px 8px rgba(22,25,29,.1)">강릉 · 속초 2박 3일</span><span class="round" aria-label="공유"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 11V2M5.5 5.5L9 2l3.5 3.5M3.5 9v6h11V9"/></svg></span>
+      </div>
+      <div style="position: absolute; left: 112px; top: 112px; width: 168px; background: var(--dark); color: #FFFFFF; border-radius: 12px; overflow: hidden; box-shadow: 0 6px 18px rgba(22,25,29,.25)">
+        <div style="height: 74px; background: linear-gradient(160deg, #F2E4C9, #E0A458 40%, #B5452E)"></div>
+        <div style="padding: 8px 10px; font-size: 12px; line-height: 1.4"><b style="font-size: 13px">영금정 · 속초</b><br><span style="color: #C9CEC6">관광 · 14:05부터 머무는 중 · 사진 4</span></div>
+      </div>
+    </div>
+    <div style="flex: 1; margin-top: -24px; background: var(--card); border-radius: 22px 22px 0 0; position: relative; padding: 22px 20px 30px; display: flex; flex-direction: column">
+      <span class="eyebrow">DAY 2 · 10월 4일 토</span>
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 4px"><span class="n" style="font-size: 64px; font-weight: 700; line-height: .9">14:20</span><span style="font-size: 12px; color: var(--muted); text-align: right; line-height: 1.6">지금까지 <b class="n" style="font-size: 18px; color: var(--ink)">268</b> km<br>남은 거리 144km</span></div>
+      <div style="position: relative; height: 6px; margin-top: 22px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px"><i style="background: var(--blue); border-radius: 3px"></i><i style="background: linear-gradient(90deg, var(--blue) 50%, var(--line) 50%); border-radius: 3px"></i><i style="background: var(--line); border-radius: 3px"></i><b style="position: absolute; left: 50%; top: -6px; width: 18px; height: 18px; border-radius: 9px; background: var(--orange); border: 3px solid #FFFFFF; box-shadow: 0 0 0 4px rgba(232,106,16,.2)"></b></div>
+      <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 10px"><span>10.03 강릉</span><b style="color: var(--ink)">10.04 속초</b><span>10.05 귀가</span></div>
+      <div style="margin-top: auto; display: flex; align-items: center; gap: 12px">
+        <span class="round">⏮</span><span style="width: 60px; height: 60px; border-radius: 30px; background: var(--ink); color: #FFFFFF; display: grid; place-items: center; font-size: 18px">❚❚</span><span class="round">⏭</span>
+        <div class="periods" id="speed" style="margin: 0 0 0 auto; grid-template-columns: repeat(3, 1fr); width: 130px"><button type="button" aria-pressed="false">1x</button><button type="button" aria-pressed="false">10x</button><button type="button" aria-pressed="true">60x</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. 오늘의 하루 카드 -->
+<section class="screen" id="Recap">
+  <h2 class="label"><a href="#Recap">오늘의 하루 카드</a><span class="upd">UPDATED</span><small>US-21, US-22 · 시간 막대 → 미니 도넛</small></h2>
+  <div class="device dark">
+    <div style="padding: 54px 20px 30px; display: flex; flex-direction: column; height: 100%">
+      <div style="display: flex; justify-content: space-between; align-items: center"><span class="eyebrow">22:00 · 오늘의 하루</span><a class="round" href="#Today" style="background: rgba(255,255,255,.12); border: 0; color: #FFFFFF">✕</a></div>
+      <span class="n" style="font-size: 72px; font-weight: 700; line-height: .9; margin-top: 18px">11.14</span>
+      <div style="font-size: 22px; font-weight: 700; line-height: 1.35; margin-top: 10px">하루 대부분을<br>성수동에서 보냈어요</div>
+      <div style="display: grid; grid-template-columns: 150px 1fr; gap: 16px; align-items: center; margin-top: 22px">
+        <svg id="recap-ring" width="150" height="150" viewBox="0 0 150 150"></svg>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <div><b class="n" style="font-size: 30px">3</b> <span style="color: #C9CEC6; font-size: 13px">곳 머묾</span></div>
+          <div><b class="n" style="font-size: 30px">18.3</b> <span style="color: #C9CEC6; font-size: 13px">km 이동</span></div>
+          <div><b class="n" style="font-size: 30px">9</b> <span style="color: #C9CEC6; font-size: 13px">장 사진</span></div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: #C9CEC6; margin-top: 12px"><span><i class="dot" style="background: #8A939B"></i> 집</span><span><i class="dot" style="background: #B98A5E"></i> 커피</span><span><i class="dot" style="background: var(--orange)"></i> 키로톤 · 성수동</span><span><i class="dot" style="background: #4C5560"></i> 이동</span></div>
+      <div style="margin-top: 20px; border-radius: 14px; background: #22262B; padding: 14px; display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: center">
+        <i style="height: 64px; border-radius: 10px; background: linear-gradient(180deg, #1B1F2A 30%, #3E64E0 31%, #9DB2F2 70%, #1B1F2A 71%)"></i>
+        <div style="font-size: 13px; line-height: 1.5"><span class="eyebrow">1년 전 오늘 · 2025.11.14</span><br>하루의 첫 기록이 남은 날이에요. 그날 저녁엔 을지로에서 3시간 머물렀어요.</div>
+      </div>
+      <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px; align-items: center">
+        <a class="btn" href="#Replay" style="background: #FFFFFF; color: var(--ink)">▶ 오늘 하루 재생</a>
+        <span style="font-size: 12px; color: #8A939B">이 알림은 매일 밤 10시에 와요 · 설정에서 바꿀 수 있어요</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8. 태그 정리 -->
+<section class="screen" id="Inbox">
+  <h2 class="label"><a href="#Inbox">태그 정리</a><small>US-29 · 태그 색 추가</small></h2>
+  <div class="device">
+    <div style="padding: 54px 20px 0">
+      <div style="display: flex; align-items: center; gap: 12px"><a href="#Today" style="font-size: 22px; text-decoration: none">‹</a><b style="font-size: 20px">태그 정리</b></div>
+      <div class="tagset" id="inbox-tags" style="margin-top: 14px"></div>
+      <p style="font-size: 12px; color: var(--muted); line-height: 1.5; margin: 10px 0 0">태그는 이 일곱 개뿐이에요. AI도 이 안에서만 고르고, 확신이 없으면 비워 둬요.</p>
+    </div>
+    <div class="scroll" style="padding: 14px 20px 20px">
+      <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-bottom: 8px"><span>AI가 비워 둔 곳</span><span class="n" style="font-size: 16px">3</span></div>
+      <div style="border-radius: 16px; background: var(--card); border: 1px solid var(--line)">
+        <div class="inbox-item"><b>소원로 1가 12</b><p>방문 <b class="n" style="font-size: 14px; color: var(--ink)">23</b>번 · 평일 점심</p><p>식당과 사무실이 한 건물에 있어 하나로 정하지 못했어요</p><a class="pill dark act" href="#Tag">태그 달기</a></div>
+        <div class="inbox-item"><b>키로톤 행사장 · 성수동</b><p>방문 1번 · 오늘 · 사진 4</p><p>행사장은 일곱 개 태그 중 맞는 게 없어요</p><a class="pill act" href="#Tag">태그 달기</a></div>
+        <div class="inbox-item"><b>연남동 골목</b><p>방문 4번 · 주말 저녁</p><p>머문 시간이 20분부터 3시간까지 들쭉날쭉해요</p><a class="pill act" href="#Tag">태그 달기</a></div>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin: 18px 0 8px"><span>AI가 단 태그 확인</span><span class="n" style="font-size: 16px">2</span></div>
+      <div style="border-radius: 16px; background: var(--card); border: 1px solid var(--line)">
+        <div class="inbox-item" style="grid-template-columns: 1fr auto"><b>오전 커피 · 망원동</b><span class="chip ai" style="grid-row: 1; grid-column: 2"><i class="dot" style="background: #9A6B47"></i>커피 <em>AI</em></span><p style="grid-column: 1 / 3">카페 POI · 오전에 평균 45분 · 방문 11번</p><div style="grid-column: 1 / 3; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px"><button class="pill dark" type="button" style="justify-content: center">맞아요</button><a class="pill" href="#Tag" style="justify-content: center">바꾸기</a></div></div>
+        <div class="inbox-item" style="grid-template-columns: 1fr auto"><b>망원 한강공원</b><span class="chip ai" style="grid-row: 1; grid-column: 2"><i class="dot" style="background: #2F8A5B"></i>운동 <em>AI</em></span><p style="grid-column: 1 / 3">저녁 8시대 · 평균 50분 · 주 2회</p><div style="grid-column: 1 / 3; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px"><button class="pill dark" type="button" style="justify-content: center">맞아요</button><a class="pill" href="#Tag" style="justify-content: center">바꾸기</a></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 9. 태그 달기 -->
+<section class="screen" id="Tag">
+  <h2 class="label"><a href="#Tag">태그 달기</a><small>US-08, US-11 · 태그 색 · 사진 미리보기</small></h2>
+  <div class="device">
+    <div style="height: 230px; background: var(--map); position: relative; overflow: hidden">
+      <svg width="390" height="230" viewBox="0 0 390 230" style="position: absolute; inset: 0"><path d="M40 0 L 70 230 M210 0 L 230 230 M0 90 L 390 70 M0 180 L 390 170" stroke="var(--road)" stroke-width="6"/><circle cx="195" cy="120" r="60" fill="var(--blue)" opacity=".1"/><rect x="170" y="98" width="50" height="44" rx="4" fill="#C9CEC6"/><circle cx="195" cy="120" r="9" fill="#FFFFFF" stroke="#16191D" stroke-width="3.5"/><text x="240" y="178" font-family="IBM Plex Mono" font-size="9" fill="#5A6168">반경 60m</text></svg>
+      <a class="round" href="#Inbox" style="position: absolute; left: 16px; top: 54px">✕</a>
+    </div>
+    <div style="flex: 1; margin-top: -20px; background: var(--card); border-radius: 22px 22px 0 0; position: relative; padding: 14px 20px 30px; display: flex; flex-direction: column">
+      <i style="width: 40px; height: 4px; border-radius: 2px; background: var(--line); align-self: center"></i>
+      <b style="font-size: 22px; margin-top: 14px">소원로 1가 12</b>
+      <span style="font-size: 13px; color: var(--muted); margin-top: 4px">이름 없는 장소 · 방문 <b class="n" style="font-size: 15px; color: var(--ink)">23</b>번 · 평일 12시대 · 평균 42분</span>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; border-radius: 10px; overflow: hidden; margin-top: 12px">
+        <i style="height: 60px; background: radial-gradient(circle at 40% 55%, #F0C27A 0 26%, #C4502E 27% 36%, #F7F4EE 37% 60%, #BDB5A8 61%)"></i><i style="height: 60px; background: linear-gradient(170deg, #E7E2DA, #B9B0A2 60%, #6F665A)"></i><i style="height: 60px; background: radial-gradient(circle at 50% 50%, #F4D58C 0 30%, #D2603A 31% 40%, #F7F4EE 41% 62%, #C9C2B5 63%)"></i>
+      </div>
+      <div style="margin-top: 12px; border-radius: 12px; background: var(--paper); padding: 10px 12px; font-size: 13px; line-height: 1.5; display: grid; grid-template-columns: 26px 1fr; gap: 6px"><span style="font-family: var(--mono); font-size: 9px; color: var(--blue); border: 1px solid var(--blue); border-radius: 4px; height: 16px; display: grid; place-items: center">AI</span><span>태그를 비워 뒀어요. 한 건물에 식당과 사무실이 함께 있어서 일곱 개 중 하나로 정하지 못했어요. <b>이곳에서 찍은 사진 3장</b>은 모두 음식이에요.</span></div>
+      <b style="font-size: 13px; margin-top: 16px">어떤 곳인가요?</b>
+      <div class="pick" id="pick" style="margin-top: 8px"></div>
+      <span style="font-size: 12px; color: var(--muted); margin-top: auto; padding-top: 12px">이 장소의 지난 방문과 앞으로의 방문 모두에 적용돼요.</span>
+      <button class="btn" id="pick-go" type="button" disabled style="margin-top: 8px">태그를 골라 주세요</button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+const TAG = { '집': '#2B3138', '회사': '#1F4FD1', '밥집': '#E86A10', '커피': '#9A6B47', '운동': '#2F8A5B', '쇼핑': '#C2417A', '관광': '#D9A515', '이동': '#AEB6BD', '태그 없음': 'none' };
+const TAGS7 = ['집', '회사', '밥집', '커피', '운동', '쇼핑', '관광'];
+const HATCH = `<defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#FFFFFF"/><rect width="2.4" height="6" fill="#B9C0B7"/></pattern></defs>`;
+const fill = t => TAG[t] === 'none' ? 'url(#hatch)' : TAG[t];
+const arcPath = (cx, cy, r, a0, a1) => { const p = a => [cx + r * Math.sin(a), cy - r * Math.cos(a)]; const [x0, y0] = p(a0), [x1, y1] = p(a1); return `M${x0.toFixed(2)} ${y0.toFixed(2)} A${r} ${r} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}`; };
+const hm = m => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+const dur = m => { const h = Math.floor(m / 60), r = Math.round(m % 60); return h ? (r ? `${h}h ${r}m` : `${h}h`) : `${r}m`; };
+const T = Math.PI * 2;
+
+// 탭바 (오늘 · 타임라인 · 물어보기)
+const NAV = [
+  ['Today', '오늘', '<circle cx="12" cy="12" r="8"/><path d="M12 4a8 8 0 0 1 8 8h-8z" fill="currentColor"/>'],
+  ['Timeline', '타임라인', '<path d="M6 3v18"/><circle cx="6" cy="7" r="2.2" fill="#FFFFFF"/><circle cx="6" cy="16" r="2.2" fill="#FFFFFF"/><rect x="11" y="4.5" width="9" height="6" rx="1.5"/><rect x="11" y="13.5" width="9" height="6" rx="1.5"/>'],
+  ['Ask', '물어보기', '<path d="M4 5h16v11H10l-4 3v-3H4z"/><path d="M8 10.5h8"/>']
+];
+document.querySelectorAll('nav.tabs').forEach(nav => {
+  nav.setAttribute('aria-label', '주요 화면');
+  nav.innerHTML = NAV.map(([id, label, icon]) => `<a href="#${id}" ${nav.dataset.current === id ? 'aria-current="page"' : ''}><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">${icon}</svg>${label}</a>`).join('');
+});
+
+// 오늘: 24시간 도넛 (하루) / 비중 도넛 (기간)
+const DAY = [['집', 0, 590, '집 · 망원동'], ['이동', 590, 620], ['커피', 620, 665, '오전 커피 · 망원동'], ['이동', 665, 700], ['태그 없음', 700, 980, '키로톤 행사장 · 성수동']];
+const NOW = 980;
+const P = {
+  day: { eyebrow: '2026 · SAT', big: '11.14', sub: '오늘', stats: [['3', '곳에 머묾'], ['9.4', 'km 이동']], live: true, conf: 87,
+    sum: '아침은 망원 집에서 보내고, 동네 카페에서 커피를 마신 뒤 지하철로 성수에 와서 4시간 넘게 한곳에 머물고 있어요.', delta: { '집': 12, '커피': -10 } },
+  week: { eyebrow: '11.08 – 11.14', big: '이번 주', sub: '', stats: [['31', '곳'], ['72', 'km']], conf: 81,
+    slices: [['집', 86], ['회사', 41], ['이동', 12], ['커피', 7], ['태그 없음', 7], ['밥집', 6], ['운동', 5], ['쇼핑', 4]],
+    sum: '평일엔 회사와 집을 오가는 패턴이 뚜렷했고, 운동은 화 · 목 두 번 했어요.', delta: { '운동': 33, '회사': -4 } },
+  month: { eyebrow: '2026', big: '11월', sub: '', stats: [['68', '곳'], ['284', 'km']], conf: 76,
+    slices: [['집', 170], ['회사', 84], ['이동', 20], ['커피', 15], ['밥집', 13], ['운동', 10], ['쇼핑', 9], ['관광', 8], ['태그 없음', 7]],
+    sum: '첫 주말엔 가평으로 당일치기를 다녀왔어요. 지난달보다 커피가 4번 늘었어요.', delta: { '커피': 18, '운동': -8 } },
+  year: { eyebrow: '01.01 – 11.14', big: '2026', sub: '', stats: [['11', '번 여행'], ['6,842', 'km']], conf: 72,
+    slices: [['집', 3820], ['회사', 2050], ['관광', 470], ['밥집', 400], ['커피', 390], ['운동', 310], ['이동', 310], ['쇼핑', 170], ['태그 없음', 90]],
+    sum: '올해는 여행이 많았어요. 강원도만 8번 갔고, 여름과 가을에 바다를 자주 찾았어요.', delta: { '관광': 40, '운동': 12 } }
+};
+let period = 'day', sel = '';
+function totals() {
+  if (period !== 'day') return P[period].slices;
+  const m = {}; DAY.forEach(([t, a, b]) => m[t] = (m[t] || 0) + b - a);
+  return Object.entries(m).sort((x, y) => y[1] - x[1]);
+}
+function renderToday() {
+  const d = P[period], C = 145, R = 110, W = 34;
+  document.getElementById('t-eyebrow').textContent = d.eyebrow;
+  document.getElementById('t-big').textContent = d.big;
+  document.getElementById('t-sub').textContent = d.sub;
+  document.getElementById('t-stats').innerHTML = d.stats.map(([v, k]) => `<span><b class="n" style="font-size: 20px; color: var(--ink); font-weight: 600">${v}</b> ${k}</span>`).join('') + (d.live ? '<span style="margin-left: auto; display: flex; align-items: center; gap: 6px; color: var(--orange-ink); font-weight: 600"><i style="width: 8px; height: 8px; border-radius: 4px; background: var(--orange)"></i>기록 중</span>' : '');
+  let s = HATCH + `<circle cx="${C}" cy="${C}" r="${R}" fill="none" stroke="var(--map)" stroke-width="${W}"/>`;
+  if (period === 'day') {
+    for (let h = 0; h < 24; h++) { const a = h / 24 * T, maj = h % 6 === 0, r0 = R + W / 2 + 4, r1 = r0 + (maj ? 8 : 4); s += `<line x1="${C + r0 * Math.sin(a)}" y1="${C - r0 * Math.cos(a)}" x2="${C + r1 * Math.sin(a)}" y2="${C - r1 * Math.cos(a)}" stroke="${maj ? '#16191D' : '#A9B0A7'}" stroke-width="${maj ? 2 : 1}"/>`; if (maj) { const rt = R - W / 2 - 12; s += `<text x="${C + rt * Math.sin(a)}" y="${C - rt * Math.cos(a) + 4}" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#5A6168">${h}</text>`; } }
+    DAY.forEach(([t, a, b]) => s += `<path class="arc" data-t="${t}" d="${arcPath(C, C, R, a / 1440 * T + .014, b / 1440 * T - .014)}" fill="none" stroke="${fill(t)}" stroke-width="${W}" style="cursor:pointer;opacity:${sel && sel !== t ? .28 : 1}"/>`);
+    const an = NOW / 1440 * T; s += `<circle cx="${C + R * Math.sin(an)}" cy="${C - R * Math.cos(an)}" r="15" fill="var(--orange)" opacity=".2"/><circle cx="${C + R * Math.sin(an)}" cy="${C - R * Math.cos(an)}" r="7" fill="var(--orange)" stroke="#FFFFFF" stroke-width="3"/>`;
+  } else {
+    const tot = d.slices.reduce((a, [, v]) => a + v, 0); let acc = 0;
+    d.slices.forEach(([t, v]) => { const a0 = acc / tot * T, a1 = (acc + v) / tot * T, g = Math.min(.014, (a1 - a0) / 4); s += `<path class="arc" data-t="${t}" d="${arcPath(C, C, R, a0 + g, a1 - g)}" fill="none" stroke="${fill(t)}" stroke-width="${W}" style="cursor:pointer;opacity:${sel && sel !== t ? .28 : 1}"/>`; acc += v; });
+  }
+  const svg = document.getElementById('t-ring'); svg.innerHTML = s;
+  svg.querySelectorAll('.arc').forEach(p => p.addEventListener('click', () => { sel = sel === p.dataset.t ? '' : p.dataset.t; renderToday(); }));
+  const list = totals(), sum = list.reduce((a, [, v]) => a + v, 0);
+  const val = v => period === 'day' ? dur(v) : Math.round(v / sum * 100) + '%';
+  const mid = document.getElementById('t-mid');
+  if (sel) {
+    const v = list.find(x => x[0] === sel)[1];
+    mid.innerHTML = `<span class="k"><i class="dot" style="background:${TAG[sel] === 'none' ? '#C9CEC6' : TAG[sel]}"></i>${sel}</span><span class="v">${val(v)}</span><span class="s">${period === 'day' ? DAY.filter(x => x[0] === sel).map(x => hm(x[1]) + '–' + hm(x[2])).join('<br>') : Math.round(v) + '시간'}</span>`;
+  } else if (period === 'day') {
+    mid.innerHTML = `<span class="k"><i class="dot" style="background:var(--orange)"></i>지금 · ${hm(NOW)}</span><span class="v">4h 40m</span><span class="s">키로톤 행사장<br>머무는 중</span>`;
+  } else {
+    mid.innerHTML = `<span class="k">${d.big}</span><span class="v">${period === 'year' ? '11' : Math.round(sum) + 'h'}</span><span class="s">${period === 'year' ? '번의 여행' : '기록된 시간'}</span>`;
+  }
+  document.getElementById('t-list').innerHTML = list.map(([t, v]) => { const dl = d.delta[t]; return `<div class="row" data-t="${t}" style="cursor:pointer;${sel === t ? 'background:#F4F6F2' : ''}"><i class="dot" style="width:10px;height:10px;${TAG[t] === 'none' ? 'border:1px dashed #8A939B;background:repeating-linear-gradient(45deg,#C9CEC6 0 2px,#FFF 2px 4px)' : 'background:' + TAG[t]}"></i><span>${t}${dl ? `<small class="${dl > 0 ? 'up' : 'down'}">${dl > 0 ? '▲' : '▼'} ${Math.abs(dl)}%</small>` : ''}${t === '태그 없음' ? ' <a class="chip none" href="#Inbox" style="margin-left:4px">정리하기</a>' : ''}</span><b>${val(v)}</b></div>`; }).join('');
+  document.querySelectorAll('#t-list .row').forEach(r => r.addEventListener('click', e => { if (e.target.closest('a')) return; sel = sel === r.dataset.t ? '' : r.dataset.t; renderToday(); }));
+  document.getElementById('t-sum').textContent = d.sum;
+  document.getElementById('t-conf').textContent = `확신 ${d.conf}%`;
+}
+document.querySelectorAll('#t-periods button').forEach(b => b.addEventListener('click', () => { period = b.dataset.p; sel = ''; document.querySelectorAll('#t-periods button').forEach(x => x.setAttribute('aria-pressed', x === b)); renderToday(); }));
+renderToday();
+
+// 하루 카드: 미니 24시간 도넛 (다크)
+(function () {
+  const C = 75, R = 56, W = 18, seg = [['#8A939B', 0, 590], ['#4C5560', 590, 620], ['#B98A5E', 620, 665], ['#4C5560', 665, 700], ['#E86A10', 700, 1320]];
+  let s = `<circle cx="${C}" cy="${C}" r="${R}" fill="none" stroke="#2A2F35" stroke-width="${W}"/>`;
+  seg.forEach(([c, a, b]) => s += `<path d="${arcPath(C, C, R, a / 1440 * T + .02, b / 1440 * T - .02)}" fill="none" stroke="${c}" stroke-width="${W}"/>`);
+  [0, 6, 12, 18].forEach(h => { const a = h / 24 * T, r = R - W / 2 - 9; s += `<text x="${C + r * Math.sin(a)}" y="${C - r * Math.cos(a) + 3}" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="#8A939B">${h}</text>`; });
+  document.getElementById('recap-ring').innerHTML = s;
+})();
+
+// 타임라인 필터
+document.querySelectorAll('#tl-filters button').forEach(b => b.addEventListener('click', () => {
+  const f = b.dataset.f;
+  document.querySelectorAll('#tl-filters button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  document.querySelectorAll('#tl-body [data-g]').forEach(g => g.hidden = f === 'trip' ? g.dataset.g !== 'trip' : false);
+  document.querySelectorAll('#tl-body .tl > *').forEach(el => { el.hidden = f === 'media' && !el.hasAttribute('data-m'); });
+}));
+
+// 재생 배속
+document.querySelectorAll('#speed button').forEach(b => b.addEventListener('click', () => document.querySelectorAll('#speed button').forEach(x => x.setAttribute('aria-pressed', x === b))));
+
+// 태그 정리 · 태그 달기
+document.getElementById('inbox-tags').innerHTML = TAGS7.map(t => `<span class="chip"><i class="dot" style="background:${TAG[t]}"></i>${t}</span>`).join('');
+const pick = document.getElementById('pick'), go = document.getElementById('pick-go');
+pick.innerHTML = TAGS7.map(t => `<button type="button" aria-pressed="false" data-t="${t}"><i class="dot" style="background:${TAG[t]}"></i>${t}</button>`).join('');
+pick.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  pick.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  const t = b.dataset.t, c = t.charCodeAt(t.length - 1) - 0xAC00, jong = c >= 0 && c <= 11171 ? c % 28 : 0;
+  go.disabled = false; go.textContent = `'${t}'${jong && jong !== 8 ? '으로' : '로'} 태그 달기`;
+}));
+go.addEventListener('click', () => { go.textContent = '태그를 달았어요 · 방문 23번에 적용'; go.disabled = true; });
+</script>
+</body>
+</html>
