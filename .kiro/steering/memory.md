@@ -21,6 +21,8 @@ inclusion: always
 - `global.openai.gpt-6-luna`는 이 계정에서 사용 계약(agreement)이 필요하다. 사용자 승인 없이 계약하지 않는다.
 
 ## Git
+- 팀원이 같은 `main`에 계속 푸시한다. 작업을 시작할 때, 커밋할 때, 푸시하기 전에 항상 `git pull --rebase origin main`으로 최신 `main`을 받는다. 커밋하지 않은 변경이 있으면 먼저 커밋한다.
+- 내 작업 구역은 `backend/`, `packages/`, `artifacts/`, `docs/app-handoff.md`. 다른 사람의 앱·발표 파일은 수정하지 않는다.
 - Git 작업은 에이전트가 전부 처리한다.
 - 의미 있는 작업 단위마다 중간중간 커밋한다.
 - 커밋 후 GitHub(`origin`, `https://github.com/ghdmsrkd/team-018.git`)에 푸시한다.
