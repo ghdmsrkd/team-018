@@ -219,7 +219,8 @@ export async function askDemo(
         results.push({
           toolResult: {
             toolUseId: u.toolUse.toolUseId,
-            content: [{ json: out.result }],
+            // Bedrock requires toolResult json to be an object; tool results can be arrays.
+            content: [{ json: { result: out.result } }],
             status: 'success',
           },
         });
