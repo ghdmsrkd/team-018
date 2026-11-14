@@ -34,7 +34,25 @@ final class VisitMonitorModule: RCTEventEmitter {
     _ limit: NSNumber, resolve: @escaping RCTPromiseResolveBlock,
     rejecter reject: @escaping RCTPromiseRejectBlock
   ) {
-    let rows = VisitStore.shared.fetch(limit: limit.intValue).map { v -> [String: Any] in
+    resolve(VisitStore.shared.fetch(limit: limit.intValue).map(Self.visitDict))
+  }
+
+  /// All visits that can overlap [fromMs, toMs), without a row limit. Open rows (no
+  /// departure) only when they start at or after min(fromMs, openSinceMs). Epoch ms in/out.
+  @objc func getVisitsInRange(
+    _ fromMs: NSNumber, toMs: NSNumber, openSinceMs: NSNumber,
+    resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
+    DispatchQueue.global(qos: .userInitiated).async {
+      let rows = VisitStore.shared.fetchRange(
+        from: fromMs.doubleValue / 1000, to: toMs.doubleValue / 1000,
+        openSince: openSinceMs.doubleValue / 1000
+      )
+      resolve(rows.map(Self.visitDict))
+    }
+  }
+
+  private static func visitDict(_ v: StoredVisit) -> [String: Any] {
       [
         "id": v.id,
         "latitude": v.latitude,
@@ -52,8 +70,6 @@ final class VisitMonitorModule: RCTEventEmitter {
           ]
         } ?? NSNull(),
       ]
-    }
-    resolve(rows)
   }
 
   // MARK: Place tags
@@ -152,6 +168,20 @@ final class VisitMonitorModule: RCTEventEmitter {
       VisitMonitor.shared.stop()
       resolve(VisitMonitor.shared.snapshot())
     }
+  }
+
+  /// Lambda Function URL injected at build time into Info.plist (HaruApiUrl) from an
+  /// untracked env file by ios/scripts/inject-api-url.sh. null when not configured.
+  @objc func getApiConfig(
+    _ resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock
+  ) {
+    let raw = Bundle.main.object(forInfoDictionaryKey: "HaruApiUrl") as? String
+    let url = raw.flatMap { s -> String? in
+      let t = s.trimmingCharacters(in: .whitespacesAndNewlines)
+      guard t.hasPrefix("https://"), URL(string: t)?.host != nil else { return nil }
+      return t
+    }
+    resolve(["apiUrl": url.map { $0 as Any } ?? NSNull()])
   }
 
   /// The key window's real safe-area insets (Dynamic Island / status bar, home indicator).

@@ -18,6 +18,8 @@
 		A1B2C3D4E5F6071800000013 /* VisitMonitorModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071800000003 /* VisitMonitorModule.swift */; };
 		A1B2C3D4E5F6071800000014 /* VisitMonitorModule.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071800000004 /* VisitMonitorModule.m */; };
 		A1B2C3D4E5F6071800000015 /* VisitPlaceMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071800000005 /* VisitPlaceMatcher.swift */; };
+		A1B2C3D4E5F6071800000016 /* PhotoLibraryModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071800000006 /* PhotoLibraryModule.swift */; };
+		A1B2C3D4E5F6071800000017 /* PhotoLibraryModule.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071800000007 /* PhotoLibraryModule.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +39,8 @@
 		A1B2C3D4E5F6071800000003 /* VisitMonitorModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VisitMonitorModule.swift; path = Team018Mobile/VisitMonitorModule.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6071800000004 /* VisitMonitorModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = VisitMonitorModule.m; path = Team018Mobile/VisitMonitorModule.m; sourceTree = "<group>"; };
 		A1B2C3D4E5F6071800000005 /* VisitPlaceMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VisitPlaceMatcher.swift; path = Team018Mobile/VisitPlaceMatcher.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6071800000006 /* PhotoLibraryModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PhotoLibraryModule.swift; path = Team018Mobile/PhotoLibraryModule.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6071800000007 /* PhotoLibraryModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = PhotoLibraryModule.m; path = Team018Mobile/PhotoLibraryModule.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +62,8 @@
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				761780EE2CA45674006654EF /* SceneDelegate.swift */,
 				A1B2C3D4E5F6071800000001 /* VisitStore.swift */,
+				A1B2C3D4E5F6071800000007 /* PhotoLibraryModule.m */,
+				A1B2C3D4E5F6071800000006 /* PhotoLibraryModule.swift */,
 				A1B2C3D4E5F6071800000005 /* VisitPlaceMatcher.swift */,
 				A1B2C3D4E5F6071800000002 /* VisitMonitor.swift */,
 				A1B2C3D4E5F6071800000003 /* VisitMonitorModule.swift */,
@@ -128,6 +134,7 @@
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
+				A1B2C3D4E5F6071800000100 /* Inject local API URL */,
 				00EEFC60759A1932668264C0 /* [CP] Embed Pods Frameworks */,
 				E235C05ADACE081382539298 /* [CP] Copy Pods Resources */,
 			);
@@ -265,6 +272,21 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Team018Mobile/Pods-Team018Mobile-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
+		A1B2C3D4E5F6071800000100 /* Inject local API URL */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
+			);
+			name = "Inject local API URL";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/scripts/inject-api-url.sh\"\n";
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -275,6 +297,8 @@
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
 				761780EF2CA45674006654EF /* SceneDelegate.swift in Sources */,
 				A1B2C3D4E5F6071800000011 /* VisitStore.swift in Sources */,
+				A1B2C3D4E5F6071800000017 /* PhotoLibraryModule.m in Sources */,
+				A1B2C3D4E5F6071800000016 /* PhotoLibraryModule.swift in Sources */,
 				A1B2C3D4E5F6071800000015 /* VisitPlaceMatcher.swift in Sources */,
 				A1B2C3D4E5F6071800000012 /* VisitMonitor.swift in Sources */,
 				A1B2C3D4E5F6071800000013 /* VisitMonitorModule.swift in Sources */,

@@ -53,6 +53,11 @@ export type PlaceTag = {
 type Native = {
   getState(): Promise<MonitorState>;
   getVisits(limit: number): Promise<Visit[]>;
+  getVisitsInRange(
+    fromMs: number,
+    toMs: number,
+    openSinceMs: number,
+  ): Promise<Visit[]>;
   startMonitoring(): Promise<MonitorState>;
   requestAlwaysAuthorization(): Promise<MonitorState>;
   stopMonitoring(): Promise<MonitorState>;
@@ -71,7 +76,11 @@ export const isSupported = native != null;
 
 export const visitMonitor = {
   getState: () => native!.getState(),
+  /** Newest rows by received time. Limited; use getVisitsInRange for summaries. */
   getVisits: (limit = 200) => native!.getVisits(limit),
+  /** Every row that can overlap [fromMs, toMs), with no row limit. See the native docs. */
+  getVisitsInRange: (fromMs: number, toMs: number, openSinceMs: number) =>
+    native!.getVisitsInRange(fromMs, toMs, openSinceMs),
   /** Explicit user action only. Asks iOS for Always if needed; never call automatically. */
   requestAlways: () => native!.requestAlwaysAuthorization(),
   /** @deprecated Use requestAlways. */

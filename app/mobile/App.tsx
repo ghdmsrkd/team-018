@@ -1,10 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
+import { ReactElement, useCallback, useEffect, useState } from 'react';
 import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
+import { AskScreen } from './src/AskScreen';
+import { DataSource, demoSource, liveSource } from './src/dataSource';
 import { Onboarding } from './src/Onboarding';
-import { SAMPLE_VISITS } from './src/sampleVisits';
+import { useWindowSafeAreaInsets } from './src/safeArea';
 import { TagPicker } from './src/TagPicker';
 import { colors } from './src/theme';
-import { VisitTimeline } from './src/VisitTimeline';
+import { TimelineScreen } from './src/TimelineScreen';
+import { TodayScreen } from './src/TodayScreen';
 import {
   isSupported,
   MonitorState,
@@ -56,30 +59,88 @@ function TextButton({
   );
 }
 
-/** Real visits from SQLite. Reads only; tag edits go through the native store. */
-function VisitsScreen({ startError }: { startError: string | null }) {
+type Tab = 'today' | 'timeline' | 'ask';
+
+const TABS: { key: Tab; label: string }[] = [
+  { key: 'today', label: '오늘' },
+  { key: 'timeline', label: '타임라인' },
+  { key: 'ask', label: '물어보기' },
+];
+
+function BottomNav({
+  tab,
+  onChange,
+}: {
+  tab: Tab;
+  onChange: (t: Tab) => void;
+}) {
+  const insets = useWindowSafeAreaInsets();
+  return (
+    <View
+      style={[styles.nav, { paddingBottom: Math.max(insets.bottom, 8) }]}
+      accessibilityRole="tablist"
+    >
+      {TABS.map(t => {
+        const on = tab === t.key;
+        return (
+          <Pressable
+            key={t.key}
+            testID={`tab-${t.key}`}
+            onPress={() => onChange(t.key)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: on }}
+            style={styles.navItem}
+          >
+            <View style={[styles.navMark, on && styles.navMarkOn]} />
+            <Text style={[styles.navText, on && styles.navTextOn]}>
+              {t.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+/**
+ * Tabbed main app over one data source. Live reads SQLite and may edit tags; demo uses the
+ * JS-only samples and never calls native code.
+ */
+function MainShell({
+  source,
+  startError,
+  banner,
+}: {
+  source: DataSource;
+  startError?: string | null;
+  banner?: ReactElement;
+}) {
+  const live = source.kind === 'live';
+  const [tab, setTab] = useState<Tab>('today');
   const [state, setState] = useState<MonitorState | null>(null);
-  const [visits, setVisits] = useState<Visit[]>([]);
-  const [error, setError] = useState<string | null>(startError);
-  const [taggingId, setTaggingId] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(startError ?? null);
+  const [token, setToken] = useState(0);
+  const [tagging, setTagging] = useState<Visit | null>(null);
 
   const refresh = useCallback(async () => {
+    if (!live) {
+      return;
+    }
     try {
-      const [s, v] = await Promise.all([
-        visitMonitor.getState(),
-        visitMonitor.getVisits(),
-      ]);
-      setState(s);
-      setVisits(v);
+      setState(await visitMonitor.getState());
       setError(null);
     } catch (e) {
       setError(String(e));
     }
-  }, []);
+    setToken(t => t + 1);
+  }, [live]);
 
-  useEffect(() => setError(startError), [startError]);
+  useEffect(() => setError(startError ?? null), [startError]);
 
   useEffect(() => {
+    if (!live) {
+      return;
+    }
     refresh();
     const unsubscribe = visitMonitor.subscribe(refresh);
     const appState = AppState.addEventListener('change', next => {
@@ -91,7 +152,7 @@ function VisitsScreen({ startError }: { startError: string | null }) {
       unsubscribe();
       appState.remove();
     };
-  }, [refresh]);
+  }, [live, refresh]);
 
   const openSettings = async () => {
     try {
@@ -101,67 +162,58 @@ function VisitsScreen({ startError }: { startError: string | null }) {
     }
   };
 
-  const showSamples = visits.length === 0;
   const message = state ? permissionMessage(state) : null;
   const errorText = error ?? state?.lastError ?? null;
-
-  return (
-    <View style={styles.container}>
-      <VisitTimeline
-        visits={showSamples ? SAMPLE_VISITS : visits}
-        onTag={showSamples ? undefined : v => setTaggingId(v.id)}
-        header={
-          message || errorText ? (
-            <View>
-              {message ? (
-                <View style={styles.notice}>
-                  <Text style={styles.noticeText}>{message}</Text>
-                  {state?.authorization !== 'restricted' ? (
-                    <TextButton title="설정 열기" onPress={openSettings} />
-                  ) : null}
-                </View>
-              ) : null}
-              {errorText ? (
-                <Text style={styles.error}>오류: {errorText}</Text>
-              ) : null}
-            </View>
-          ) : undefined
-        }
-      />
-      <TagPicker
-        visit={visits.find(v => v.id === taggingId) ?? null}
-        onClose={() => {
-          setTaggingId(null);
-          refresh();
-        }}
-      />
-    </View>
-  );
-}
-
-/** Sample day only: no native calls, no permission request, no database access. */
-function DemoScreen({ onBack }: { onBack: () => void }) {
-  return (
-    <View style={styles.container}>
-      <VisitTimeline
-        visits={SAMPLE_VISITS}
-        header={
+  const notice =
+    banner ??
+    (message || errorText ? (
+      <View>
+        {message ? (
           <View style={styles.notice}>
-            <Text style={styles.noticeTitle} accessibilityRole="header">
-              샘플 하루
-            </Text>
-            <Text style={styles.noticeText}>
-              실제 기록이 아닌 예시예요. 이 화면은 위치 권한을 요청하지 않고
-              아무것도 저장하지 않아요.
-            </Text>
-            <TextButton
-              testID="demo-back"
-              title="처음 화면으로 돌아가 위치 권한 허용하기"
-              onPress={onBack}
-            />
+            <Text style={styles.noticeText}>{message}</Text>
+            {state?.authorization !== 'restricted' ? (
+              <TextButton title="설정 열기" onPress={openSettings} />
+            ) : null}
           </View>
-        }
-      />
+        ) : null}
+        {errorText ? <Text style={styles.error}>오류: {errorText}</Text> : null}
+      </View>
+    ) : null);
+
+  const onTagVisit = live ? (v: Visit) => setTagging(v) : undefined;
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.flex}>
+        {tab === 'today' ? (
+          <TodayScreen
+            source={source}
+            refreshToken={token}
+            onTagVisit={onTagVisit}
+            recording={state?.monitoring}
+            notice={notice}
+          />
+        ) : tab === 'timeline' ? (
+          <TimelineScreen
+            source={source}
+            refreshToken={token}
+            onTagVisit={onTagVisit}
+            notice={notice}
+          />
+        ) : (
+          <AskScreen source={source} />
+        )}
+      </View>
+      <BottomNav tab={tab} onChange={setTab} />
+      {live ? (
+        <TagPicker
+          visit={tagging}
+          onClose={() => {
+            setTagging(null);
+            refresh();
+          }}
+        />
+      ) : null}
     </View>
   );
 }
@@ -188,10 +240,30 @@ function App() {
   }
 
   if (stage === 'visits') {
-    return <VisitsScreen startError={startError} />;
+    return <MainShell source={liveSource} startError={startError} />;
   }
   if (stage === 'demo') {
-    return <DemoScreen onBack={() => setStage('onboarding')} />;
+    return (
+      <MainShell
+        source={demoSource}
+        banner={
+          <View style={styles.notice}>
+            <Text style={styles.noticeTitle} accessibilityRole="header">
+              샘플 하루
+            </Text>
+            <Text style={styles.noticeText}>
+              실제 기록이 아닌 예시예요. 이 화면은 위치 권한을 요청하지 않고
+              아무것도 저장하지 않아요.
+            </Text>
+            <TextButton
+              testID="demo-back"
+              title="처음 화면으로 돌아가 위치 권한 허용하기"
+              onPress={() => setStage('onboarding')}
+            />
+          </View>
+        }
+      />
+    );
   }
   return (
     <Onboarding
@@ -210,9 +282,11 @@ function App() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  flex: { flex: 1 },
   notice: {
     marginHorizontal: 20,
     marginTop: 12,
+    marginBottom: 4,
     padding: 16,
     borderRadius: 14,
     backgroundColor: colors.card,
@@ -240,6 +314,29 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: colors.muted,
   },
+  nav: {
+    flexDirection: 'row',
+    paddingTop: 8,
+    backgroundColor: colors.card,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#D5D9D3',
+  },
+  navItem: {
+    flex: 1,
+    alignItems: 'center',
+    minHeight: 44,
+    justifyContent: 'center',
+  },
+  navMark: {
+    width: 20,
+    height: 3,
+    borderRadius: 2,
+    marginBottom: 6,
+    backgroundColor: 'transparent',
+  },
+  navMarkOn: { backgroundColor: colors.blue },
+  navText: { fontSize: 12, fontWeight: '500', color: colors.muted },
+  navTextOn: { color: colors.blue, fontWeight: '700' },
 });
 
 export default App;
