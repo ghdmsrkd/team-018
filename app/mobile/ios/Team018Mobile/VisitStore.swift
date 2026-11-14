@@ -91,7 +91,7 @@ enum VisitStoreError: Error, LocalizedError {
 final class VisitStore {
   static let shared = VisitStore(path: nil)
   static let schemaVersion: Int32 = 3
-  static let maxSeedCount = 20
+  static let maxSeedCount = 200
   static let maxTagNameLength = 30
 
   /// Place-only presets. Inserted with INSERT OR IGNORE, so existing rows are never touched.

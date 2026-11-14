@@ -310,5 +310,93 @@ export function seedRowsFor(now: number) {
       tagName: s.tag && presets.has(s.tag) ? s.tag : null,
     });
   }
-  return rows.reverse();
+  return [...rows.reverse(), ...olderSeedRows(now)];
+}
+
+type SeedRowOut = {
+  key: string;
+  placeName: string;
+  placeCategory: string | null;
+  latitude: number;
+  longitude: number;
+  horizontalAccuracy: number;
+  arrivalAt: number;
+  departureAt: number | null;
+  tagName: string | null;
+};
+
+/** Total test seed rows: the 10 recent ones plus 90 older ones. */
+export const SEED_TOTAL = 100;
+
+const SEED_TAG: Record<string, string> = {
+  교통: '기차역',
+  식당: '식당',
+  카페: '카페',
+  공원: '공원',
+  쇼핑: '백화점',
+  도서관: '도서관',
+  문화: '영화관',
+  관광: '공원',
+  병원: '병원',
+};
+
+// [start hour, start minute, base minutes]. The 4-slot day has a work-like long stay and an
+// overnight stay that ends at 07:30 next morning, before that day's first slot.
+const SLOTS_3: [number, number, number][] = [
+  [8, 40, 50],
+  [12, 30, 60],
+  [18, 10, 140],
+];
+const SLOTS_4: [number, number, number][] = [
+  [7, 50, 30],
+  [9, 20, 480],
+  [18, 0, 90],
+  [22, 30, 540],
+];
+
+/**
+ * 90 more seed rows for days 3–29 before today (the 10 recent rows cover days 0–2), 3 or 4
+ * per day. Deterministic keys per (day offset, slot), so pressing again or relaunching never
+ * duplicates, and existing installs with the first 10 only get the new rows added.
+ * Mixes tags (presets only, plus 회사/집 for long and overnight stays), untagged rows,
+ * open rows without a departure, varied accuracy and stay lengths.
+ */
+function olderSeedRows(now: number) {
+  const today = new Date(now);
+  const rows: SeedRowOut[] = [];
+  for (let d = 3; d <= 29; d++) {
+    const slots = (d - 3) % 3 === 1 ? SLOTS_4 : SLOTS_3;
+    slots.forEach(([h, m, base], i) => {
+      const p = SAMPLE_PLACES[(d * 4 + i * 3) % SAMPLE_PLACES.length];
+      const start = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate() - d,
+        h,
+        m,
+      ).getTime();
+      const minutes = base + ((d * 7 + i * 5) % 40);
+      const open = (d + i) % 13 === 0;
+      const untagged = (d * 3 + i) % 9 === 0;
+      const tag =
+        base === 480 ? '회사' : h >= 22 ? '집' : SEED_TAG[p.category] ?? null;
+      rows.push({
+        key: `haru-seed-v2-d${d}-s${i}`,
+        placeName:
+          base === 480
+            ? `${p.name} 인근 사무실`
+            : h >= 22
+            ? `${p.name} 근처 숙소`
+            : p.name,
+        placeCategory: base === 480 ? '회사' : h >= 22 ? '집' : p.category,
+        latitude: p.latitude + (((d + i) % 5) - 2) * 0.0004,
+        longitude: p.longitude + (((d * 2 + i) % 5) - 2) * 0.0004,
+        horizontalAccuracy: 20 + ((d * 11 + i * 7) % 70),
+        arrivalAt: start,
+        departureAt: open ? null : start + minutes * 60000,
+        tagName: untagged ? null : tag,
+      });
+    });
+  }
+  return rows;
 }

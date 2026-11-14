@@ -3,7 +3,7 @@ import { AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import { AskScreen } from './src/AskScreen';
 import { DataSource, demoSource, liveSource } from './src/dataSource';
 import { demoStore, demoTagApi } from './src/demoStore';
-import { seedRowsFor } from './src/sampleVisits';
+import { SEED_TOTAL, seedRowsFor } from './src/sampleVisits';
 import { Onboarding } from './src/Onboarding';
 import { useWindowSafeAreaInsets } from './src/safeArea';
 import { TagPicker } from './src/TagPicker';
@@ -191,8 +191,24 @@ function MainShell({
         <Text style={styles.noticeText}>
           {seedCount > 0
             ? `서울 공개 장소 확인용 방문 ${seedCount}건이 이 기기 기록에 들어 있어요. "확인용" 표시가 붙고, 실제 기록과 태그 자동 매칭에는 쓰이지 않아요.`
-            : '서울 공개 장소 10곳의 확인용 방문(최근 3일, 시각만 가상)을 이 기기 기록에 넣어 화면과 태그·장소 기능을 시험할 수 있어요. 다시 눌러도 중복되지 않아요.'}
+            : `서울 공개 장소 기반 확인용 방문 ${SEED_TOTAL}건(최근 30일, 시각만 가상)을 이 기기 기록에 넣어 화면과 태그·장소 기능을 시험할 수 있어요. 다시 눌러도 중복되지 않아요.`}
         </Text>
+        {seedCount > 0 && seedCount < SEED_TOTAL ? (
+          <TextButton
+            testID="seed-add-more"
+            title={
+              seedBusy
+                ? '추가하는 중…'
+                : `확인용 데이터 ${SEED_TOTAL}건까지 추가`
+            }
+            onPress={() =>
+              !seedBusy &&
+              runSeed(() =>
+                visitMonitor.seedTestVisits(seedRowsFor(Date.now())),
+              )
+            }
+          />
+        ) : null}
         {seedCount > 0 ? (
           <TextButton
             testID="seed-delete"
