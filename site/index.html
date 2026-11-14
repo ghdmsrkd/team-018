@@ -166,7 +166,6 @@ body.static .bar, body.static .keys { display: none; }
     <span class="brand">KIROTHON · Kiro비컴휴먼</span>
     <h1>HARU<span>.</span></h1>
     <div class="sub">물어보면 찾아 주는 <b>내 삶의 검색엔진</b></div>
-    <div class="meta"><span>입력 없이 자동 기록</span><span>머문 곳을 칸으로 분류</span><span>물어보면 근거와 함께 답</span></div>
     <svg class="orbit" viewBox="0 0 400 400" aria-hidden="true" id="cover-ring"></svg>
   </section>
 
@@ -381,18 +380,25 @@ function fit() {
 window.addEventListener('resize', fit); fit();
 
 // 표지 도넛
-(function cover() {
+// 표지 도넛: 현재 시간까지 칠하고, 가운데에 지금 시각과 장소
+function cover() {
   const svg = document.getElementById('cover-ring'), C = 200, R = 150, W = 52, T = Math.PI * 2;
-  const seg = [['#2B3138', 0, 590], ['#AEB6BD', 590, 620], ['#9A6B47', 620, 665], ['#AEB6BD', 665, 700], ['#1F4FD1', 700, 980]];
+  const d = new Date(), now = d.getHours() * 60 + d.getMinutes();
+  const hhmm = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  // 오늘의 머문 곳 (마지막 구간 = 지금 있는 행사장, 지금까지 이어짐). 지금 이후는 칠하지 않는다
+  const seg = [['#2B3138', 0, 590], ['#AEB6BD', 590, 620], ['#9A6B47', 620, 665], ['#AEB6BD', 665, 700], ['#1F4FD1', 700, Math.max(now, 701)]]
+    .map(([c, a, b]) => [c, a, Math.min(b, now)]).filter(([, a, b]) => b - a > 2);
   const arc = (a0, a1) => { const p = a => [C + R * Math.sin(a), C - R * Math.cos(a)]; const [x0, y0] = p(a0), [x1, y1] = p(a1); return `M${x0} ${y0} A${R} ${R} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1} ${y1}`; };
   let s = `<circle cx="${C}" cy="${C}" r="${R}" fill="none" stroke="#E2E6DF" stroke-width="${W}"/>`;
   seg.forEach(([c, a, b]) => s += `<path d="${arc(a / 1440 * T + .012, b / 1440 * T - .012)}" fill="none" stroke="${c}" stroke-width="${W}"/>`);
-  const an = 980 / 1440 * T;
-  s += `<circle cx="${C + R * Math.sin(an)}" cy="${C - R * Math.cos(an)}" r="16" fill="#E86A10" opacity=".22"/><circle cx="${C + R * Math.sin(an)}" cy="${C - R * Math.cos(an)}" r="9" fill="#E86A10" stroke="#FFFFFF" stroke-width="3"/>`;
+  const an = now / 1440 * T, nx = C + R * Math.sin(an), ny = C - R * Math.cos(an);
+  s += `<circle cx="${nx}" cy="${ny}" r="16" fill="#E86A10" opacity=".22"/><circle cx="${nx}" cy="${ny}" r="9" fill="#E86A10" stroke="#FFFFFF" stroke-width="3"/>`;
   [0, 6, 12, 18].forEach(h => { const a = h / 24 * T, r = R - W / 2 - 18; s += `<text x="${C + r * Math.sin(a)}" y="${C - r * Math.cos(a) + 5}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="14" fill="#5A6168">${h}</text>`; });
-  s += `<text x="${C}" y="${C - 6}" text-anchor="middle" font-family="Barlow Condensed, sans-serif" font-weight="700" font-size="56" fill="#16191D">16:20</text><text x="${C}" y="${C + 24}" text-anchor="middle" font-family="IBM Plex Sans KR, sans-serif" font-size="15" fill="#5A6168">지금 · 성수동</text>`;
+  s += `<text x="${C}" y="${C - 6}" text-anchor="middle" font-family="Barlow Condensed, sans-serif" font-weight="700" font-size="56" fill="#16191D">${hhmm}</text><text x="${C}" y="${C + 24}" text-anchor="middle" font-family="IBM Plex Sans KR, sans-serif" font-size="15" fill="#5A6168">지금 · 센터필드 캐러톤</text>`;
   svg.innerHTML = s;
-})();
+}
+cover();
+setInterval(cover, 15000);
 
 // 영상 없으면 자리표시
 const vbox = document.getElementById('video'), vid = vbox.querySelector('video');
