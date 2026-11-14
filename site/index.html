@@ -84,6 +84,10 @@ h2 em { font-style: normal; color: var(--blue); }
 .chip i { width: 10px; height: 10px; border-radius: 5px; flex: none; }
 .slide.sorted-done .life-msg { animation: fade .6s ease-out .6s forwards; }
 
+/* PDF 캡처 모드 (?pdf): 애니메이션 없이 최종 상태, 하단 바 숨김 */
+body.static *, body.static *::before, body.static *::after { animation-duration: 0s !important; animation-delay: 0s !important; transition: none !important; }
+body.static .bar, body.static .keys { display: none; }
+
 /* 2막 비교 */
 .compare { margin-top: 30px; border-radius: 22px; overflow: hidden; border: 1px solid var(--line); background: var(--card); }
 .compare table { width: 100%; border-collapse: collapse; font-size: clamp(13px, 1.1vw, 16px); }
@@ -355,13 +359,15 @@ function sendStep() {
 
 function setNote(t) { document.getElementById('notes-text').textContent = t || ''; }
 
-function go(i) {
+const PARAMS = new URLSearchParams(location.search);
+const STATIC = PARAMS.has('pdf');
+let go = function (i) {
   cur = Math.max(0, Math.min(slides.length - 1, i));
   slides.forEach((s, k) => s.classList.toggle('on', k === cur));
   const act = +slides[cur].dataset.act;
   document.querySelectorAll('#acts button').forEach(b => b.setAttribute('aria-current', +slides[+b.dataset.go].dataset.act === act));
   if (slides[cur].id === 'demo') sendStep(); else setNote(slides[cur].dataset.note);
-  if (slides[cur].id === 'hunt') { if (typeof resetHunt === 'function') resetHunt(); startTimer(); } else stopTimer();
+  if (slides[cur].id === 'hunt') { if (typeof resetHunt === 'function') resetHunt(); if (!STATIC) startTimer(); } else stopTimer();
   if (typeof resetGrid === 'function') resetGrid();
   if (typeof placeLife === 'function' && window.LIFE_CHIPS) placeLife(false);
   const total = slides.length - 1 + STEPS.length - 1;
@@ -572,6 +578,12 @@ function placeLife(sorted) {
   lifeStep = sorted ? 1 : 0;
 }
 
+if (STATIC) {
+  document.body.classList.add('static');
+  if (PARAMS.has('step')) step = Math.max(0, Math.min(STEPS.length - 1, +PARAMS.get('step') - 1));
+  const _go = go;
+  go = i => { _go(i); if (slides[cur].id === 'grid') finishGrid(); if (slides[cur].id === 'life') placeLife(true); };
+}
 const start = parseInt((location.hash || '#0').slice(1), 10);
 go(Number.isFinite(start) ? start : 0);
 </script>
