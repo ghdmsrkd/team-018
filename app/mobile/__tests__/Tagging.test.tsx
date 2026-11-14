@@ -21,6 +21,7 @@ jest.mock('../src/visitMonitor', () => ({
       }),
     ),
     getVisits: jest.fn(() => Promise.resolve(mockVisits)),
+    getVisitsInRange: jest.fn(() => Promise.resolve(mockVisits)),
     getTags: jest.fn(() => Promise.resolve([])),
     requestAlways: jest.fn(() => Promise.resolve({})),
     start: jest.fn(),
@@ -115,7 +116,11 @@ test('primary button requests Always once and opens the real visit screen', asyn
   const r = await mount();
   await press(r, 'onboarding-start');
   expect(mockNative.requestAlways).toHaveBeenCalledTimes(1);
+  expect(json(r)).toContain('하루');
+  await press(r, 'tab-timeline');
+  expect(mockNative.getVisitsInRange).toHaveBeenCalled();
   const out = json(r);
+  expect(out).toContain('타임라인');
   expect(out).toContain('2031년 5월 2일 금요일');
   expect(out).toContain('머문 시간 ');
   expect(out).toContain('1시간 22분');
@@ -128,7 +133,9 @@ test('real screen falls back to sample rows without a tag control', async () => 
   mockVisits = [];
   const r = await mount();
   await press(r, 'onboarding-start');
+  await press(r, 'tab-timeline');
   const out = json(r);
+  expect(out).toContain('타임라인');
   expect(out).toContain('12.34567');
   expect(out).not.toContain('변경');
   expect(out).not.toContain('장소');
@@ -137,8 +144,12 @@ test('real screen falls back to sample rows without a tag control', async () => 
 test('demo shows samples with no native calls and can return to onboarding', async () => {
   const r = await mount();
   await press(r, 'onboarding-demo');
+  const today = json(r);
+  expect(today).toContain('샘플 하루');
+  expect(today).toContain('미분류');
+  await press(r, 'tab-timeline');
   const out = json(r);
-  expect(out).toContain('샘플 하루');
+  expect(out).toContain('타임라인');
   expect(out).toContain('12.34567');
   expect(out).not.toContain('변경');
   for (const fn of Object.values(mockNative)) {

@@ -34,6 +34,8 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>타임라인에서 머문 곳마다 그때 찍은 사진과 영상을 보여 주려고 촬영 시각과 위치를 읽어요. 사진은 이 기기 밖으로 보내지 않아요.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Always access lets the app record places you stay at (visits) while it is in the background. Nothing leaves your device.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

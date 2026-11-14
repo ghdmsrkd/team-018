@@ -311,6 +311,41 @@ final class VisitStore {
   func fetch(limit: Int) -> [StoredVisit] {
     queue.sync {
       guard let db = openIfNeeded() else { return [] }
+      return readVisits(
+        db, where: "1", order: "v.received_at DESC, v.id DESC LIMIT ?",
+        values: [.int(Int64(max(1, limit)))]
+      )
+    }
+  }
+
+  /// Every visit that can overlap [from, to) (Unix seconds), with no row limit, so long
+  /// periods (a whole year) are never truncated. Rows with a departure are included when
+  /// their stay overlaps the range. Rows without a departure (an arrival callback that never
+  /// got its departure row, or a stay in progress) are included only when they start in the
+  /// range or after `openSince`, so stale open rows from long ago are not returned for every
+  /// later period. The start time is arrival, else departure, else received time.
+  func fetchRange(from: Double, to: Double, openSince: Double) -> [StoredVisit] {
+    queue.sync {
+      guard let db = openIfNeeded() else { return [] }
+      let start = "COALESCE(v.arrival_at, v.departure_at, v.received_at)"
+      return readVisits(
+        db,
+        where: """
+        \(start) < ? AND (
+          (v.departure_at IS NOT NULL AND v.departure_at > ?)
+          OR (v.departure_at IS NULL AND \(start) >= MIN(?, ?))
+        )
+        """,
+        order: "\(start) ASC, v.id ASC",
+        values: [.double(to), .double(from), .double(from), .double(openSince)]
+      )
+    }
+  }
+
+  private func readVisits(
+    _ db: OpaquePointer, where condition: String, order: String, values: [Value]
+  ) -> [StoredVisit] {
+    do {
       let tagged = userVersion(db) >= 1
       let sql = tagged
         ? """
@@ -319,13 +354,15 @@ final class VisitStore {
           FROM visits v
           LEFT JOIN visit_tags vt ON vt.visit_id = v.id
           LEFT JOIN tags t ON t.id = vt.tag_id
-          ORDER BY v.received_at DESC, v.id DESC LIMIT ?;
+          WHERE \(condition)
+          ORDER BY \(order);
           """
         : """
-          SELECT id, latitude, longitude, horizontal_accuracy, arrival_at, departure_at, received_at
-          FROM visits ORDER BY received_at DESC, id DESC LIMIT ?;
+          SELECT v.id, v.latitude, v.longitude, v.horizontal_accuracy, v.arrival_at, v.departure_at,
+                 v.received_at
+          FROM visits v WHERE \(condition) ORDER BY \(order);
           """
-      guard let stmt = prepare(db, sql, [.int(Int64(max(1, limit)))]) else { return [] }
+      guard let stmt = prepare(db, sql, values) else { return [] }
       defer { sqlite3_finalize(stmt) }
       var rows: [StoredVisit] = []
       while sqlite3_step(stmt) == SQLITE_ROW {

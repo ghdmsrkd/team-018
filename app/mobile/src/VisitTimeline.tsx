@@ -1,5 +1,14 @@
 import type { ReactElement } from 'react';
-import { Pressable, SectionList, StyleSheet, Text, View } from 'react-native';
+import {
+  Image,
+  Pressable,
+  SectionList,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { useEffect, useState } from 'react';
+import { formatVideoDuration, MediaAsset, photos } from './media';
 import {
   formatClock,
   formatDuration,
@@ -10,9 +19,79 @@ import { describeTag } from './TagPicker';
 import { colors } from './theme';
 import type { Visit } from './visitMonitor';
 
+/** Loads a cached thumbnail file for a library asset. */
+export function MediaThumb({
+  asset,
+  size,
+  style,
+}: {
+  asset: MediaAsset;
+  size: number;
+  style?: object;
+}) {
+  const [uri, setUri] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    photos
+      .getThumbnail(asset.id, size)
+      .then(u => alive && setUri(u))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [asset.id, size]);
+  return (
+    <View style={[styles.thumb, style]}>
+      {uri ? <Image source={{ uri }} style={StyleSheet.absoluteFill} /> : null}
+      {asset.mediaType === 'video' ? (
+        <Text style={styles.videoBadge}>
+          ▶ {formatVideoDuration(asset.duration)}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
+function MediaRow({
+  media,
+  onOpen,
+}: {
+  media: MediaAsset[];
+  onOpen: (asset: MediaAsset, list: MediaAsset[]) => void;
+}) {
+  const shown = media.slice(0, 3);
+  const extra = media.length - shown.length;
+  return (
+    <View style={styles.media}>
+      {shown.map((a, i) => (
+        <Pressable
+          key={a.id}
+          style={styles.mediaCell}
+          onPress={() => onOpen(a, media)}
+          accessibilityRole="imagebutton"
+          accessibilityLabel={`${
+            a.mediaType === 'video'
+              ? `영상 ${formatVideoDuration(a.duration)}`
+              : '사진'
+          }, ${formatClock(a.createdAt)} 촬영, 크게 보기`}
+        >
+          <MediaThumb asset={a} size={300} style={styles.mediaFill} />
+          {i === shown.length - 1 && extra > 0 ? (
+            <View style={styles.more}>
+              <Text style={styles.moreText}>+{extra}</Text>
+            </View>
+          ) : null}
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+
 type RowProps = {
   visit: Visit;
   last: boolean;
+  media?: MediaAsset[];
+  onOpenMedia?: (asset: MediaAsset, list: MediaAsset[]) => void;
   /** Passed only for stored visits; sample rows never get a tag control. */
   onTag?: () => void;
 };
@@ -28,7 +107,7 @@ function stayText(v: Visit): string {
   return '머문 시간 계산 불가 (도착 시각 미확인)';
 }
 
-function VisitRow({ visit, last, onTag }: RowProps) {
+function VisitRow({ visit, last, onTag, media, onOpenMedia }: RowProps) {
   const arrival =
     visit.arrivalAt == null ? '도착 시각 미확인' : formatClock(visit.arrivalAt);
   const departure =
@@ -66,6 +145,9 @@ function VisitRow({ visit, last, onTag }: RowProps) {
             <Text style={styles.tagText}>{describeTag(visit)} · 변경</Text>
           </Pressable>
         ) : null}
+        {media && media.length > 0 && onOpenMedia ? (
+          <MediaRow media={media} onOpen={onOpenMedia} />
+        ) : null}
       </View>
     </View>
   );
@@ -76,13 +158,27 @@ type Props = {
   /** Omit for sample rows. */
   onTag?: (visit: Visit) => void;
   header?: ReactElement;
+  /** Photos and videos attached to each stored visit id. */
+  media?: Map<number, MediaAsset[]>;
+  onOpenMedia?: (asset: MediaAsset, list: MediaAsset[]) => void;
+  /** Shows a replay button on days with at least one visit. */
+  onReplayDay?: (visits: Visit[], title: string) => void;
+  empty?: ReactElement;
 };
 
 /**
  * Date-grouped vertical timeline. Times and durations come only from each visit's own
  * arrival/departure. The list's automatic content inset applies the real iOS safe area.
  */
-export function VisitTimeline({ visits, onTag, header }: Props) {
+export function VisitTimeline({
+  visits,
+  onTag,
+  header,
+  media,
+  onOpenMedia,
+  onReplayDay,
+  empty,
+}: Props) {
   return (
     <SectionList
       style={styles.list}
@@ -91,16 +187,32 @@ export function VisitTimeline({ visits, onTag, header }: Props) {
       sections={groupByDay(visits)}
       keyExtractor={v => String(v.id)}
       ListHeaderComponent={header}
+      ListEmptyComponent={empty}
       renderSectionHeader={({ section }) => (
-        <Text style={styles.dateHeader} accessibilityRole="header">
-          {section.title}
-        </Text>
+        <View style={styles.dateHeaderRow}>
+          <Text style={styles.dateHeader} accessibilityRole="header">
+            {section.title}
+          </Text>
+          {onReplayDay ? (
+            <Pressable
+              onPress={() => onReplayDay(section.data, section.title)}
+              accessibilityRole="button"
+              accessibilityLabel={`${section.title} 재생`}
+              hitSlop={8}
+              style={styles.replay}
+            >
+              <Text style={styles.replayText}>▶ 재생</Text>
+            </Pressable>
+          ) : null}
+        </View>
       )}
       renderItem={({ item, index, section }) => (
         <VisitRow
           visit={item}
           last={index === section.data.length - 1}
           onTag={onTag ? () => onTag(item) : undefined}
+          media={media?.get(item.id)}
+          onOpenMedia={onOpenMedia}
         />
       )}
       contentContainerStyle={styles.content}
@@ -113,10 +225,46 @@ const DOT = 12;
 const styles = StyleSheet.create({
   list: { flex: 1, backgroundColor: colors.background },
   content: { paddingBottom: 24 },
-  dateHeader: {
+  dateHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 10,
+  },
+  replay: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: colors.blue,
+  },
+  replayText: { fontSize: 12, fontWeight: '600', color: '#FFFFFF' },
+  media: { flexDirection: 'row', marginTop: 10, gap: 4 },
+  mediaCell: { flex: 1, aspectRatio: 1, borderRadius: 10, overflow: 'hidden' },
+  mediaFill: { flex: 1 },
+  thumb: { backgroundColor: '#E2E6DF', overflow: 'hidden' },
+  videoBadge: {
+    position: 'absolute',
+    right: 4,
+    bottom: 4,
+    paddingHorizontal: 4,
+    borderRadius: 4,
+    overflow: 'hidden',
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    backgroundColor: 'rgba(22,25,29,0.7)',
+  },
+  more: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(22,25,29,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  moreText: { fontSize: 18, fontWeight: '700', color: '#FFFFFF' },
+  dateHeader: {
+    flexShrink: 1,
     fontSize: 17,
     fontWeight: '700',
     color: colors.ink,

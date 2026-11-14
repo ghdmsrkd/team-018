@@ -8,6 +8,7 @@ RCT_EXTERN_METHOD(getVisits : (nonnull NSNumber *)limit resolve : (RCTPromiseRes
 RCT_EXTERN_METHOD(startMonitoring : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(requestAlwaysAuthorization : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(stopMonitoring : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(getVisitsInRange : (nonnull NSNumber *)fromMs toMs : (nonnull NSNumber *)toMs openSinceMs : (nonnull NSNumber *)openSinceMs resolve : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(getTags : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(createTag : (nonnull NSString *)name resolve : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(renameTag : (nonnull NSNumber *)tagId name : (nonnull NSString *)name resolve : (RCTPromiseResolveBlock)resolve rejecter : (RCTPromiseRejectBlock)reject)
