@@ -46,10 +46,27 @@ TMP="$(mktemp -d)"
 ( cd "$DIR/lambda" && zip -q -j "$TMP/fn.zip" index.mjs )
 
 # 3) 함수 생성 또는 갱신
-ENV_VARS="Variables={MODEL_ID=${MODEL_ID},MAX_TOKENS=1024}"
-if [ -n "${KAKAO_REST_KEY:-}" ]; then
-  ENV_VARS="Variables={MODEL_ID=${MODEL_ID},MAX_TOKENS=1024,KAKAO_REST_KEY=${KAKAO_REST_KEY}}"
+# 비밀값은 환경변수 또는 backend/.secrets.env(gitignore)에서 읽는다. 코드와 명령행에는 넣지 않는다.
+if [ -f "$DIR/.secrets.env" ]; then set -a; . "$DIR/.secrets.env"; set +a; fi
+# 키를 안 줬는데 함수에 이미 있으면 유지한다 (재배포로 키가 지워지지 않게)
+if [ -z "${KAKAO_REST_KEY:-}" ] && aws lambda get-function --function-name "$FN" >/dev/null 2>&1; then
+  KAKAO_REST_KEY="$(aws lambda get-function-configuration --function-name "$FN" \
+    --query 'Environment.Variables.KAKAO_REST_KEY' --output text)"
+  [ "$KAKAO_REST_KEY" = "None" ] && KAKAO_REST_KEY=""
 fi
+# 환경변수는 JSON 파일(600)로 넘긴다. ps 에 값이 보이지 않는다.
+ENV_FILE="$TMP/env.json"
+( umask 077
+  MODEL_ID="$MODEL_ID" KAKAO_REST_KEY="${KAKAO_REST_KEY:-}" python3 - "$ENV_FILE" <<'PY'
+import json, os, sys
+v = {"MODEL_ID": os.environ["MODEL_ID"], "MAX_TOKENS": "1024"}
+if os.environ.get("KAKAO_REST_KEY"):
+    v["KAKAO_REST_KEY"] = os.environ["KAKAO_REST_KEY"]
+json.dump({"Variables": v}, open(sys.argv[1], "w"))
+PY
+)
+ENV_VARS="file://$ENV_FILE"
+echo "kakao key: $([ -n "${KAKAO_REST_KEY:-}" ] && echo 설정됨 || echo 없음)"
 if aws lambda get-function --function-name "$FN" >/dev/null 2>&1; then
   aws lambda update-function-code --function-name "$FN" --zip-file "fileb://$TMP/fn.zip" >/dev/null
   aws lambda wait function-updated --function-name "$FN"
