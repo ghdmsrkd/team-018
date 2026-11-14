@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>오늘</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&amp;family=IBM+Plex+Mono:wght@500&amp;family=IBM+Plex+Sans+KR:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#1F4FD1}a:hover{color:#163A9C}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #EEF0EC; color: #16191D; font-family: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', sans-serif; display: flex; flex-direction: column; overflow: hidden; position: relative">
+
+  <div style="padding: 58px 20px 0; display: flex; justify-content: space-between; align-items: flex-end">
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #5A6168">2026 · SAT</span>
+      <div style="display: flex; align-items: baseline; gap: 10px">
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 64px; line-height: 0.9; letter-spacing: -0.01em">11.14</span>
+        <span style="font-size: 17px; font-weight: 600">오늘</span>
+      </div>
+    </div>
+    <button aria-label="다른 날짜 보기" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #D5D9D3; background: #FFFFFF; display: grid; place-items: center; cursor: pointer; color: #16191D">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="4.5" width="14" height="12.5" rx="2"></rect><path d="M3 8.5h14M7 2.5v4M13 2.5v4"></path></svg>
+    </button>
+  </div>
+
+  <div style="padding: 14px 20px 0; display: flex; gap: 18px; font-size: 13px; color: #5A6168">
+    <span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px; color: #16191D; font-weight: 600">3</b> 곳에 머묾</span>
+    <span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px; color: #16191D; font-weight: 600">9.4</b> km 이동</span>
+    <span style="margin-left: auto; display: flex; align-items: center; gap: 6px; color: #A8480A; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 4px; background: #E86A10"></span>기록 중</span>
+  </div>
+
+  <div style="margin: 14px 20px 0; height: 206px; border-radius: 18px; overflow: hidden; background: #E2E6DF; position: relative; flex-shrink: 0">
+    <svg width="350" height="206" viewBox="0 0 350 206" aria-hidden="true" style="display: block">
+      <path d="M-10 168 C 50 150, 100 182, 165 160 S 270 120, 360 138" stroke="#C6D5E0" stroke-width="20" fill="none"></path>
+      <path d="M20 0 L 60 206 M140 0 L 120 206 M0 60 L 350 40 M0 110 L 350 96 M230 0 L 250 206 M300 0 L 320 206" stroke="#F4F5F2" stroke-width="5" fill="none"></path>
+      <path d="M0 30 L 350 18 M90 0 L 80 206 M190 0 L 200 206" stroke="#F4F5F2" stroke-width="2.5" fill="none"></path>
+      <path d="M72 120 L 96 106" stroke="#16191D" stroke-width="2" stroke-dasharray="3 4" fill="none"></path>
+      <path d="M96 106 C 150 70, 220 64, 284 90" stroke="#1F4FD1" stroke-width="4" fill="none" stroke-linecap="round"></path>
+      <circle cx="72" cy="120" r="7" fill="#FFFFFF" stroke="#16191D" stroke-width="2.5"></circle>
+      <circle cx="96" cy="106" r="5.5" fill="#FFFFFF" stroke="#16191D" stroke-width="2.5"></circle>
+      <circle cx="284" cy="90" r="16" fill="#E86A10" opacity="0.18"></circle>
+      <circle cx="284" cy="90" r="7" fill="#E86A10" stroke="#FFFFFF" stroke-width="2.5"></circle>
+      <text x="40" y="142" font-family="IBM Plex Sans KR, sans-serif" font-size="11" font-weight="600" fill="#16191D">집 · 망원</text>
+      <text x="104" y="98" font-family="IBM Plex Sans KR, sans-serif" font-size="11" fill="#3D444B">오전 커피</text>
+      <text x="246" y="122" font-family="IBM Plex Sans KR, sans-serif" font-size="11" font-weight="600" fill="#16191D">성수 · 지금</text>
+      <text x="300" y="196" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5A6168">한강</text>
+    </svg>
+  </div>
+
+  <div style="padding: 18px 20px 0; flex: 1; display: flex; flex-direction: column">
+    <div style="display: grid; grid-template-columns: 58px 26px 1fr; column-gap: 8px">
+      <div style="display: flex; flex-direction: column; padding-top: 1px">
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 22px; line-height: 1">00:00</span>
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-size: 15px; color: #5A6168">09:50</span>
+      </div>
+      <div style="position: relative">
+        <div style="position: absolute; left: 12px; top: 10px; bottom: 0; width: 3px; background: #16191D"></div>
+        <div style="position: absolute; left: 4px; top: 2px; width: 13px; height: 13px; border-radius: 9px; border: 3px solid #16191D; background: #FFFFFF"></div>
+      </div>
+      <div style="padding-bottom: 12px; display: flex; flex-direction: column; gap: 3px">
+        <span style="font-size: 15px; font-weight: 600">집 · 망원동</span>
+        <span style="font-size: 12px; color: #5A6168; display: flex; align-items: center; gap: 6px"><span style="font-size: 11px; font-weight: 600; color: #16191D; border: 1.5px solid #16191D; border-radius: 5px; padding: 0 6px; line-height: 18px">집</span>9시간 50분</span>
+      </div>
+
+      <div></div>
+      <div style="position: relative; height: 30px"><div style="position: absolute; left: 12px; top: 0; bottom: 0; border-left: 3px dotted #16191D"></div></div>
+      <div style="font-size: 12px; color: #5A6168; display: flex; align-items: center">도보 6분 · 450m</div>
+
+      <div style="display: flex; flex-direction: column; padding-top: 1px">
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 22px; line-height: 1">10:20</span>
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-size: 15px; color: #5A6168">11:05</span>
+      </div>
+      <div style="position: relative">
+        <div style="position: absolute; left: 12px; top: 0; bottom: 0; width: 3px; background: #16191D"></div>
+        <div style="position: absolute; left: 6px; top: 4px; width: 9px; height: 9px; border-radius: 7px; border: 3px solid #16191D; background: #FFFFFF"></div>
+      </div>
+      <div style="padding-bottom: 12px; display: flex; flex-direction: column; gap: 3px">
+        <span style="font-size: 15px; font-weight: 600">오전 커피 · 망원동</span>
+        <span style="font-size: 12px; color: #5A6168; display: flex; align-items: center; gap: 6px"><span style="font-size: 11px; font-weight: 500; color: #16191D; border: 1px solid #C9CEC6; background: #FFFFFF; border-radius: 5px; padding: 0 6px; line-height: 18px; display: inline-flex; gap: 5px; align-items: center">커피<span style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: #1F4FD1; letter-spacing: 0.04em">AI</span></span>45분</span>
+      </div>
+
+      <div></div>
+      <div style="position: relative; height: 40px"><div style="position: absolute; left: 12px; top: 0; bottom: 0; width: 3px; background: #1F4FD1"></div></div>
+      <div style="font-size: 12px; color: #1F4FD1; display: flex; align-items: center; gap: 6px; font-weight: 500">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="2.5" y="1.5" width="9" height="9" rx="2"></rect><path d="M4 12.5l1.5-2M10 12.5l-1.5-2M2.5 7h9"></path></svg>
+        지하철 · 41분 · 8.9km
+      </div>
+
+      <div style="display: flex; flex-direction: column; padding-top: 1px">
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 22px; line-height: 1">11:40</span>
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-size: 15px; color: #A8480A">지금</span>
+      </div>
+      <div style="position: relative">
+        <div style="position: absolute; left: 12px; top: 0; height: 6px; width: 3px; background: #1F4FD1"></div>
+        <div style="position: absolute; left: 0; top: -2px; width: 27px; height: 27px; border-radius: 14px; background: #E86A10; opacity: 0.2"></div>
+        <div style="position: absolute; left: 5px; top: 3px; width: 11px; height: 11px; border-radius: 8px; border: 3px solid #FFFFFF; background: #E86A10"></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 3px">
+        <span style="font-size: 15px; font-weight: 600">키로톤 행사장 · 성수동</span>
+        <span style="font-size: 12px; color: #5A6168; display: flex; align-items: center; gap: 6px; flex-wrap: wrap"><a href="Inbox.dc.html" style="font-size: 11px; font-weight: 500; color: #1F4FD1; border: 1px dashed #8A939B; border-radius: 5px; padding: 0 6px; line-height: 18px; text-decoration: none">태그 없음 · 달기</a>머무는 중 · 4시간 40분째</span>
+      </div>
+    </div>
+  </div>
+
+  <nav aria-label="주요 화면" style="height: 84px; box-sizing: border-box; padding: 8px 28px 24px; background: #FFFFFF; border-top: 1px solid #D5D9D3; display: flex; justify-content: space-between; flex-shrink: 0">
+    <a href="Main.dc.html" aria-current="page" style="width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #1F4FD1; font-size: 11px; font-weight: 600">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2v20"></path><circle cx="12" cy="7" r="3" fill="#FFFFFF"></circle><circle cx="12" cy="17" r="3" fill="#FFFFFF"></circle></svg>
+      오늘
+    </a>
+    <a href="Trips.dc.html" style="width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #5A6168; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 18c4 0 3-12 7-12s3 12 7 12"></path><circle cx="5" cy="18" r="2.2"></circle><circle cx="19" cy="18" r="2.2"></circle></svg>
+      여행
+    </a>
+    <a href="Chat.dc.html" style="width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #5A6168; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v11H10l-4 3v-3H4z"></path><path d="M8 10.5h8"></path></svg>
+      물어보기
+    </a>
+  </nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

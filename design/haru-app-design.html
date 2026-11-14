@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>하루 앱 디자인</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+body { margin: 0; background: #D9DDD6; font-family: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', sans-serif; color: #16191D; }
+header { padding: 40px 40px 8px; }
+header h1 { margin: 0; font-size: 28px; }
+header p { margin: 6px 0 0; color: #4A5157; font-size: 14px; }
+.board { display: flex; flex-wrap: wrap; gap: 48px 40px; padding: 32px 40px 80px; }
+.screen { display: flex; flex-direction: column; gap: 12px; scroll-margin-top: 24px; }
+.label { margin: 0; font-size: 14px; font-weight: 600; }
+.label a { color: #16191D; text-decoration: none; }
+.device { width: 390px; height: 844px; border-radius: 28px; overflow: hidden; box-shadow: 0 0 0 1px rgba(22,25,29,.12), 0 12px 32px rgba(22,25,29,.12); }
+.screen:target .device { box-shadow: 0 0 0 3px #1F4FD1, 0 12px 32px rgba(22,25,29,.18); }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+<h1>하루 앱 디자인 v0.1</h1>
+<p>키로톤 팀 018 · 화면 안의 링크와 버튼을 누르면 해당 화면으로 이동합니다. 재생 화면의 배속과 태그 달기는 실제로 동작합니다.</p>
+</header>
+<main class="board">
+<section class="screen" id="Onboarding" aria-label="온보딩">
+<h2 class="label"><a href="#Onboarding">온보딩</a></h2>
+<div class="device">
+
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #EEF0EC; color: #16191D; font-family: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', sans-serif; display: flex; flex-direction: column; overflow: hidden; padding: 64px 24px 36px">
+
+  <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: #5A6168">HARU</span>
+
+  <div style="margin-top: 34px; height: 150px; position: relative">
+    <div style="position: absolute; left: 6px; right: 6px; top: 56px; height: 4px; background: #16191D"></div>
+    <div style="position: absolute; left: 196px; right: 6px; top: 56px; height: 4px; background: #1F4FD1"></div>
+
+    <div style="position: absolute; left: 0; top: 46px; width: 18px; height: 18px; border-radius: 12px; border: 4px solid #16191D; background: #FFFFFF"></div>
+    <span style="position: absolute; left: 0; top: 14px; font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 600">08:10</span>
+    <span style="position: absolute; left: 0; top: 84px; font-size: 13px; font-weight: 600">집</span>
+
+    <div style="position: absolute; left: 94px; top: 50px; width: 10px; height: 10px; border-radius: 8px; border: 4px solid #16191D; background: #FFFFFF"></div>
+    <span style="position: absolute; left: 88px; top: 18px; font-family: 'Barlow Condensed', sans-serif; font-size: 18px; color: #5A6168">09:02</span>
+    <span style="position: absolute; left: 88px; top: 84px; font-size: 13px">카페</span>
+
+    <div style="position: absolute; left: 184px; top: 46px; width: 18px; height: 18px; border-radius: 12px; border: 4px solid #16191D; background: #FFFFFF"></div>
+    <span style="position: absolute; left: 180px; top: 14px; font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 600">09:40</span>
+    <span style="position: absolute; left: 180px; top: 84px; font-size: 13px; font-weight: 600">회사</span>
+
+    <div style="position: absolute; left: 318px; top: 42px; width: 32px; height: 32px; border-radius: 16px; background: #E86A10; opacity: 0.2"></div>
+    <div style="position: absolute; left: 326px; top: 50px; width: 10px; height: 10px; border-radius: 8px; border: 3px solid #FFFFFF; background: #E86A10"></div>
+    <span style="position: absolute; right: 0; top: 14px; font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 600; color: #A8480A">19:30</span>
+    <span style="position: absolute; right: 0; top: 84px; font-size: 13px; font-weight: 600">저녁 약속</span>
+    <span style="position: absolute; left: 220px; top: 112px; font-size: 12px; color: #1F4FD1">지하철 · 34분</span>
+  </div>
+
+  <h1 style="margin: 28px 0 0; font-size: 32px; line-height: 1.25; font-weight: 700; letter-spacing: -0.02em">적지 않아도<br>하루가 남아요</h1>
+  <p style="margin: 14px 0 0; font-size: 15px; line-height: 1.6; color: #3D444B">휴대폰이 머문 곳을 기억해 두면, 하루가 그 기록으로 지난 여행을 다시 보여주고 물어보면 답해요.</p>
+
+  <ul style="margin: 28px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 16px; font-size: 14px; line-height: 1.5">
+    <li style="display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#16191D" stroke-width="1.6" aria-hidden="true"><path d="M11 20s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"></path><circle cx="11" cy="9" r="2.5"></circle></svg>
+      <span><b style="font-weight: 600">머문 곳 단위로 기록해요.</b> 어디에 몇 시부터 몇 시까지 있었는지가 남아요.</span>
+    </li>
+    <li style="display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#16191D" stroke-width="1.6" aria-hidden="true"><rect x="5" y="4" width="4" height="14" rx="1"></rect><rect x="13" y="4" width="4" height="14" rx="1"></rect></svg>
+      <span><b style="font-weight: 600">언제든 멈추고, 기간째 지울 수 있어요.</b></span>
+    </li>
+    <li style="display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#16191D" stroke-width="1.6" aria-hidden="true"><rect x="4" y="9" width="14" height="10" rx="2"></rect><path d="M7.5 9V6.5a3.5 3.5 0 0 1 7 0V9"></path></svg>
+      <span><b style="font-weight: 600">질문에 답할 때도 필요한 기록만 써요.</b> 위치 좌표를 통째로 AI에 넘기지 않아요.</span>
+    </li>
+  </ul>
+
+  <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
+    <p style="margin: 0 0 4px; font-size: 12px; color: #5A6168; line-height: 1.5">다음 화면에서 <b style="color: #16191D; font-weight: 600">'항상 허용'</b>을 고르면 앱을 닫아도 기록돼요.</p>
+    <a href="#Main" style="height: 54px; border-radius: 14px; background: #16191D; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; text-decoration: none">위치 권한 허용하고 시작하기</a>
+    <a href="#Main" style="height: 50px; border-radius: 14px; border: 1px solid #C9CEC6; background: #FFFFFF; color: #16191D; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 500; text-decoration: none">샘플 하루로 먼저 둘러보기</a>
+  </div>
+</div>
+</div>
+</section>
+<section class="screen" id="Main" aria-label="오늘">
+<h2 class="label"><a href="#Main">오늘</a></h2>
+<div class="device">
+
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #EEF0EC; color: #16191D; font-family: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', sans-serif; display: flex; flex-direction: column; overflow: hidden; position: relative">
+
+  <div style="padding: 58px 20px 0; display: flex; justify-content: space-between; align-items: flex-end">
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #5A6168">2026 · SAT</span>
+      <div style="display: flex; align-items: baseline; gap: 10px">
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 64px; line-height: 0.9; letter-spacing: -0.01em">11.14</span>
+        <span style="font-size: 17px; font-weight: 600">오늘</span>
+      </div>
+    </div>
+    <button aria-label="다른 날짜 보기" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #D5D9D3; background: #FFFFFF; display: grid; place-items: center; cursor: pointer; color: #16191D">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="4.5" width="14" height="12.5" rx="2"></rect><path d="M3 8.5h14M7 2.5v4M13 2.5v4"></path></svg>
+    </button>
+  </div>
+
+  <div style="padding: 14px 20px 0; display: flex; gap: 18px; font-size: 13px; color: #5A6168">
+    <span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px; color: #16191D; font-weight: 600">3</b> 곳에 머묾</span>
+    <span><b style="font-family: 'Barlow Condensed', sans-serif; font-size: 20px; color: #16191D; font-weight: 600">9.4</b> km 이동</span>
+    <span style="margin-left: auto; display: flex; align-items: center; gap: 6px; color: #A8480A; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 4px; background: #E86A10"></span>기록 중</span>
+  </div>
+
+  <div style="margin: 14px 20px 0; height: 206px; border-radius: 18px; overflow: hidden; background: #E2E6DF; position: relative; flex-shrink: 0">
+    <svg width="350" height="206" viewBox="0 0 350 206" aria-hidden="true" style="display: block">
+      <path d="M-10 168 C 50 150, 100 182, 165 160 S 270 120, 360 138" stroke="#C6D5E0" stroke-width="20" fill="none"></path>
+      <path d="M20 0 L 60 206 M140 0 L 120 206 M0 60 L 350 40 M0 110 L 350 96 M230 0 L 250 206 M300 0 L 320 206" stroke="#F4F5F2" stroke-width="5" fill="none"></path>
+      <path d="M0 30 L 350 18 M90 0 L 80 206 M190 0 L 200 206" stroke="#F4F5F2" stroke-width="2.5" fill="none"></path>
+      <path d="M72 120 L 96 106" stroke="#16191D" stroke-width="2" stroke-dasharray="3 4" fill="none"></path>
+      <path d="M96 106 C 150 70, 220 64, 284 90" stroke="#1F4FD1" stroke-width="4" fill="none" stroke-linecap="round"></path>
+      <circle cx="72" cy="120" r="7" fill="#FFFFFF" stroke="#16191D" stroke-width="2.5"></circle>
+      <circle cx="96" cy="106" r="5.5" fill="#FFFFFF" stroke="#16191D" stroke-width="2.5"></circle>
+      <circle cx="284" cy="90" r="16" fill="#E86A10" opacity="0.18"></circle>
+      <circle cx="284" cy="90" r="7" fill="#E86A10" stroke="#FFFFFF" stroke-width="2.5"></circle>
+      <text x="40" y="142" font-family="IBM Plex Sans KR, sans-serif" font-size="11" font-weight="600" fill="#16191D">집 · 망원</text>
+      <text x="104" y="98" font-family="IBM Plex Sans KR, sans-serif" font-size="11" fill="#3D444B">오전 커피</text>
+      <text x="246" y="122" font-family="IBM Plex Sans KR, sans-serif" font-size="11" font-weight="600" fill="#16191D">성수 · 지금</text>
+      <text x="300" y="196" font-family="IBM Plex Mono, monospace" font-size="9" fill="#5A6168">한강</text>
+    </svg>
+  </div>
+
+  <div style="padding: 18px 20px 0; flex: 1; display: flex; flex-direction: column">
+    <div style="display: grid; grid-template-columns: 58px 26px 1fr; column-gap: 8px">
+      <div style="display: flex; flex-direction: column; padding-top: 1px">
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 22px; line-height: 1">00:00</span>
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-size: 15px; color: #5A6168">09:50</span>
+      </div>
+      <div style="position: relative">
+        <div style="position: absolute; left: 12px; top: 10px; bottom: 0; width: 3px; background: #16191D"></div>
+        <div style="position: absolute; left: 4px; top: 2px; width: 13px; height: 13px; border-radius: 9px; border: 3px solid #16191D; background: #FFFFFF"></div>
+      </div>
+      <div style="padding-bottom: 12px; display: flex; flex-direction: column; gap: 3px">
+        <span style="font-size: 15px; font-weight: 600">집 · 망원동</span>
+        <span style="font-size: 12px; color: #5A6168; display: flex; align-items: center; gap: 6px"><span style="font-size: 11px; font-weight: 600; color: #16191D; border: 1.5px solid #16191D; border-radius: 5px; padding: 0 6px; line-height: 18px">집</span>9시간 50분</span>
+      </div>
+
+      <div></div>
+      <div style="position: relative; height: 30px"><div style="position: absolute; left: 12px; top: 0; bottom: 0; border-left: 3px dotted #16191D"></div></div>
+      <div style="font-size: 12px; color: #5A6168; display: flex; align-items: center">도보 6분 · 450m</div>
+
+      <div style="display: flex; flex-direction: column; padding-top: 1px">
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 22px; line-height: 1">10:20</span>
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-size: 15px; color: #5A6168">11:05</span>
+      </div>
+      <div style="position: relative">
+        <div style="position: absolute; left: 12px; top: 0; bottom: 0; width: 3px; background: #16191D"></div>
+        <div style="position: absolute; left: 6px; top: 4px; width: 9px; height: 9px; border-radius: 7px; border: 3px solid #16191D; background: #FFFFFF"></div>
+      </div>
+      <div style="padding-bottom: 12px; display: flex; flex-direction: column; gap: 3px">
+        <span style="font-size: 15px; font-weight: 600">오전 커피 · 망원동</span>
+        <span style="font-size: 12px; color: #5A6168; display: flex; align-items: center; gap: 6px"><span style="font-size: 11px; font-weight: 500; color: #16191D; border: 1px solid #C9CEC6; background: #FFFFFF; border-radius: 5px; padding: 0 6px; line-height: 18px; display: inline-flex; gap: 5px; align-items: center">커피<span style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: #1F4FD1; letter-spacing: 0.04em">AI</span></span>45분</span>
+      </div>
+
+      <div></div>
+      <div style="position: relative; height: 40px"><div style="position: absolute; left: 12px; top: 0; bottom: 0; width: 3px; background: #1F4FD1"></div></div>
+      <div style="font-size: 12px; color: #1F4FD1; display: flex; align-items: center; gap: 6px; font-weight: 500">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="2.5" y="1.5" width="9" height="9" rx="2"></rect><path d="M4 12.5l1.5-2M10 12.5l-1.5-2M2.5 7h9"></path></svg>
+        지하철 · 41분 · 8.9km
+      </div>
+
+      <div style="display: flex; flex-direction: column; padding-top: 1px">
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 22px; line-height: 1">11:40</span>
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-size: 15px; color: #A8480A">지금</span>
+      </div>
+      <div style="position: relative">
+        <div style="position: absolute; left: 12px; top: 0; height: 6px; width: 3px; background: #1F4FD1"></div>
+        <div style="position: absolute; left: 0; top: -2px; width: 27px; height: 27px; border-radius: 14px; background: #E86A10; opacity: 0.2"></div>
+        <div style="position: absolute; left: 5px; top: 3px; width: 11px; height: 11px; border-radius: 8px; border: 3px solid #FFFFFF; background: #E86A10"></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 3px">
+        <span style="font-size: 15px; font-weight: 600">키로톤 행사장 · 성수동</span>
+        <span style="font-size: 12px; color: #5A6168; display: flex; align-items: center; gap: 6px; flex-wrap: wrap"><a href="#Inbox" style="font-size: 11px; font-weight: 500; color: #1F4FD1; border: 1px dashed #8A939B; border-radius: 5px; padding: 0 6px; line-height: 18px; text-decoration: none">태그 없음 · 달기</a>머무는 중 · 4시간 40분째</span>
+      </div>
+    </div>
+  </div>
+
+  <nav aria-label="주요 화면" style="height: 84px; box-sizing: border-box; padding: 8px 28px 24px; background: #FFFFFF; border-top: 1px solid #D5D9D3; display: flex; justify-content: space-between; flex-shrink: 0">
+    <a href="#Main" aria-current="page" style="width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #1F4FD1; font-size: 11px; font-weight: 600">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2v20"></path><circle cx="12" cy="7" r="3" fill="#FFFFFF"></circle><circle cx="12" cy="17" r="3" fill="#FFFFFF"></circle></svg>
+      오늘
+    </a>
+    <a href="#Trips" style="width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #5A6168; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 18c4 0 3-12 7-12s3 12 7 12"></path><circle cx="5" cy="18" r="2.2"></circle><circle cx="19" cy="18" r="2.2"></circle></svg>
+      여행
+    </a>
+    <a href="#Chat" style="width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #5A6168; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v11H10l-4 3v-3H4z"></path><path d="M8 10.5h8"></path></svg>
+      물어보기
+    </a>
+  </nav>
+</div>
+</div>
+</section>
+<section class="screen" id="Chat" aria-label="물어보기">
+<h2 class="label"><a href="#Chat">물어보기</a></h2>
+<div class="device">
+
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #EEF0EC; color: #16191D; font-family: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', sans-serif; display: flex; flex-direction: column; overflow: hidden">
+
+  <div style="padding: 58px 20px 12px; display: flex; flex-direction: column; gap: 2px; border-bottom: 1px solid #D5D9D3">
+    <h1 style="margin: 0; font-size: 22px; font-weight: 700">물어보기</h1>
+    <span style="font-size: 12px; color: #5A6168">기록이 있는 기간 · <span style="font-family: 'Barlow Condensed', sans-serif; font-size: 14px; color: #16191D">2025.11.14 — 오늘</span></span>
+  </div>
+
+  <div style="flex: 1; padding: 18px 16px 0; display: flex; flex-direction: column; gap: 14px; overflow: hidden">
+
+    <div style="align-self: flex-end; max-width: 270px; background: #16191D; color: #FFFFFF; border-radius: 18px 18px 4px 18px; padding: 10px 14px; font-size: 15px; line-height: 1.45">나 저번에 강원도 갔던 게 며칠이었지?</div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px; max-width: 330px">
+      <p style="margin: 0; font-size: 15px; line-height: 1.6"><b style="font-weight: 600">10월 3일(금)부터 5일(일)까지, 2박 3일</b>이었어요. 첫날은 강릉에서, 나머지 이틀은 속초에서 묵었어요.</p>
+
+      <div style="background: #FFFFFF; border: 1px solid #D5D9D3; border-radius: 16px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; justify-content: space-between; align-items: center">
+          <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; color: #5A6168">근거 · 여행 1건</span>
+          <span style="font-size: 12px; color: #5A6168">412km</span>
+        </div>
+        <div style="position: relative; height: 62px">
+          <div style="position: absolute; left: 8px; right: 8px; top: 9px; height: 4px; background: #1F4FD1"></div>
+          <div style="position: absolute; left: 0; top: 0; width: 14px; height: 14px; border-radius: 10px; border: 4px solid #16191D; background: #FFFFFF"></div>
+          <div style="position: absolute; left: 98px; top: 0; width: 14px; height: 14px; border-radius: 10px; border: 4px solid #1F4FD1; background: #FFFFFF"></div>
+          <div style="position: absolute; left: 196px; top: 0; width: 14px; height: 14px; border-radius: 10px; border: 4px solid #1F4FD1; background: #FFFFFF"></div>
+          <div style="position: absolute; right: 0; top: 0; width: 14px; height: 14px; border-radius: 10px; border: 4px solid #16191D; background: #FFFFFF"></div>
+          <div style="position: absolute; left: 0; top: 28px; display: flex; flex-direction: column"><span style="font-size: 13px; font-weight: 600">서울</span><span style="font-family: 'Barlow Condensed', sans-serif; font-size: 14px; color: #5A6168">10.03 07:40</span></div>
+          <div style="position: absolute; left: 98px; top: 28px; display: flex; flex-direction: column"><span style="font-size: 13px; font-weight: 600">강릉</span><span style="font-family: 'Barlow Condensed', sans-serif; font-size: 14px; color: #5A6168">1박</span></div>
+          <div style="position: absolute; left: 196px; top: 28px; display: flex; flex-direction: column"><span style="font-size: 13px; font-weight: 600">속초</span><span style="font-family: 'Barlow Condensed', sans-serif; font-size: 14px; color: #5A6168">2박</span></div>
+          <div style="position: absolute; right: 0; top: 28px; display: flex; flex-direction: column; align-items: flex-end"><span style="font-size: 13px; font-weight: 600">서울</span><span style="font-family: 'Barlow Condensed', sans-serif; font-size: 14px; color: #5A6168">10.05 21:15</span></div>
+        </div>
+        <a href="#Replay" style="height: 44px; border-radius: 12px; background: #1F4FD1; color: #FFFFFF; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; font-weight: 600; text-decoration: none">
+          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.8v10.4L12 7z" fill="currentColor"></path></svg>
+          이 여행 지도에서 재생
+        </a>
+      </div>
+    </div>
+
+    <div style="align-self: flex-end; max-width: 270px; background: #16191D; color: #FFFFFF; border-radius: 18px 18px 4px 18px; padding: 10px 14px; font-size: 15px; line-height: 1.45">재작년 여름엔 어디 갔었지?</div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px; max-width: 330px">
+      <p style="margin: 0; font-size: 15px; line-height: 1.6">2024년 여름은 <b style="font-weight: 600">기록이 없어요.</b> 하루의 기록은 2025년 11월 14일부터 있어요.</p>
+      <span style="font-size: 12px; color: #5A6168">지어내지 않아요. 기록에 없는 건 없다고 말해요.</span>
+    </div>
+  </div>
+
+  <div style="padding: 12px 16px 0; display: flex; gap: 8px; overflow: hidden">
+    <button style="flex-shrink: 0; height: 36px; border-radius: 18px; border: 1px solid #C9CEC6; background: #FFFFFF; padding: 0 14px; font: inherit; font-size: 13px; color: #16191D; cursor: pointer">지난달 커피 몇 번 마셨어?</button>
+    <button style="flex-shrink: 0; height: 36px; border-radius: 18px; border: 1px solid #C9CEC6; background: #FFFFFF; padding: 0 14px; font: inherit; font-size: 13px; color: #16191D; cursor: pointer">성수 파스타집 어디였지?</button>
+  </div>
+
+  <form style="margin: 10px 16px 12px; display: flex; gap: 8px; align-items: center">
+    <label for="ask" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">하루에게 물어보기</label>
+    <input id="ask" type="text" placeholder="언제, 어디, 무엇이든 물어보세요" style="flex: 1; height: 48px; border-radius: 24px; border: 1px solid #C9CEC6; background: #FFFFFF; padding: 0 18px; font: inherit; font-size: 15px; color: #16191D; box-sizing: border-box">
+    <button type="submit" aria-label="보내기" style="width: 48px; height: 48px; border-radius: 24px; border: none; background: #16191D; color: #FFFFFF; display: grid; place-items: center; cursor: pointer">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 15V3M4 8l5-5 5 5"></path></svg>
+    </button>
+  </form>
+
+  <nav aria-label="주요 화면" style="height: 84px; box-sizing: border-box; padding: 8px 28px 24px; background: #FFFFFF; border-top: 1px solid #D5D9D3; display: flex; justify-content: space-between; flex-shrink: 0">
+    <a href="#Main" style="width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #5A6168; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2v20"></path><circle cx="12" cy="7" r="3" fill="#FFFFFF"></circle><circle cx="12" cy="17" r="3" fill="#FFFFFF"></circle></svg>
+      오늘
+    </a>
+    <a href="#Trips" style="width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #5A6168; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 18c4 0 3-12 7-12s3 12 7 12"></path><circle cx="5" cy="18" r="2.2"></circle><circle cx="19" cy="18" r="2.2"></circle></svg>
+      여행
+    </a>
+    <a href="#Chat" aria-current="page" style="width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #1F4FD1; font-size: 11px; font-weight: 600">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v11H10l-4 3v-3H4z"></path><path d="M8 10.5h8"></path></svg>
+      물어보기
+    </a>
+  </nav>
+</div>
+</div>
+</section>
+<section class="screen" id="Replay" aria-label="여행 재생">
+<h2 class="label"><a href="#Replay">여행 재생</a></h2>
+<div class="device">
+
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #E2E6DF; color: #16191D; font-family: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', sans-serif; position: relative; overflow: hidden">
+
+  <svg width="390" height="560" viewBox="0 0 390 560" aria-hidden="true" style="position: absolute; left: 0; top: 0; display: block">
+    <path d="M262 0 C 280 80, 286 130, 298 170 S 318 300, 332 350 S 360 470, 382 560 L 390 560 L 390 0 Z" fill="#C6D5E0"></path>
+    <path d="M190 90 C 215 130, 225 200, 250 250 S 270 360, 285 420" stroke="#D3D8CF" stroke-width="10" fill="none" stroke-linecap="round"></path>
+    <path d="M170 110 C 195 150, 205 220, 228 270 S 248 370, 262 430" stroke="#D9DDD5" stroke-width="5" fill="none" stroke-linecap="round"></path>
+    <path d="M0 330 C 30 320, 60 340, 90 326" stroke="#C6D5E0" stroke-width="10" fill="none"></path>
+    <path d="M292 152 C 230 140, 150 200, 56 302" stroke="#8A939B" stroke-width="3" stroke-dasharray="2 7" stroke-linecap="round" fill="none"></path>
+    <path d="M56 302 C 120 296, 200 344, 318 340 C 314 270, 302 210, 292 160" stroke="#1F4FD1" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+    <circle cx="56" cy="302" r="8" fill="#FFFFFF" stroke="#16191D" stroke-width="3.5"></circle>
+    <circle cx="318" cy="340" r="8" fill="#FFFFFF" stroke="#1F4FD1" stroke-width="3.5"></circle>
+    <circle cx="296" cy="176" r="5.5" fill="#FFFFFF" stroke="#1F4FD1" stroke-width="3"></circle>
+    <circle cx="292" cy="154" r="22" fill="#E86A10" opacity="0.18"></circle>
+    <circle cx="292" cy="154" r="9" fill="#E86A10" stroke="#FFFFFF" stroke-width="3"></circle>
+    <text x="40" y="330" font-family="IBM Plex Sans KR, sans-serif" font-size="13" font-weight="700" fill="#16191D">서울</text>
+    <text x="276" y="368" font-family="IBM Plex Sans KR, sans-serif" font-size="13" font-weight="700" fill="#16191D">강릉</text>
+    <text x="304" y="196" font-family="IBM Plex Sans KR, sans-serif" font-size="12" fill="#3D444B">중앙시장</text>
+    <text x="336" y="470" font-family="IBM Plex Mono, monospace" font-size="10" fill="#4F6B80">동해</text>
+    <text x="196" y="300" font-family="IBM Plex Mono, monospace" font-size="9" fill="#6D756C" transform="rotate(62 196 300)">태백산맥</text>
+  </svg>
+
+  <div style="position: absolute; left: 16px; right: 16px; top: 54px; display: flex; justify-content: space-between; align-items: center">
+    <a href="#Chat" aria-label="뒤로" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; display: grid; place-items: center; color: #16191D; box-shadow: 0 1px 2px rgba(22,25,29,0.12)">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12.5 4 6.5 10l6 6"></path></svg>
+    </a>
+    <div style="background: #FFFFFF; border-radius: 22px; height: 44px; padding: 0 16px; display: flex; align-items: center; gap: 8px; box-shadow: 0 1px 2px rgba(22,25,29,0.12)">
+      <span style="font-size: 14px; font-weight: 700">강릉·속초 2박 3일</span>
+    </div>
+    <button aria-label="공유" style="width: 44px; height: 44px; border-radius: 22px; border: none; background: #FFFFFF; display: grid; place-items: center; color: #16191D; cursor: pointer; box-shadow: 0 1px 2px rgba(22,25,29,0.12)">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M10 13V3M6 7l4-4 4 4M4 11v5h12v-5"></path></svg>
+    </button>
+  </div>
+
+  <div style="position: absolute; left: 118px; top: 104px; background: #16191D; color: #FFFFFF; border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 1px">
+    <span style="font-size: 14px; font-weight: 600">영금정 · 속초</span>
+    <span style="font-size: 12px; color: #C3C9CE">관광 · 14:05부터 머무는 중</span>
+  </div>
+  <div style="position: absolute; left: 262px; top: 130px; width: 0; height: 0; border-top: 7px solid #16191D; border-left: 7px solid transparent; border-right: 7px solid transparent"></div>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; height: 312px; box-sizing: border-box; background: #FFFFFF; border-radius: 24px 24px 0 0; padding: 22px 20px 30px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 -1px 0 #D5D9D3">
+
+    <div style="display: flex; align-items: flex-end; justify-content: space-between">
+      <div style="display: flex; flex-direction: column">
+        <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #5A6168">DAY 2 · 10월 4일 토</span>
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 60px; line-height: 0.95; font-variant-numeric: tabular-nums">14:20</span>
+      </div>
+      <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 12px; color: #5A6168">
+        <span>지금까지 <b style="font-family: 'Barlow Condensed', sans-serif; font-size: 18px; color: #16191D">268</b> km</span>
+        <span>남은 거리 144km</span>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 6px">
+      <div style="position: relative; height: 22px">
+        <div style="position: absolute; left: 0; right: 0; top: 9px; height: 4px; display: flex; gap: 4px">
+          <div style="flex: 3; background: #1F4FD1; border-radius: 2px"></div>
+          <div style="flex: 4; background: #D5D9D3; border-radius: 2px; overflow: hidden; display: flex"><div style="width: 46%; background: #1F4FD1"></div></div>
+          <div style="flex: 3; background: #D5D9D3; border-radius: 2px"></div>
+        </div>
+        <div style="position: absolute; left: 50%; top: 2px; width: 18px; height: 18px; margin-left: -9px; border-radius: 9px; background: #E86A10; border: 3px solid #FFFFFF; box-sizing: border-box; box-shadow: 0 0 0 1px #E86A10"></div>
+      </div>
+      <div style="display: flex; font-family: 'Barlow Condensed', sans-serif; font-size: 14px; color: #5A6168">
+        <span style="flex: 3">10.03 강릉</span>
+        <span style="flex: 4; color: #16191D; font-weight: 600">10.04 속초</span>
+        <span style="flex: 3; text-align: right">10.05 귀가</span>
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-top: auto">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <button aria-label="이전 머문 곳" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #D5D9D3; background: #FFFFFF; display: grid; place-items: center; color: #16191D; cursor: pointer">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 2v12M13 2.5v11L5 8z" fill="currentColor" stroke="currentColor" stroke-width="1.5"></path></svg>
+        </button>
+        <button aria-label="일시정지" data-play style="width: 64px; height: 64px; border-radius: 32px; border: none; background: #16191D; display: grid; place-items: center; color: #FFFFFF; cursor: pointer">
+          <span data-when="playing">
+            <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><rect x="5" y="4" width="4" height="14" rx="1" fill="currentColor"></rect><rect x="13" y="4" width="4" height="14" rx="1" fill="currentColor"></rect></svg>
+          </span>
+          <span data-when="paused" hidden>
+            <svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><path d="M6 3.5v15L18.5 11z" fill="currentColor"></path></svg>
+          </span>
+        </button>
+        <button aria-label="다음 머문 곳" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #D5D9D3; background: #FFFFFF; display: grid; place-items: center; color: #16191D; cursor: pointer">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M13 2v12M3 2.5v11L11 8z" fill="currentColor" stroke="currentColor" stroke-width="1.5"></path></svg>
+        </button>
+      </div>
+      <div role="group" aria-label="재생 속도" style="display: flex; background: #EEF0EC; border-radius: 12px; padding: 3px; gap: 2px">
+        <button data-speed aria-pressed="false" style="min-width: 44px; height: 38px; border-radius: 9px; border: none; font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 600; cursor: pointer; padding: 0 8px;">1x</button><button data-speed aria-pressed="false" style="min-width: 44px; height: 38px; border-radius: 9px; border: none; font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 600; cursor: pointer; padding: 0 8px;">10x</button><button data-speed aria-pressed="true" style="min-width: 44px; height: 38px; border-radius: 9px; border: none; font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 600; cursor: pointer; padding: 0 8px;">60x</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</section>
+<section class="screen" id="Trips" aria-label="여행">
+<h2 class="label"><a href="#Trips">여행</a></h2>
+<div class="device">
+
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #EEF0EC; color: #16191D; font-family: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', sans-serif; display: flex; flex-direction: column; overflow: hidden">
+
+  <div style="padding: 58px 20px 0; display: flex; flex-direction: column; gap: 4px">
+    <h1 style="margin: 0; font-size: 22px; font-weight: 700">여행</h1>
+    <span style="font-size: 13px; color: #5A6168">생활권을 벗어나 머문 날들을 모았어요</span>
+  </div>
+
+  <div style="padding: 18px 20px 0; display: flex; align-items: baseline; gap: 10px">
+    <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 40px; line-height: 1">2026</span>
+    <span style="font-size: 13px; color: #5A6168">4번 · 6박 · 1,486km</span>
+  </div>
+
+  <div style="flex: 1; padding: 14px 16px 0; display: flex; flex-direction: column; gap: 12px; overflow: hidden">
+
+    <a href="#Replay" style="text-decoration: none; color: #16191D; background: #FFFFFF; border: 1px solid #D5D9D3; border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <span style="font-size: 16px; font-weight: 700">강릉·속초 2박 3일</span>
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-size: 16px; color: #5A6168">10.03 — 10.05</span>
+      </div>
+      <div style="position: relative; height: 40px">
+        <div style="position: absolute; left: 6px; right: 6px; top: 6px; height: 4px; background: #1F4FD1"></div>
+        <div style="position: absolute; left: 0; top: 0; width: 8px; height: 8px; border-radius: 8px; border: 4px solid #16191D; background: #FFFFFF"></div>
+        <div style="position: absolute; left: 33%; top: 0; width: 8px; height: 8px; border-radius: 8px; border: 4px solid #1F4FD1; background: #FFFFFF"></div>
+        <div style="position: absolute; left: 66%; top: 0; width: 8px; height: 8px; border-radius: 8px; border: 4px solid #1F4FD1; background: #FFFFFF"></div>
+        <div style="position: absolute; right: 0; top: 0; width: 8px; height: 8px; border-radius: 8px; border: 4px solid #16191D; background: #FFFFFF"></div>
+        <span style="position: absolute; left: 0; top: 22px; font-size: 12px; color: #5A6168">서울</span>
+        <span style="position: absolute; left: 33%; top: 22px; font-size: 12px; font-weight: 600">강릉</span>
+        <span style="position: absolute; left: 66%; top: 22px; font-size: 12px; font-weight: 600">속초</span>
+        <span style="position: absolute; right: 0; top: 22px; font-size: 12px; color: #5A6168">서울</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #5A6168">
+        <span>412km · 머문 곳 14</span>
+        <span style="display: flex; align-items: center; gap: 6px; color: #1F4FD1; font-weight: 600"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 1.5v9L10 6z" fill="currentColor"></path></svg>재생</span>
+      </div>
+    </a>
+
+    <a href="#Replay" style="text-decoration: none; color: #16191D; background: #FFFFFF; border: 1px solid #D5D9D3; border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <span style="font-size: 16px; font-weight: 700">부산 1박 2일</span>
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-size: 16px; color: #5A6168">08.15 — 08.16</span>
+      </div>
+      <div style="position: relative; height: 40px">
+        <div style="position: absolute; left: 6px; right: 6px; top: 6px; height: 4px; background: #1F4FD1"></div>
+        <div style="position: absolute; left: 0; top: 0; width: 8px; height: 8px; border-radius: 8px; border: 4px solid #16191D; background: #FFFFFF"></div>
+        <div style="position: absolute; left: 33%; top: 0; width: 8px; height: 8px; border-radius: 8px; border: 4px solid #1F4FD1; background: #FFFFFF"></div>
+        <div style="position: absolute; left: 66%; top: 0; width: 8px; height: 8px; border-radius: 8px; border: 4px solid #1F4FD1; background: #FFFFFF"></div>
+        <div style="position: absolute; right: 0; top: 0; width: 8px; height: 8px; border-radius: 8px; border: 4px solid #16191D; background: #FFFFFF"></div>
+        <span style="position: absolute; left: 0; top: 22px; font-size: 12px; color: #5A6168">서울</span>
+        <span style="position: absolute; left: 33%; top: 22px; font-size: 12px; font-weight: 600">해운대</span>
+        <span style="position: absolute; left: 66%; top: 22px; font-size: 12px; font-weight: 600">광안리</span>
+        <span style="position: absolute; right: 0; top: 22px; font-size: 12px; color: #5A6168">서울</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #5A6168">
+        <span>812km · 머문 곳 9</span>
+        <span style="display: flex; align-items: center; gap: 6px; color: #1F4FD1; font-weight: 600"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 1.5v9L10 6z" fill="currentColor"></path></svg>재생</span>
+      </div>
+    </a>
+
+    <a href="#Replay" style="text-decoration: none; color: #16191D; background: #FFFFFF; border: 1px solid #D5D9D3; border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <span style="font-size: 16px; font-weight: 700">가평 당일치기</span>
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-size: 16px; color: #5A6168">06.07</span>
+      </div>
+      <div style="position: relative; height: 40px">
+        <div style="position: absolute; left: 6px; right: 6px; top: 6px; height: 4px; background: #1F4FD1"></div>
+        <div style="position: absolute; left: 0; top: 0; width: 8px; height: 8px; border-radius: 8px; border: 4px solid #16191D; background: #FFFFFF"></div>
+        <div style="position: absolute; left: 50%; top: 0; width: 8px; height: 8px; border-radius: 8px; border: 4px solid #1F4FD1; background: #FFFFFF"></div>
+        <div style="position: absolute; right: 0; top: 0; width: 8px; height: 8px; border-radius: 8px; border: 4px solid #16191D; background: #FFFFFF"></div>
+        <span style="position: absolute; left: 0; top: 22px; font-size: 12px; color: #5A6168">서울</span>
+        <span style="position: absolute; left: 50%; top: 22px; font-size: 12px; font-weight: 600">자라섬</span>
+        <span style="position: absolute; right: 0; top: 22px; font-size: 12px; color: #5A6168">서울</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #5A6168">
+        <span>124km · 머문 곳 3</span>
+        <span style="display: flex; align-items: center; gap: 6px; color: #1F4FD1; font-weight: 600"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 1.5v9L10 6z" fill="currentColor"></path></svg>재생</span>
+      </div>
+    </a>
+
+    <a href="#Replay" style="text-decoration: none; color: #16191D; background: #FFFFFF; border: 1px solid #D5D9D3; border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; justify-content: space-between; align-items: baseline">
+        <span style="font-size: 16px; font-weight: 700">전주 1박 2일</span>
+        <span style="font-family: 'Barlow Condensed', sans-serif; font-size: 16px; color: #5A6168">03.21 — 03.22</span>
+      </div>
+      <div style="position: relative; height: 40px">
+        <div style="position: absolute; left: 6px; right: 6px; top: 6px; height: 4px; background: #1F4FD1"></div>
+        <div style="position: absolute; left: 0; top: 0; width: 8px; height: 8px; border-radius: 8px; border: 4px solid #16191D; background: #FFFFFF"></div>
+        <div style="position: absolute; left: 50%; top: 0; width: 8px; height: 8px; border-radius: 8px; border: 4px solid #1F4FD1; background: #FFFFFF"></div>
+        <div style="position: absolute; right: 0; top: 0; width: 8px; height: 8px; border-radius: 8px; border: 4px solid #16191D; background: #FFFFFF"></div>
+        <span style="position: absolute; left: 0; top: 22px; font-size: 12px; color: #5A6168">서울</span>
+        <span style="position: absolute; left: 50%; top: 22px; font-size: 12px; font-weight: 600">한옥마을</span>
+        <span style="position: absolute; right: 0; top: 22px; font-size: 12px; color: #5A6168">서울</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #5A6168">
+        <span>138km · 머문 곳 7</span>
+        <span style="display: flex; align-items: center; gap: 6px; color: #1F4FD1; font-weight: 600"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 1.5v9L10 6z" fill="currentColor"></path></svg>재생</span>
+      </div>
+    </a>
+  </div>
+
+  <nav aria-label="주요 화면" style="height: 84px; box-sizing: border-box; padding: 8px 28px 24px; background: #FFFFFF; border-top: 1px solid #D5D9D3; display: flex; justify-content: space-between; flex-shrink: 0">
+    <a href="#Main" style="width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #5A6168; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 2v20"></path><circle cx="12" cy="7" r="3" fill="#FFFFFF"></circle><circle cx="12" cy="17" r="3" fill="#FFFFFF"></circle></svg>
+      오늘
+    </a>
+    <a href="#Trips" aria-current="page" style="width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #1F4FD1; font-size: 11px; font-weight: 600">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 18c4 0 3-12 7-12s3 12 7 12"></path><circle cx="5" cy="18" r="2.2"></circle><circle cx="19" cy="18" r="2.2"></circle></svg>
+      여행
+    </a>
+    <a href="#Chat" style="width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: #5A6168; font-size: 11px; font-weight: 500">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 5h16v11H10l-4 3v-3H4z"></path><path d="M8 10.5h8"></path></svg>
+      물어보기
+    </a>
+  </nav>
+</div>
+</div>
+</section>
+<section class="screen" id="Recap" aria-label="오늘의 하루 카드">
+<h2 class="label"><a href="#Recap">오늘의 하루 카드</a></h2>
+<div class="device">
+
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #14171B; color: #ECEFF1; font-family: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', sans-serif; display: flex; flex-direction: column; overflow: hidden; padding: 58px 20px 34px">
+
+  <div style="display: flex; justify-content: space-between; align-items: center">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.08em; color: #9AA3AB">22:00 · 오늘의 하루</span>
+    <a href="#Main" aria-label="닫기" style="width: 44px; height: 44px; border-radius: 22px; background: #22272D; display: grid; place-items: center; color: #ECEFF1">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4l10 10M14 4 4 14"></path></svg>
+    </a>
+  </div>
+
+  <div style="margin-top: 22px; display: flex; flex-direction: column; gap: 6px">
+    <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 72px; line-height: 0.9">11.14</span>
+    <h1 style="margin: 0; font-size: 24px; line-height: 1.35; font-weight: 700; letter-spacing: -0.01em">하루 대부분을<br>성수동에서 보냈어요</h1>
+  </div>
+
+  <div style="margin-top: 22px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+    <div style="display: flex; flex-direction: column; gap: 2px; border-top: 1px solid #343B42; padding-top: 10px">
+      <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 30px; line-height: 1">3<span style="font-size: 16px; color: #9AA3AB"> 곳</span></span>
+      <span style="font-size: 12px; color: #9AA3AB">머문 곳</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 2px; border-top: 1px solid #343B42; padding-top: 10px">
+      <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 30px; line-height: 1">18.3<span style="font-size: 16px; color: #9AA3AB"> km</span></span>
+      <span style="font-size: 12px; color: #9AA3AB">이동</span>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 2px; border-top: 1px solid #343B42; padding-top: 10px">
+      <span style="font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 30px; line-height: 1">9:10</span>
+      <span style="font-size: 12px; color: #9AA3AB">키로톤에서</span>
+    </div>
+  </div>
+
+  <div style="margin-top: 28px; display: flex; flex-direction: column; gap: 8px">
+    <div style="position: relative; height: 30px; background: #1C2025; border-radius: 6px; overflow: hidden">
+      <div style="position: absolute; left: 0; width: 41%; top: 0; bottom: 0; background: #3A424A"></div>
+      <div style="position: absolute; left: 43%; width: 3.2%; top: 0; bottom: 0; background: #8B949C"></div>
+      <div style="position: absolute; left: 48.6%; width: 38.2%; top: 0; bottom: 0; background: #F08A3C"></div>
+      <div style="position: absolute; left: 89.9%; right: 0; top: 0; bottom: 0; background: #3A424A"></div>
+      <div style="position: absolute; left: 46.2%; width: 2.4%; top: 13px; height: 4px; background: #6F93FF"></div>
+      <div style="position: absolute; left: 86.8%; width: 3.1%; top: 13px; height: 4px; background: #6F93FF"></div>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-family: 'Barlow Condensed', sans-serif; font-size: 13px; color: #9AA3AB">
+      <span>00</span><span>06</span><span>12</span><span>18</span><span>24</span>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; color: #C3C9CE">
+      <span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #3A424A; border: 1px solid #5A636B"></span>집</span>
+      <span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #8B949C"></span>커피</span>
+      <span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 2px; background: #F08A3C"></span>키로톤 · 성수동</span>
+      <span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 4px; background: #6F93FF"></span>이동</span>
+    </div>
+  </div>
+
+  <div style="margin-top: 28px; background: #1C2025; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 6px">
+    <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.08em; color: #9AA3AB">1년 전 오늘 · 2025.11.14</span>
+    <span style="font-size: 15px; line-height: 1.5">하루의 첫 기록이 남은 날이에요. 그날 저녁엔 <b style="font-weight: 600">을지로에서 3시간</b> 머물렀어요.</span>
+    <a href="#Main" style="font-size: 13px; font-weight: 600; text-decoration: none; margin-top: 4px; min-height: 44px; display: flex; align-items: center">그날 다시 보기</a>
+  </div>
+
+  <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
+    <a href="#Replay" style="height: 54px; border-radius: 14px; background: #ECEFF1; color: #14171B; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; font-weight: 600; text-decoration: none">
+      <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.8v10.4L12 7z" fill="currentColor"></path></svg>
+      오늘 하루 재생
+    </a>
+    <span style="text-align: center; font-size: 12px; color: #9AA3AB">이 알림은 매일 밤 10시에 와요 · 설정에서 바꿀 수 있어요</span>
+  </div>
+</div>
+</div>
+</section>
+<section class="screen" id="Inbox" aria-label="태그 정리">
+<h2 class="label"><a href="#Inbox">태그 정리</a></h2>
+<div class="device">
+
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #EEF0EC; color: #16191D; font-family: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', sans-serif; display: flex; flex-direction: column; overflow: hidden">
+
+  <div style="padding: 54px 16px 0; display: flex; align-items: center; gap: 4px">
+    <a href="#Main" aria-label="뒤로" style="width: 44px; height: 44px; display: grid; place-items: center; color: #16191D">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12.5 4 6.5 10l6 6"></path></svg>
+    </a>
+    <h1 style="margin: 0; font-size: 20px; font-weight: 700">태그 정리</h1>
+  </div>
+
+  <div style="padding: 10px 20px 0; display: flex; flex-wrap: wrap; gap: 6px">
+    <span style="font-size: 11px; font-weight: 600; border: 1.5px solid #16191D; border-radius: 5px; padding: 0 7px; line-height: 20px">집</span>
+    <span style="font-size: 11px; font-weight: 600; border: 1.5px solid #16191D; border-radius: 5px; padding: 0 7px; line-height: 20px">회사</span>
+    <span style="font-size: 11px; font-weight: 600; border: 1.5px solid #16191D; border-radius: 5px; padding: 0 7px; line-height: 20px">밥집</span>
+    <span style="font-size: 11px; font-weight: 600; border: 1.5px solid #16191D; border-radius: 5px; padding: 0 7px; line-height: 20px">커피</span>
+    <span style="font-size: 11px; font-weight: 600; border: 1.5px solid #16191D; border-radius: 5px; padding: 0 7px; line-height: 20px">운동</span>
+    <span style="font-size: 11px; font-weight: 600; border: 1.5px solid #16191D; border-radius: 5px; padding: 0 7px; line-height: 20px">쇼핑</span>
+    <span style="font-size: 11px; font-weight: 600; border: 1.5px solid #16191D; border-radius: 5px; padding: 0 7px; line-height: 20px">관광</span>
+  </div>
+  <p style="margin: 8px 20px 0; font-size: 12px; line-height: 1.5; color: #5A6168">태그는 이 일곱 개뿐이에요. AI도 이 안에서만 고르고, 확신이 없으면 비워 둬요.</p>
+
+  <div style="flex: 1; padding: 18px 16px 0; display: flex; flex-direction: column; gap: 10px; overflow: hidden">
+
+    <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 0 4px">
+      <h2 style="margin: 0; font-size: 14px; font-weight: 700">AI가 비워 둔 곳</h2>
+      <span style="font-family: 'Barlow Condensed', sans-serif; font-size: 16px; color: #5A6168">3</span>
+    </div>
+
+    <div style="background: #FFFFFF; border: 1px solid #D5D9D3; border-radius: 14px; display: flex; flex-direction: column">
+      <div style="padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; border-bottom: 1px solid #E6E9E4">
+        <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+          <span style="font-size: 15px; font-weight: 600">소원로 1가 12</span>
+          <span style="font-size: 12px; color: #5A6168">방문 <b style="font-family: 'Barlow Condensed', sans-serif; font-size: 14px; color: #16191D">23</b>번 · 평일 점심</span>
+          <span style="font-size: 12px; color: #5A6168; line-height: 1.45">식당과 사무실이 한 건물에 있어 하나로 정하지 못했어요</span>
+        </div>
+        <a href="#Tag" style="flex-shrink: 0; height: 36px; border-radius: 10px; background: #16191D; color: #FFFFFF; padding: 0 12px; display: flex; align-items: center; font-size: 13px; font-weight: 600; text-decoration: none">태그 달기</a>
+      </div>
+      <div style="padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; border-bottom: 1px solid #E6E9E4">
+        <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+          <span style="font-size: 15px; font-weight: 600">키로톤 행사장 · 성수동</span>
+          <span style="font-size: 12px; color: #5A6168">방문 <b style="font-family: 'Barlow Condensed', sans-serif; font-size: 14px; color: #16191D">1</b>번 · 오늘</span>
+          <span style="font-size: 12px; color: #5A6168; line-height: 1.45">행사장은 일곱 개 태그 중 맞는 게 없어요</span>
+        </div>
+        <a href="#Tag" style="flex-shrink: 0; height: 36px; border-radius: 10px; border: 1px solid #C9CEC6; color: #16191D; padding: 0 12px; display: flex; align-items: center; font-size: 13px; font-weight: 600; text-decoration: none">태그 달기</a>
+      </div>
+      <div style="padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px">
+        <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+          <span style="font-size: 15px; font-weight: 600">연남동 골목</span>
+          <span style="font-size: 12px; color: #5A6168">방문 <b style="font-family: 'Barlow Condensed', sans-serif; font-size: 14px; color: #16191D">4</b>번 · 주말 저녁</span>
+          <span style="font-size: 12px; color: #5A6168; line-height: 1.45">머문 시간이 20분부터 3시간까지 들쭉날쭉해요</span>
+        </div>
+        <a href="#Tag" style="flex-shrink: 0; height: 36px; border-radius: 10px; border: 1px solid #C9CEC6; color: #16191D; padding: 0 12px; display: flex; align-items: center; font-size: 13px; font-weight: 600; text-decoration: none">태그 달기</a>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 8px 4px 0">
+      <h2 style="margin: 0; font-size: 14px; font-weight: 700">AI가 단 태그 확인</h2>
+      <span style="font-family: 'Barlow Condensed', sans-serif; font-size: 16px; color: #5A6168">2</span>
+    </div>
+
+    <div style="background: #FFFFFF; border: 1px solid #D5D9D3; border-radius: 14px; display: flex; flex-direction: column">
+      <div style="padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid #E6E9E4">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px">
+          <span style="font-size: 15px; font-weight: 600">오전 커피 · 망원동</span>
+          <span style="font-size: 11px; font-weight: 500; border: 1px solid #C9CEC6; border-radius: 5px; padding: 0 6px; line-height: 20px; display: inline-flex; gap: 5px; align-items: center">커피<span style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: #1F4FD1">AI</span></span>
+        </div>
+        <span style="font-size: 12px; color: #5A6168">카페 POI · 오전에 평균 45분 · 방문 11번</span>
+        <div style="display: flex; gap: 8px">
+          <button style="flex: 1; height: 40px; border-radius: 10px; border: none; background: #16191D; color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">맞아요</button>
+          <a href="#Tag" style="flex: 1; height: 40px; box-sizing: border-box; border-radius: 10px; border: 1px solid #C9CEC6; color: #16191D; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; text-decoration: none">바꾸기</a>
+        </div>
+      </div>
+      <div style="padding: 12px 14px; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px">
+          <span style="font-size: 15px; font-weight: 600">망원 한강공원</span>
+          <span style="font-size: 11px; font-weight: 500; border: 1px solid #C9CEC6; border-radius: 5px; padding: 0 6px; line-height: 20px; display: inline-flex; gap: 5px; align-items: center">운동<span style="font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: #1F4FD1">AI</span></span>
+        </div>
+        <span style="font-size: 12px; color: #5A6168">저녁 8시대 · 평균 50분 · 주 2회</span>
+        <div style="display: flex; gap: 8px">
+          <button style="flex: 1; height: 40px; border-radius: 10px; border: none; background: #16191D; color: #FFFFFF; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer">맞아요</button>
+          <a href="#Tag" style="flex: 1; height: 40px; box-sizing: border-box; border-radius: 10px; border: 1px solid #C9CEC6; color: #16191D; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; text-decoration: none">바꾸기</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="height: 28px; flex-shrink: 0"></div>
+</div>
+</div>
+</section>
+<section class="screen" id="Tag" aria-label="태그 달기">
+<h2 class="label"><a href="#Tag">태그 달기</a></h2>
+<div class="device">
+
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #E2E6DF; color: #16191D; font-family: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', sans-serif; position: relative; overflow: hidden">
+
+  <svg width="390" height="320" viewBox="0 0 390 320" aria-hidden="true" style="position: absolute; left: 0; top: 0; display: block">
+    <path d="M0 120 L 390 100 M0 210 L 390 196 M120 0 L 110 320 M260 0 L 275 320" stroke="#F4F5F2" stroke-width="10" fill="none"></path>
+    <path d="M60 0 L 50 320 M0 60 L 390 50 M190 0 L 195 320 M330 0 L 340 320" stroke="#F4F5F2" stroke-width="4" fill="none"></path>
+    <rect x="150" y="128" width="70" height="52" rx="3" fill="#D3D8CF"></rect>
+    <rect x="232" y="132" width="24" height="44" rx="3" fill="#D3D8CF"></rect>
+    <circle cx="192" cy="156" r="60" fill="#1F4FD1" opacity="0.08" stroke="#1F4FD1" stroke-opacity="0.35" stroke-dasharray="3 5"></circle>
+    <circle cx="192" cy="156" r="9" fill="#FFFFFF" stroke="#16191D" stroke-width="3.5"></circle>
+    <text x="254" y="226" font-family="IBM Plex Mono, monospace" font-size="10" fill="#5A6168">반경 60m</text>
+  </svg>
+  <div style="position: absolute; left: 0; right: 0; top: 0; height: 320px; background: rgba(22, 25, 29, 0.18)"></div>
+
+  <a href="#Inbox" aria-label="닫기" style="position: absolute; left: 16px; top: 54px; width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; display: grid; place-items: center; color: #16191D">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4l10 10M14 4 4 14"></path></svg>
+  </a>
+
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; top: 270px; box-sizing: border-box; background: #FFFFFF; border-radius: 24px 24px 0 0; padding: 10px 20px 30px; display: flex; flex-direction: column; gap: 16px">
+    <div style="align-self: center; width: 40px; height: 4px; border-radius: 2px; background: #D5D9D3"></div>
+
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <h1 style="margin: 0; font-size: 22px; font-weight: 700">소원로 1가 12</h1>
+      <span style="font-size: 13px; color: #5A6168">이름 없는 장소 · 방문 <b style="font-family: 'Barlow Condensed', sans-serif; font-size: 16px; color: #16191D">23</b>번 · 평일 12시대 · 평균 42분</span>
+    </div>
+
+    <div style="background: #EEF0EC; border-radius: 12px; padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start">
+      <span style="flex-shrink: 0; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #1F4FD1; border: 1px solid #1F4FD1; border-radius: 4px; padding: 0 5px; line-height: 18px; margin-top: 1px">AI</span>
+      <span style="font-size: 13px; line-height: 1.55; color: #3D444B">태그를 비워 뒀어요. 한 건물에 식당과 사무실이 함께 있어서 일곱 개 태그 중 하나로 정하지 못했어요.</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 12px; font-weight: 600; color: #5A6168">어떤 곳인가요?</span>
+      <div role="radiogroup" aria-label="태그" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+        <button role="radio" aria-checked="false" data-tag style="height: 48px; border-radius: 12px; font-family: 'IBM Plex Sans KR', sans-serif; font-size: 15px; cursor: pointer; background: #FFFFFF; color: #16191D; border: 1px solid #C9CEC6; font-weight: 500;">집</button><button role="radio" aria-checked="false" data-tag style="height: 48px; border-radius: 12px; font-family: 'IBM Plex Sans KR', sans-serif; font-size: 15px; cursor: pointer; background: #FFFFFF; color: #16191D; border: 1px solid #C9CEC6; font-weight: 500;">회사</button><button role="radio" aria-checked="false" data-tag style="height: 48px; border-radius: 12px; font-family: 'IBM Plex Sans KR', sans-serif; font-size: 15px; cursor: pointer; background: #FFFFFF; color: #16191D; border: 1px solid #C9CEC6; font-weight: 500;">밥집</button><button role="radio" aria-checked="false" data-tag style="height: 48px; border-radius: 12px; font-family: 'IBM Plex Sans KR', sans-serif; font-size: 15px; cursor: pointer; background: #FFFFFF; color: #16191D; border: 1px solid #C9CEC6; font-weight: 500;">커피</button><button role="radio" aria-checked="false" data-tag style="height: 48px; border-radius: 12px; font-family: 'IBM Plex Sans KR', sans-serif; font-size: 15px; cursor: pointer; background: #FFFFFF; color: #16191D; border: 1px solid #C9CEC6; font-weight: 500;">운동</button><button role="radio" aria-checked="false" data-tag style="height: 48px; border-radius: 12px; font-family: 'IBM Plex Sans KR', sans-serif; font-size: 15px; cursor: pointer; background: #FFFFFF; color: #16191D; border: 1px solid #C9CEC6; font-weight: 500;">쇼핑</button><button role="radio" aria-checked="false" data-tag style="height: 48px; border-radius: 12px; font-family: 'IBM Plex Sans KR', sans-serif; font-size: 15px; cursor: pointer; background: #FFFFFF; color: #16191D; border: 1px solid #C9CEC6; font-weight: 500;">관광</button>
+      </div>
+    </div>
+
+    <div style="margin-top: auto; display: flex; flex-direction: column; gap: 10px">
+      <div data-done hidden>
+        <div role="status" style="background: #16191D; color: #FFFFFF; border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.5">'<span data-selected></span>'로 태그했어요. 방문 23번에 모두 적용했고, AI는 이 장소의 태그를 바꾸지 않아요.</div>
+      </div>
+      <span style="font-size: 12px; color: #5A6168">이 장소의 지난 방문과 앞으로의 방문 모두에 적용돼요.</span>
+      <button data-apply style="height: 54px; border-radius: 14px; border: none; font-family: 'IBM Plex Sans KR', sans-serif; font-size: 16px; font-weight: 600; background: #E6E9E4; color: #5A6168; cursor: default;">태그를 골라 주세요</button>
+    </div>
+  </div>
+</div>
+</div>
+</section>
+</main>
+<script>
+// 여행 재생: 재생/일시정지, 배속
+const play = document.querySelector('[data-play]');
+play.addEventListener('click', () => {
+  const playing = !play.querySelector('[data-when="playing"]').hidden;
+  play.querySelector('[data-when="playing"]').hidden = playing;
+  play.querySelector('[data-when="paused"]').hidden = !playing;
+  play.setAttribute('aria-label', playing ? '재생' : '일시정지');
+});
+const speeds = [...document.querySelectorAll('[data-speed]')];
+function paintSpeeds(on) {
+  speeds.forEach(b => {
+    const sel = b === on;
+    b.setAttribute('aria-pressed', sel);
+    b.style.background = sel ? '#FFFFFF' : 'transparent';
+    b.style.color = sel ? '#16191D' : '#5A6168';
+    b.style.boxShadow = sel ? '0 1px 2px rgba(22,25,29,0.15)' : 'none';
+  });
+}
+speeds.forEach(b => b.addEventListener('click', () => paintSpeeds(b)));
+paintSpeeds(speeds[2]);
+
+// 태그 달기: 하나 고르고 적용
+const tags = [...document.querySelectorAll('[data-tag]')];
+const apply = document.querySelector('[data-apply]');
+const done = document.querySelector('[data-done]');
+let selected = null;
+tags.forEach(b => b.addEventListener('click', () => {
+  selected = b.textContent;
+  tags.forEach(t => {
+    const on = t === b;
+    t.setAttribute('aria-checked', on);
+    t.style.background = on ? '#16191D' : '#FFFFFF';
+    t.style.color = on ? '#FFFFFF' : '#16191D';
+    t.style.border = on ? '1.5px solid #16191D' : '1px solid #C9CEC6';
+    t.style.fontWeight = on ? '700' : '500';
+  });
+  done.hidden = true;
+  apply.textContent = "'" + selected + "' 태그 달기";
+  apply.style.background = '#1F4FD1';
+  apply.style.color = '#FFFFFF';
+  apply.style.cursor = 'pointer';
+}));
+apply.addEventListener('click', () => {
+  if (!selected) return;
+  document.querySelector('[data-selected]').textContent = selected;
+  done.hidden = false;
+});
+// 폼 제출 막기
+document.querySelectorAll('form').forEach(f => f.addEventListener('submit', e => e.preventDefault()));
+</script>
+</body>
+</html>
