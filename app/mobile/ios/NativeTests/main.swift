@@ -36,7 +36,7 @@ var store = VisitStore(path: path)
 var visits = store.fetch(limit: 50)
 check(visits.count == 1, "existing visit preserved after migration")
 check(visits.first?.departureAt == nil && visits.first?.arrivalAt == 1000, "existing visit fields intact")
-check(store.schemaVersionForTesting() == 1, "schema version is 1")
+check(store.schemaVersionForTesting() == 2, "schema version is 2")
 let tags = try! store.tags()
 check(tags.filter(\.isPreset).count >= 20, "20+ preset tags (\(tags.count))")
 for name in ["집", "회사", "카페", "미용실", "식당"] {
@@ -122,6 +122,22 @@ check(store.fetch(limit: 100).first { $0.id == v1.id }?.tag == nil, "cleared vis
 try! store.setVisitTag(visitId: a.id, tagId: custom.id)
 _ = try! store.renameTag(id: custom.id, name: "동네 빵집")
 check(store.fetch(limit: 100).first { $0.id == a.id }?.tag?.tagName == "동네 빵집", "rename reflected on visit")
+
+// Google place ID: only the ID is stored, separate from tags.
+let tagBefore = store.fetch(limit: 100).first { $0.id == a.id }?.tag?.tagId
+try! store.setVisitPlace(visitId: a.id, placeId: "ChIJ_test-Id123")
+let placed = store.fetch(limit: 100).first { $0.id == a.id }
+check(placed?.googlePlaceId == "ChIJ_test-Id123", "place id stored")
+check(placed?.tag?.tagId == tagBefore, "place id leaves tag untouched")
+expectThrows("invalid place id rejected") { try store.setVisitPlace(visitId: a.id, placeId: "bad id/<>") }
+expectThrows("place id on unknown visit rejected") { try store.setVisitPlace(visitId: -1, placeId: "ChIJx") }
+try! store.setVisitPlace(visitId: a.id, placeId: "kakao:12345678")
+check(store.fetch(limit: 100).first { $0.id == a.id }?.googlePlaceId == "kakao:12345678", "kakao id stored with prefix")
+expectThrows("unknown provider prefix rejected") { try store.setVisitPlace(visitId: a.id, placeId: "naver:1") }
+expectThrows("empty kakao id rejected") { try store.setVisitPlace(visitId: a.id, placeId: "kakao:") }
+try! store.clearVisitPlace(visitId: a.id)
+check(store.fetch(limit: 100).first { $0.id == a.id }?.googlePlaceId == nil, "place id cleared")
+check(store.fetch(limit: 100).count == store.count(), "visits intact after place edits")
 
 // Pure matcher: boundary at exactly <= 50 m.
 let anchor = PlaceAnchor(tagId: 1, latitude: 0, longitude: 0, horizontalAccuracy: 5)

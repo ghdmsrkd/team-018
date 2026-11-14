@@ -12,6 +12,10 @@ struct StoredVisit {
   let departureAt: Double?
   let receivedAt: Double
   let tag: VisitTagAssignment?
+  /// Place ID the user picked for this visit, if any: a Google place ID as-is, or a Kakao
+  /// place id prefixed with "kakao:". Names, addresses and coordinates from the provider are
+  /// not stored; showing a name again needs a later lookup by ID.
+  var googlePlaceId: String? = nil
 }
 
 enum TagSource: String {
@@ -59,9 +63,11 @@ enum VisitStoreError: Error, LocalizedError {
 /// Schema versions (PRAGMA user_version):
 /// - 0: `visits` only (original schema, never altered).
 /// - 1: adds `tags` (with Korean place presets) and `visit_tags`. Additive only.
+/// - 2: adds `visit_places` (visit → provider place ID only; Google as-is, Kakao as
+///   "kakao:<id>"). Additive only.
 final class VisitStore {
   static let shared = VisitStore(path: nil)
-  static let schemaVersion: Int32 = 1
+  static let schemaVersion: Int32 = 2
   static let maxTagNameLength = 30
 
   /// Place-only presets. Inserted with INSERT OR IGNORE, so existing rows are never touched.
@@ -139,7 +145,28 @@ final class VisitStore {
 
   @discardableResult
   private func migrate(_ db: OpaquePointer) -> Bool {
-    guard userVersion(db) < 1 else { return true }
+    if userVersion(db) < 1, !migrateV1(db) { return false }
+    if userVersion(db) < 2, !migrateV2(db) { return false }
+    return true
+  }
+
+  /// Visit → Google place ID, chosen by the user from nearby candidates. Separate table so
+  /// existing visit rows are never altered; one row per visit.
+  private func migrateV2(_ db: OpaquePointer) -> Bool {
+    let v2 = """
+    CREATE TABLE IF NOT EXISTS visit_places (
+      visit_id INTEGER PRIMARY KEY REFERENCES visits(id) ON DELETE CASCADE,
+      google_place_id TEXT NOT NULL,
+      chosen_at REAL NOT NULL
+    );
+    """
+    guard exec(db, "BEGIN IMMEDIATE;") else { return false }
+    if exec(db, v2), exec(db, "PRAGMA user_version = 2;"), exec(db, "COMMIT;") { return true }
+    exec(db, "ROLLBACK;")
+    return false
+  }
+
+  private func migrateV1(_ db: OpaquePointer) -> Bool {
     let v1 = """
     CREATE TABLE IF NOT EXISTS tags (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -346,14 +373,18 @@ final class VisitStore {
     _ db: OpaquePointer, where condition: String, order: String, values: [Value]
   ) -> [StoredVisit] {
     do {
-      let tagged = userVersion(db) >= 1
+      let version = userVersion(db)
+      let tagged = version >= 1
+      let placed = version >= 2
       let sql = tagged
         ? """
           SELECT v.id, v.latitude, v.longitude, v.horizontal_accuracy, v.arrival_at, v.departure_at,
-                 v.received_at, vt.tag_id, t.name, vt.source, vt.match_distance
+                 v.received_at, vt.tag_id, t.name, vt.source, vt.match_distance,
+                 \(placed ? "vp.google_place_id" : "NULL")
           FROM visits v
           LEFT JOIN visit_tags vt ON vt.visit_id = v.id
           LEFT JOIN tags t ON t.id = vt.tag_id
+          \(placed ? "LEFT JOIN visit_places vp ON vp.visit_id = v.id" : "")
           WHERE \(condition)
           ORDER BY \(order);
           """
@@ -382,7 +413,8 @@ final class VisitStore {
           arrivalAt: optionalDouble(stmt, 4),
           departureAt: optionalDouble(stmt, 5),
           receivedAt: sqlite3_column_double(stmt, 6),
-          tag: tag
+          tag: tag,
+          googlePlaceId: tagged ? text(stmt, 11) : nil
         ))
       }
       return rows
@@ -402,7 +434,7 @@ final class VisitStore {
 
   private func readyDB() throws -> OpaquePointer {
     guard let db = openIfNeeded() else { throw VisitStoreError.unavailable }
-    if userVersion(db) < 1, !migrate(db) { throw message(db) }
+    if userVersion(db) < Self.schemaVersion, !migrate(db) { throw message(db) }
     return db
   }
 
@@ -495,6 +527,42 @@ final class VisitStore {
 
   /// Removes the assignment of a stored visit. Existing visits are never auto-matched again,
   /// so a cleared visit stays cleared.
+  /// Google place IDs (stored as-is) or Kakao ids stored as "kakao:<id>". Opaque IDs made of
+  /// URL-safe ASCII only; no other prefix is accepted.
+  static func isValidPlaceId(_ id: String) -> Bool {
+    let body = id.hasPrefix("kakao:") ? String(id.dropFirst("kakao:".count)) : id
+    guard !body.isEmpty, id.count <= 256 else { return false }
+    return body.unicodeScalars.allSatisfy {
+      ($0.isASCII && CharacterSet.alphanumerics.contains($0)) || $0 == "_" || $0 == "-"
+    }
+  }
+
+  /// Stores only the provider place ID for a stored visit. Tags and 50 m matching are untouched.
+  func setVisitPlace(visitId: Int64, placeId: String) throws {
+    guard Self.isValidPlaceId(placeId) else { throw VisitStoreError.invalidName }
+    try queue.sync {
+      let db = try readyDB()
+      guard let stmt = prepare(db, "SELECT 1 FROM visits WHERE id = ?;", [.int(visitId)])
+      else { throw message(db) }
+      let found = sqlite3_step(stmt) == SQLITE_ROW
+      sqlite3_finalize(stmt)
+      guard found else { throw VisitStoreError.notFound }
+      guard run(
+        db,
+        "INSERT OR REPLACE INTO visit_places (visit_id, google_place_id, chosen_at) VALUES (?, ?, ?);",
+        [.int(visitId), .text(placeId), .double(Date().timeIntervalSince1970)]
+      ) else { throw message(db) }
+    }
+  }
+
+  func clearVisitPlace(visitId: Int64) throws {
+    try queue.sync {
+      let db = try readyDB()
+      guard run(db, "DELETE FROM visit_places WHERE visit_id = ?;", [.int(visitId)])
+      else { throw message(db) }
+    }
+  }
+
   func clearVisitTag(visitId: Int64) throws {
     try queue.sync {
       let db = try readyDB()
