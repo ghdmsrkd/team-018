@@ -1,0 +1,20 @@
+[
+  {
+    "id": -1,
+    "latitude": 12.34567,
+    "longitude": -45.6789,
+    "horizontalAccuracy": 35,
+    "arrivalAt": 1894698000000,
+    "departureAt": 1894707000000,
+    "receivedAt": 1894707720000
+  },
+  {
+    "id": -2,
+    "latitude": -23.45678,
+    "longitude": 67.89012,
+    "horizontalAccuracy": 80,
+    "arrivalAt": 1894713300000,
+    "departureAt": null,
+    "receivedAt": 1894714020000
+  }
+]
