@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HARU · Kiro비컴휴먼</title>
-<meta name="description" content="기록하지 않아도 기억되는 하루. 위치·사진·시간으로 하루를 자동 기록하고, 물어보면 찾아 주는 개인 라이프로그 앱.">
+<meta name="description" content="물어보면 찾아 주는 내 삶의 검색엔진. 위치·사진·시간으로 하루를 자동 기록하고, 물어보면 찾아 주는 개인 라이프로그 앱.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
 <style>
 :root {
@@ -45,34 +45,10 @@ h2 em { font-style: normal; color: var(--blue); }
 .punch span { color: var(--blue); }
 
 
-/* 숫자 찾기 */
-.hunt-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
-.timer { font-family: var(--num); font-weight: 700; font-size: clamp(40px, 5vw, 72px); line-height: 1; color: var(--orange-ink); font-variant-numeric: tabular-nums; }
-.timer small { display: block; font-family: 'IBM Plex Sans KR', sans-serif; font-size: 13px; font-weight: 500; color: var(--muted); text-align: right; margin-bottom: 4px; }
-.board { flex: 1; min-height: 0; margin-top: 2vh; display: flex; }
-.board svg { width: 100%; height: 100%; display: block; overflow: visible; }
-.board .gl { stroke: var(--blue); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1200; stroke-dashoffset: 1200; }
-.slide.on .board.grid .gl { animation: draw 1s ease-out .5s forwards; }
-.board .n { transition: fill .2s; }
-.board .n.hit { fill: var(--blue); }
-.board .mark { fill: none; stroke: var(--orange); stroke-width: 5; stroke-dasharray: 600; stroke-dashoffset: 600; animation: circle .45s ease-out forwards; }
-@keyframes circle { to { stroke-dashoffset: 0; } }
-@keyframes draw { to { stroke-dashoffset: 0; } }
 @keyframes fade { to { opacity: 1; } }
 .reveal { margin-top: 1.5vh; font-size: clamp(18px, 2vw, 28px); font-weight: 700; opacity: 0; min-height: 1.4em; }
 .slide.done .reveal { animation: fade .6s ease-out .2s forwards; }
 .reveal span { color: var(--blue); }
-
-/* 숫자 찾기: 눌러서 찾기 */
-#board-a .n { cursor: pointer; stroke: transparent; stroke-width: 22px; pointer-events: all; }
-#board-a .n:hover { opacity: .75; }
-#board-a .n.miss { fill: #C2412D; animation: shake .35s; transform-box: fill-box; transform-origin: center; }
-@keyframes shake { 0%, 100% { translate: 0 0; } 25% { translate: -6px 0; } 75% { translate: 6px 0; } }
-.good { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 34px; fill: #2F8A5B; pointer-events: none; animation: rise .9s ease-out forwards; }
-@keyframes rise { 0% { opacity: 0; translate: 0 6px; } 20% { opacity: 1; } 100% { opacity: 0; translate: 0 -36px; } }
-.next-n { font-size: 14px; color: var(--muted); text-align: right; margin-top: 6px; }
-.next-n b { font-family: var(--num); font-size: 26px; color: var(--blue); margin-left: 4px; }
-.hunt-done .timer { color: #2F8A5B; }
 
 /* 삶 분류 */
 .life { position: relative; flex: 1; min-height: 0; margin-top: 2vh; }
@@ -184,36 +160,20 @@ body.static .bar, body.static .keys { display: none; }
 <main class="deck" id="deck">
 
   <!-- 0. 표지 -->
-  <section class="slide cover" data-act="0" data-note="안녕하세요, 키로톤에 참가한 Kiro비컴휴먼 팀입니다. 저희가 만든 앱은 'HARU'입니다. 한 줄로 말하면, 기록하지 않아도 기억되는 하루. 지금부터 왜 이 앱이 필요한지, 무엇이 다른지, 그리고 실제로 어떻게 동작하는지 보여드리겠습니다.">
+  <section class="slide cover" data-act="0" data-note="안녕하세요, 키로톤에 참가한 Kiro비컴휴먼 팀입니다. 저희가 만든 앱은 'HARU'입니다. 한 줄로 말하면, 물어보면 찾아 주는 내 삶의 검색엔진입니다. 지금부터 왜 이 앱이 필요한지, 무엇이 다른지, 그리고 실제로 어떻게 동작하는지 보여드리겠습니다.">
     <span class="brand">KIROTHON · Kiro비컴휴먼</span>
     <h1>HARU<span>.</span></h1>
-    <div class="sub">기록하지 않아도 <b>기억되는</b> 하루</div>
-    <div class="meta"><span>위치 · 사진 · 시간 자동 기록</span><span>AI가 "무엇을 했나" 정리</span><span>물어보면 찾아 주는 내 삶의 검색엔진</span></div>
+    <div class="sub">물어보면 찾아 주는 <b>내 삶의 검색엔진</b></div>
+    <div class="meta"><span>입력 없이 자동 기록</span><span>머문 곳을 칸으로 분류</span><span>물어보면 근거와 함께 답</span></div>
     <svg class="orbit" viewBox="0 0 400 400" aria-hidden="true" id="cover-ring"></svg>
   </section>
 
-  <!-- 1-a. 숫자 찾기 (칸 없음) -->
-  <section class="slide" data-act="1" id="hunt" data-note="시작하기 전에 하나만 해 보겠습니다. 화면에 1부터 27까지 숫자가 흩어져 있습니다. 1부터 차례대로 찾아보세요. 화면의 숫자를 순서대로 누르면 Good!이 뜹니다. 1, 2, 3… 생각보다 오래 걸리죠? 숫자는 다 있는데, 어디에 있는지 모르니까 하나하나 훑어봐야 합니다.">
-    <div class="hunt-head">
-      <div><div class="act"><b>01</b> 동기부여</div><h2>1부터 27까지, <em>순서대로</em> 찾아보세요</h2></div>
-      <div><div class="timer" id="timer"><small>걸린 시간</small><span>0.0</span>초</div><div class="next-n" id="next-n">다음 숫자<b>1</b></div></div>
-    </div>
-    <div class="board"><svg id="board-a" viewBox="0 0 1200 640" preserveAspectRatio="xMidYMid meet" aria-label="1부터 27까지 흩어진 숫자"></svg></div>
-  </section>
-
-  <!-- 1-b. 칸 보여주기 -->
-  <section class="slide" data-act="1" id="grid" data-note="똑같은 화면에 선만 그어 보겠습니다. 숫자 위치는 하나도 바뀌지 않았습니다. 이렇게 하면 규칙이 보이시나요? (잠시 멈춘 뒤 → 키) 1부터 9까지 동그라미를 쳐 보겠습니다. 1은 첫 번째 칸, 2는 두 번째 칸, 3은 세 번째 칸… 9는 마지막 칸. 칸마다 하나씩 들어 있습니다. 그다음 10은 다시 첫 번째 칸이죠. 칸만 생겨도 바로 찾을 수 있습니다. 정보가 아무리 많아도 나뉘어 있으면 찾을 수 있고, 나뉘어 있지 않으면 못 찾습니다. 우리의 하루도 똑같습니다.">
-    <div><div class="act"><b>01</b> 동기부여</div><h2>이렇게 하면 <em>규칙</em>이 보이시나요?</h2></div>
-    <div class="board grid"><svg id="board-b" viewBox="0 0 1200 640" preserveAspectRatio="xMidYMid meet" aria-label="같은 숫자를 9칸으로 나눈 화면"></svg></div>
-    <div class="reveal">정보가 같아도, <span>나뉘어 있으면 찾을 수 있습니다.</span> 우리의 하루도 마찬가지입니다.</div>
-  </section>
-
   <!-- 1-c. 삶도 분류하면 선명해진다 -->
-  <section class="slide" data-act="1" id="life" data-note="우리의 하루도 이 숫자판과 같습니다. 카페에 간 것, 야근한 것, 속초 바다를 본 것. 기억은 다 남아 있지만 이렇게 흩어져 있으면 아무것도 보이지 않습니다. (→ 키) 그런데 칸을 나누면 어떨까요. 집, 회사, 밥집, 커피, 운동, 여행. 같은 기억인데, 나뉘는 순간 내가 어디에 시간을 쓰는지 선명하게 보입니다. 삶도 분류하면 더 명확하게 살 수 있습니다. HARU는 이 칸을 대신 나눠 주는 앱입니다.">
+  <section class="slide" data-act="1" id="life" data-note="작년 이맘때 뭐 하셨는지 바로 찾을 수 있나요? 카페에 간 것, 야근한 것, 속초 바다를 본 것. 기억은 다 폰 어딘가에 남아 있지만, 이렇게 흩어져 있으면 찾을 수가 없습니다. (→ 키) 그런데 칸을 나누면 어떨까요. 집, 회사, 밥집, 커피, 운동, 여행. 같은 기억인데 나뉘는 순간 바로 찾을 수 있고, 내가 어디에 시간을 쓰는지도 선명하게 보입니다. HARU는 이 칸을 대신 나눠 두었다가, 물어보면 찾아 줍니다. 내 삶의 검색엔진입니다.">
     <div class="act"><b>01</b> 동기부여</div>
-    <h2 id="life-title">우리의 하루도 <em>흩어져</em> 있습니다</h2>
+    <h2 id="life-title">우리의 하루는 <em>흩어져</em> 있습니다</h2>
     <div class="life" id="life-board"></div>
-    <div class="reveal life-msg">삶도 나뉘어 있으면, <span>더 선명하게 보입니다.</span> HARU는 그 칸을 대신 나눠 줍니다.</div>
+    <div class="reveal life-msg">나뉘어 있으면 <span>바로 찾을 수 있습니다.</span> HARU는 칸을 대신 나누고, 물어보면 찾아 줍니다.</div>
   </section>
 
   <!-- 2. 한계와 차별점 -->
@@ -255,7 +215,7 @@ body.static .bar, body.static .keys { display: none; }
   </section>
 
   <!-- 4. 마무리 -->
-  <section class="slide" data-act="4" id="close" data-note="정리하겠습니다. HARU는 입력 없이 하루를 기록하고, 머문 곳에 의미를 붙이고, 사진과 영상을 그 장소에 묶고, 물어보면 근거와 함께 답합니다. 위치는 가장 민감한 데이터이기 때문에, 데이터는 전부 폰에만 저장하고 AI에는 질문에 필요한 조회 결과만 보냅니다. 오른쪽은 실제 시연 영상입니다. 기록하지 않아도 기억되는 하루. HARU였습니다. 감사합니다.">
+  <section class="slide" data-act="4" id="close" data-note="정리하겠습니다. HARU는 입력 없이 하루를 기록하고, 머문 곳에 의미를 붙이고, 사진과 영상을 그 장소에 묶고, 물어보면 근거와 함께 답합니다. 위치는 가장 민감한 데이터이기 때문에, 데이터는 전부 폰에만 저장하고 AI에는 질문에 필요한 조회 결과만 보냅니다. 오른쪽은 실제 시연 영상입니다. 물어보면 찾아 주는 내 삶의 검색엔진, HARU였습니다. 감사합니다.">
     <div class="act"><b>04</b> 마무리</div>
     <h2>적지 않아도 쓰이는 일기, <em>내 삶의 검색엔진</em></h2>
     <div class="close-grid">
@@ -270,7 +230,7 @@ body.static .bar, body.static .keys { display: none; }
       </div>
       <div>
         <div class="video" id="video"><video controls preload="metadata" playsinline src="media/demo.mp4"></video><div class="ph"><b>시연 영상</b><span>녹화한 영상을 아래 경로에 넣으면 여기서 재생됩니다</span><code>site/media/demo.mp4</code></div></div>
-        <div class="final">기록하지 않아도 기억되는 하루, <span>HARU</span>.</div>
+        <div class="final">물어보면 찾아 주는 내 삶의 검색엔진, <span>HARU</span>.</div>
       </div>
     </div>
   </section>
@@ -279,7 +239,7 @@ body.static .bar, body.static .keys { display: none; }
 
 <div class="bar">
   <div class="acts" id="acts">
-    <button type="button" data-go="0">표지</button><button type="button" data-go="1">1 동기</button><button type="button" data-go="4">2 차별점</button><button type="button" data-go="5">3 시현</button><button type="button" data-go="6">4 마무리</button>
+    <button type="button" data-go="0">표지</button><button type="button" data-go="1">1 동기</button><button type="button" data-go="2">2 차별점</button><button type="button" data-go="3">3 시현</button><button type="button" data-go="4">4 마무리</button>
   </div>
   <div class="prog"><i id="prog"></i></div>
   <span class="keys">← → 넘기기 · N 대본</span>
@@ -367,8 +327,6 @@ let go = function (i) {
   const act = +slides[cur].dataset.act;
   document.querySelectorAll('#acts button').forEach(b => b.setAttribute('aria-current', +slides[+b.dataset.go].dataset.act === act));
   if (slides[cur].id === 'demo') sendStep(); else setNote(slides[cur].dataset.note);
-  if (slides[cur].id === 'hunt') { if (typeof resetHunt === 'function') resetHunt(); if (!STATIC) startTimer(); } else stopTimer();
-  if (typeof resetGrid === 'function') resetGrid();
   if (typeof placeLife === 'function' && window.LIFE_CHIPS) placeLife(false);
   const total = slides.length - 1 + STEPS.length - 1;
   const pos = cur < DEMO ? cur : cur === DEMO ? DEMO + step : total;
@@ -377,14 +335,11 @@ let go = function (i) {
 }
 function next() {
   if (slides[cur].id === 'life' && lifeStep === 0) return placeLife(true);
-  if (slides[cur].id === 'grid' && gridStep === 0) return playGrid();
-  if (slides[cur].id === 'grid' && gridStep === 1) return finishGrid();
   if (slides[cur].id === 'demo' && step < STEPS.length - 1) { step++; return go(cur); }
   go(cur + 1);
 }
 function prev() {
   if (slides[cur].id === 'life' && lifeStep === 1) return placeLife(false);
-  if (slides[cur].id === 'grid' && gridStep > 0) return resetGrid();
   if (slides[cur].id === 'demo' && step > 0) { step--; return go(cur); }
   if (slides[cur - 1] && slides[cur - 1].id === 'demo') step = STEPS.length - 1;
   go(cur - 1);
@@ -434,102 +389,6 @@ vid.addEventListener('error', () => vbox.classList.add('missing'));
 fetch(vid.getAttribute('src'), { method: 'HEAD' }).then(r => { if (!r.ok) vbox.classList.add('missing'); }).catch(() => vbox.classList.add('missing'));
 
 
-// 숫자 찾기: 칸마다 하나씩 차례로 넣는다. 1번 칸 = 1 · 10 · 19, 2번 칸 = 2 · 11 · 20 … 칸 안에서 위치 · 크기 · 기울기는 제각각
-(function boards() {
-  let seed = 11;
-  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  const W = 400, H = 213.3, cells = [], meta = [];
-  const order = [0, 1, 2, 3, 4, 5, 6, 7, 8];
-  let nums = '';
-  order.forEach(ci => {
-    const cx = (ci % 3) * W, cy = Math.floor(ci / 3) * H;
-    cells.push([cx, cy]);
-    // 칸 하나에 숫자 3개: 칸을 3구역으로 나눠 겹치지 않게 흩뿌린다
-    const slots = [0.18, 0.5, 0.82].sort(() => rnd() - .5);
-    for (let k = 0; k < 3; k++) {
-      const n = ci + 1 + k * 9;
-      const size = 34 + Math.round(rnd() * 86);
-      const x = cx + W * Math.min(.86, Math.max(.14, slots[k] + (rnd() - .5) * .2));
-      const y = cy + Math.min(H - 12, Math.max(34 + size * .72, H * (.1 + rnd() * .85) + size * .35));
-      const rot = Math.round((rnd() - .5) * 30);
-      const shade = ['#16191D', '#3D444B', '#5A6168', '#2B3138'][Math.floor(rnd() * 4)];
-      const weight = rnd() > .5 ? 700 : 500;
-      meta[n] = [x, y - size * .35, size];
-      nums += `<text class="n" data-n="${n}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" font-family="Barlow Condensed, sans-serif" font-weight="${weight}" font-size="${size}" fill="${shade}" transform="rotate(${rot} ${x.toFixed(1)} ${(y - size * .35).toFixed(1)})">${n}</text>`;
-    }
-  });
-  document.getElementById('board-a').innerHTML = nums;
-  const lines = [
-    `<line class="gl" x1="400" y1="8" x2="400" y2="632"/>`, `<line class="gl" x1="800" y1="8" x2="800" y2="632"/>`,
-    `<line class="gl" x1="8" y1="213.3" x2="1192" y2="213.3"/>`, `<line class="gl" x1="8" y1="426.6" x2="1192" y2="426.6"/>`
-  ].join('');
-  document.getElementById('board-b').innerHTML = lines + nums + '<g id="marks"></g>';
-  window.HUNT_META = meta;
-})();
-
-// 칸 화면: → 를 누르면 1부터 9까지 하나씩 동그라미를 친다
-const CIRCLE_TO = 9;
-let gridStep = 0, gridTid = 0;
-function circleAt(n) {
-  const [x, y, size] = HUNT_META[n];
-  const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  c.setAttribute('class', 'mark'); c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', Math.max(30, size * .62));
-  document.getElementById('marks').appendChild(c);
-  document.querySelector(`#grid .n[data-n="${n}"]`).classList.add('hit');
-}
-function resetGrid() {
-  clearInterval(gridTid); gridStep = 0;
-  const sl = document.getElementById('grid'); sl.classList.remove('done');
-  sl.querySelectorAll('.n').forEach(t => t.classList.remove('hit'));
-  document.getElementById('marks').innerHTML = '';
-}
-function finishGrid() {
-  clearInterval(gridTid);
-  for (let n = document.querySelectorAll('#marks .mark').length + 1; n <= CIRCLE_TO; n++) circleAt(n);
-  document.getElementById('grid').classList.add('done'); gridStep = 2;
-}
-function playGrid() {
-  resetGrid(); gridStep = 1;
-  let n = 0;
-  gridTid = setInterval(() => { n++; if (n > CIRCLE_TO) return finishGrid(); circleAt(n); }, 700);
-}
-
-// 타이머
-let t0 = 0, tid = 0;
-function startTimer() { stopTimer(); t0 = performance.now(); const el = document.querySelector('#timer span'); tid = setInterval(() => el.textContent = ((performance.now() - t0) / 1000).toFixed(1), 100); }
-function stopTimer() { clearInterval(tid); }
-
-// 숫자 찾기: 순서대로 누르면 Good!
-let want = 1;
-function resetHunt() {
-  want = 1;
-  const sl = document.getElementById('hunt'); sl.classList.remove('hunt-done');
-  sl.querySelectorAll('.n').forEach(t => t.classList.remove('hit', 'miss'));
-  sl.querySelectorAll('.good').forEach(g => g.remove());
-  document.getElementById('next-n').innerHTML = '다음 숫자<b>1</b>';
-  document.querySelector('#timer span').textContent = '0.0';
-}
-document.getElementById('board-a').addEventListener('click', e => {
-  const t = e.target.closest('.n'); if (!t) return;
-  const n = +t.dataset.n, svg = document.getElementById('board-a');
-  if (t.classList.contains('hit')) return;
-  if (n !== want) { t.classList.remove('miss'); void t.getBBox(); t.classList.add('miss'); setTimeout(() => t.classList.remove('miss'), 400); return; }
-  t.classList.add('hit');
-  const [x, y, size] = HUNT_META[n];
-  const g = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-  g.setAttribute('class', 'good'); g.setAttribute('x', x); g.setAttribute('y', y - size * .55); g.setAttribute('text-anchor', 'middle');
-  g.textContent = want === 27 ? 'Perfect!' : 'Good!';
-  svg.appendChild(g); setTimeout(() => g.remove(), 950);
-  want++;
-  if (want > 27) {
-    stopTimer();
-    document.getElementById('hunt').classList.add('hunt-done');
-    document.getElementById('next-n').innerHTML = '<b style="color:#2F8A5B">완료!</b>';
-  } else {
-    document.getElementById('next-n').innerHTML = `다음 숫자<b>${want}</b>`;
-  }
-});
-
 // 삶 분류: 흩어진 기억 → → 키로 태그 칸에 정리
 const LIFE = [
   ['집', '#2B3138', ['일요일 늦잠', '밤 11시 귀가', '집에서 영화']],
@@ -574,7 +433,7 @@ function placeLife(sorted) {
     el.style.transform = sorted ? 'none' : `rotate(${ch.rot}deg)`;
   });
   document.getElementById('life').classList.toggle('sorted-done', sorted);
-  document.getElementById('life-title').innerHTML = sorted ? '삶도 <em>칸</em>을 나누면 선명해집니다' : '우리의 하루도 <em>흩어져</em> 있습니다';
+  document.getElementById('life-title').innerHTML = sorted ? '칸을 나누면 <em>찾을 수 있습니다</em>' : '우리의 하루는 <em>흩어져</em> 있습니다';
   lifeStep = sorted ? 1 : 0;
 }
 
@@ -582,7 +441,7 @@ if (STATIC) {
   document.body.classList.add('static');
   if (PARAMS.has('step')) step = Math.max(0, Math.min(STEPS.length - 1, +PARAMS.get('step') - 1));
   const _go = go;
-  go = i => { _go(i); if (slides[cur].id === 'grid') finishGrid(); if (slides[cur].id === 'life') placeLife(true); };
+  go = i => { _go(i); if (slides[cur].id === 'life') placeLife(true); };
 }
 const start = parseInt((location.hash || '#0').slice(1), 10);
 go(Number.isFinite(start) ? start : 0);
