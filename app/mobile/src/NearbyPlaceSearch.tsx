@@ -88,7 +88,10 @@ export function NearbyPlaceSearch({ visit, reason, onSaved }: Props) {
   const unlink = async () => {
     setError(null);
     try {
-      await visitMonitor.clearVisitPlace(visit.id);
+      // Also clear merged duplicate rows, or their stored ID would reappear on this stay.
+      await Promise.all(
+        [visit.id, ...(visit.mergedVisitIds ?? [])].map(id => visitMonitor.clearVisitPlace(id)),
+      );
       setPicked(null);
       setSavedId(null);
       onSaved?.();

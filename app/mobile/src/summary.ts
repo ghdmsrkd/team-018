@@ -71,14 +71,24 @@ export function normalizeVisits(visits: Visit[], now: number): Stay[] {
   const done = visits.filter(v => v.departureAt != null);
   const open = visits.filter(v => v.departureAt == null);
   const tagOverride = new Map<number, Visit['tag']>();
+  const placeOverride = new Map<number, string>();
+  const merged = new Map<number, number[]>();
+  const mergeInto = (target: number, from: Visit) => {
+    merged.set(target, [...(merged.get(target) ?? []), from.id, ...(merged.get(from.id) ?? [])]);
+  };
 
   const keptOpen: Visit[] = [];
   for (const o of open) {
     const match = done.find(d => duplicates(o, d));
     if (match) {
+      // Edits made while only the arrival row existed must survive the completed row.
       if (!match.tag && o.tag && !tagOverride.has(match.id)) {
         tagOverride.set(match.id, o.tag);
       }
+      if (!match.googlePlaceId && o.googlePlaceId && !placeOverride.has(match.id)) {
+        placeOverride.set(match.id, o.googlePlaceId);
+      }
+      mergeInto(match.id, o);
       continue;
     }
     const twin = keptOpen.findIndex(
@@ -88,9 +98,16 @@ export function normalizeVisits(visits: Visit[], now: number): Stay[] {
         Math.abs(k.arrivalAt - o.arrivalAt) <= SAME_ARRIVAL_MS,
     );
     if (twin >= 0) {
-      if (o.receivedAt > keptOpen[twin].receivedAt) {
-        keptOpen[twin] = o;
+      const [keep, drop] =
+        o.receivedAt > keptOpen[twin].receivedAt ? [o, keptOpen[twin]] : [keptOpen[twin], o];
+      if (!keep.tag && drop.tag && !tagOverride.has(keep.id)) {
+        tagOverride.set(keep.id, drop.tag);
       }
+      if (!keep.googlePlaceId && drop.googlePlaceId && !placeOverride.has(keep.id)) {
+        placeOverride.set(keep.id, drop.googlePlaceId);
+      }
+      mergeInto(keep.id, drop);
+      keptOpen[twin] = keep;
       continue;
     }
     keptOpen.push(o);
@@ -104,7 +121,12 @@ export function normalizeVisits(visits: Visit[], now: number): Stay[] {
   return rows.map(v => {
     const tagged = v.tag ?? tagOverride.get(v.id) ?? null;
     const tag = tagged?.name ?? UNTAGGED;
-    const visit = tagged === v.tag ? v : { ...v, tag: tagged };
+    const place = v.googlePlaceId ?? placeOverride.get(v.id) ?? null;
+    const ids = merged.get(v.id);
+    const visit =
+      tagged === v.tag && place === (v.googlePlaceId ?? null) && !ids
+        ? v
+        : { ...v, tag: tagged, googlePlaceId: place, mergedVisitIds: ids };
     const a = v.arrivalAt;
     const d = v.departureAt;
     if (d != null) {
